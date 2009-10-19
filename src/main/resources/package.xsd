@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://www.jboss.org/schema"
+        xmlns:jboss="http://www.jboss.org/schema">
+
+    <xs:element name="package" type="jboss:packageType">
+        <xs:annotation>
+            <xs:documentation>
+                A package represents a collection of files that are to be installed into
+                the JBoss AS.
+                A package can optionally have dependencies on other packages.
+                A package can also optionally specify system requirements (example: A package might require a JBoss AS
+                5.1.0 version of the server)
+                A package also has optional pre-install, post-install, pre-uninstall, post-uninstall scripts
+
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:complexType name="packageType">
+
+            <xs:sequence>
+                <xs:element name="system-requirements" minOccurs="0" maxOccurs="1" type="jboss:system-requirementsType"/>
+                <xs:element name="file" minOccurs="1" maxOccurs="unbounded" type="jboss:fileType"/>
+                <xs:element name="dependencies" minOccurs="0" maxOccurs="1" type="jboss:dependenciesType"/>
+                <xs:element name="pre-install" minOccurs="0" maxOccurs="1" type="jboss:pre-installType"/>
+                <xs:element name="post-install" minOccurs="0" maxOccurs="1" type="jboss:post-installType"/>
+            </xs:sequence>
+            <xs:attribute name="name" use="required" type="xs:string"/>
+            <xs:attribute name="version" use="required" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="system-requirementsType">
+        
+    </xs:complexType>
+
+    <xs:complexType name="fileType">
+         <xs:annotation>
+             <xs:documentation>
+                 A file element contains the information of the source and destination of the file to be installed.
+                 The src-path of the file is always relative to the location of the package.xml within a package.
+                 The dest-path of the file is always relative to the JBoss AS server home (JBOSS_HOME).
+                 A file can be of type library or config or script file.
+             </xs:documentation>
+         </xs:annotation>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="src-path" type="xs:string" use="optional"/>
+        <xs:attribute name="dest-path" type="xs:string" use="required"/>
+        <xs:attribute name="type" use="optional">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="config"/>
+                    <xs:enumeration value="library"/>
+                    <xs:enumeration value="script"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="dependenciesType">
+        <xs:annotation>
+            <xs:documentation>
+                A package can have dependencies on other packages. Dependencies are configured in
+                separate files. The dependencies element just points to that file. The file path is
+                relative to the location of the package.xml within a package.
+                Optionally a dependency manager can be specified through the
+                "manager" attribute. The manager attribute should contain the fully qualified class name
+                of the dependency manager which is responsible for parsing the dependencies file and
+                managing the dependencies listed in that file. The class should implement the
+                org.jboss.ejb3.packagemanager.dependency.DependencyManager interface.
+                By default, org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager will be
+                used as the dependency manager.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="file" type="xs:string" use="required"/>
+        <xs:attribute name="manager" type="xs:string" use="optional"
+                      default="org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager"/>
+    </xs:complexType>
+
+
+    <xs:complexType name="pre-installType">
+        <xs:annotation>
+            <xs:documentation>
+                A pre-install element is used to point to pre-install scripts that
+                are to be run before installing the package. There can be any number
+                of pre-install scripts and they will be run in the same order as
+                they appear in the xml 
+            </xs:documentation>
+
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>    
+        </xs:sequence>
+
+    </xs:complexType>
+
+    <xs:complexType name="post-installType">
+        <xs:annotation>
+            <xs:documentation>
+                A post-install element is used to point to post-install scripts that
+                are to be run after installing the package. There can be any number
+                of post-install scripts and they will be run in the same order as
+                they appear in the xml
+            </xs:documentation>
+
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="scriptType">
+        <xs:annotation>
+            <xs:documentation>
+                A script element points to a file containing a script.
+                The file attribute of this element should contain the path of the script, relative to the location of
+                package.xml in the package.
+                The processor attribute of a script can be used to specify the fully qualified name of the
+                class which implements the org.jboss.ejb3.packagemanager.script.ScriptProcessor interface.
+                By default the processor of a script is the Ant processor
+                (org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor) which processes Ant build script
+
+            </xs:documentation>
+
+        </xs:annotation>
+        <xs:attribute name="file" type="xs:string" use="required"/>
+        <xs:attribute name="processor" type="xs:string" use="optional"
+                      default="org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor"/>
+    </xs:complexType>
+
+</xs:schema>

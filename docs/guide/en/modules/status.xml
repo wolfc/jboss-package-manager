@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<chapter id="status">
+    <title>Current status</title>
+    <sect1>
+        <title>What's the current state of JBoss Package Manager?</title>
+        <para>
+            There's still lots to be done in the JBoss Package Manager. The current state of JBoss Package Manager
+            has the very basic implementation of installing a package. It's currently in a PoC state and more
+            functionality is being worked on.
+        </para>
+        <para>
+            Some of features/functionalities that need to be thought about, but not limited to, are:
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        Dependency Management implementation through Ivy
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        A simple database management which allows for maintaining/tracking installed package information
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Update/Remove(Un-Install) features
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Diff/Merging of configuration files and maybe checksum comparisons on files being installed
+                    </para>
+                </listitem>
+                
+            </itemizedlist>
+        </para>
+    </sect1>
+    <sect1>
+        <title>Enough of these docs, i need some action!</title>
+        <para>
+            In the next few days, i'll add a simple script which can be used to run the package manager. But right now,
+            you can try out the org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl.main(Stringp[] args)
+            method by passing it the appropriate arguments, listed in the previous sections.
+        </para>
+        <para>
+            You can also have a look at the org.jboss.ejb3.packagemanager.test.install.unit.BasicInstallTestCase to
+            see how the install works. That test case has been written with many comments to make sure that each step
+            is explained clearly. It covers almost all of the currently implemented functionality in the JBoss Package
+            Manager, including HTTP URL support. You can add your own tests there to try out the JBoss Package Manager.
+            To run the tests, use the following Maven command on the package-manager project root:
+            <programlisting>
+<![CDATA[
+mvn clean test
+]]>
+            </programlisting>
+            
+        </para>
+    </sect1>
+</chapter>

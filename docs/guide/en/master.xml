@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd"
+[
+<!ENTITY overview          SYSTEM "modules/overview.xml">
+<!ENTITY components         SYSTEM "modules/components.xml">
+<!ENTITY status         SYSTEM "modules/status.xml">
+]>
+<book lang="en">
+  <bookinfo>
+    <title>JBoss Package Manager</title>
+    <subtitle>A guide for using the JBoss Package Manager</subtitle>
+    <releaseinfo>1.0</releaseinfo>
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="Authors.xml"/>
+  </bookinfo>
+  <toc/>
+ <preface id="target" revision="1">
+    <title>Target Audience</title>
+    <para>This guide is meant for users who want to install/update/remove packages from a JBoss Application Server installation</para>
+  </preface>
+ 
+    &overview;
+    &components;
+    &status;
+</book>

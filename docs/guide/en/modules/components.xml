@@ -1,0 +1,513 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<chapter id="packagemanager_components">
+    <title>JBoss Package Manager Components</title>
+    <para>
+        So let's see what the JBoss Package Manager comprises of.
+    </para>
+    <sect1>
+        <title>Package</title>
+        <para>
+            A "package" is nothing more than a .jar file (or a .zip file) which in-turn contains the set of files that
+            are required for a particular service to be made available within the JBoss Application Server. A package
+            is expected to contain a file named package.xml at the root of the package. The package.xml contains all the
+            necessary information about the package which it represents. A package can contain libraries (.jar files)
+            or configuration files (.xml files) or script files (.bat, .sh) or anything else. Expect for the presence of
+            the "package.xml" file, a package is not restricted to contain any other files that might be required in that
+            package.
+        </para>
+        <para>
+            As we mentioned in our earlier sections, installing a package is equivalent to adding a new service to the
+            application server. And since services are nothing more than a set of files, a package is expected to contain
+            those set of files to be installed. These files are listed in the package.xml through the &lt;file&gt;
+            element. In a later section, we will go into the details about this &lt;file&gt; element. A package can also
+            specify dependencies on other packages. These dependencies are externalized from the package.xml and are
+            listed in a separate file within the package. The name, structure and the location of the file listing these
+            dependencies isn't restricted - except that it should be located within the package. The package.xml will
+            then just point to this dependencies file through the &lt;dependencies&gt; element. This will looked in greater
+            detail, in a later section.
+        </para>
+        <para>
+            When the package manager installs/uninstalls a package, it allows the packages to do some pre-install, post-install,
+            pre-uninstall, post-uninstall activities. The package manager allows the package to run scripts during either
+            or all of these phases. The package.xml, through &lt;pre-install&gt;, &lt;post-install&gt;, &lt;pre-uninstall&gt; and
+            &lt;post-uninstall&gt;, elements allows the package to specify such scripts.
+        </para>
+        <para>
+            Apart from dependencies on other packages, a package might have some restriction on the systems where this
+            package can be installed. For example, a package XYZ, might only work against JBoss AS-5.1.0 version. Such
+            requirements can also be declared in a package.xml file through the use of &lt;system-requirements&gt; element.
+        </para>
+        <para>
+            Now let's see each of these elements in the package.xml in detail.
+            <note>
+                <para>
+                    The xsd for package.xml is available at http://anonsvn.jboss.org/repos/jbossas/projects/ejb3/trunk/package-manager/src/main/resources/package.xsd
+                </para>
+            </note>
+        </para>
+        <sect2>
+            <title>&lt;file&gt; element in the package.xml</title>
+            <para>
+                A &lt;file&gt; element is the minimal content that's expected in a package.xml (other than the name of
+                the package and it's version). The file element declares the file within that package which has to be
+                installed into the server. The file element has the following attributes:
+                <informaltable frame="all">
+                    <tgroup cols='4' colsep="1" rowsep="1">
+                        <colspec colwidth='0.5in'/>
+                        <thead>
+                            <row>
+                                <entry>Attribute Name</entry>
+                                <entry>Mandatory/Optional</entry>
+                                <entry>Default Value</entry>
+                                <entry>Details</entry>
+                            </row>
+                        </thead>
+
+                        <tbody>
+                            <row>
+                                <entry>name</entry>
+                                <entry>Mandatory</entry>
+                                <entry></entry>
+                                <entry>This is the name of the file within the package</entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>src-path</entry>
+                                <entry>Optional</entry>
+                                <entry></entry>
+                                <entry>
+                                    The value for this attribute, specifies the relative path of the file within this package.
+                                    If the file is located at the root of this package, then the src-path need not be specified.
+                                    If however, the file is located within a sub-folder (eg: lib) of the package, then
+                                    the value for the src-path should be set to "lib".
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>dest-path</entry>
+                                <entry>Mandatory</entry>
+                                <entry></entry>
+                                <entry>
+                                    The value for this attribute, specifies the path relative to the JBoss Application Server
+                                    Home directory. It mandatory to specify this value, because it's the package which
+                                    knows where this file has to be installed within the application server. For example,
+                                    if the file is= to be installed to JBOSS_HOME/common/lib folder, then the value of
+                                    the dest-path should be set to "common/lib".
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>type</entry>
+                                <entry>Optional</entry>
+                                <entry></entry>
+                                <entry>
+                                    The value of this attribute, specifies the type of this file. Allowed values are
+                                    "config", "library" and "script". This attribute is optional and is only useful
+                                    if the package manager is able to handle each of these file types differently.
+                                    For example, for "config" type of files, if the package manager is able to support
+                                    diff/merge support, then setting this attribute makes sense.
+                                    <para>
+                                        In it's current form, the package manager treats all types of files in the same
+                                        way and the file type does not play an role.
+                                    </para>
+                                </entry>
+                            </row>
+                        </tbody>
+
+                    </tgroup>
+                </informaltable>
+
+            </para>
+            <para>
+                A single package can have multiple files to be installed and hence the package.xml allows multiple &lt;file&gt;
+                file elements. It however mandates that there be at-least one file to be installed.
+            </para>
+            <sect3>
+                <title>Example usage of &lt;file&gt;</title>
+                <para>
+                    Here's an example on how you can use the file element in the package.xml:
+                    <programlisting>
+<![CDATA[
+<package name="jboss-ejb3-nointerface" version="1.0.0-Alpha1">
+
+    <!--  Package to install a dummy jar into JBOSS_AS/common/lib -->
+  <file name="dummy.jar" dest-path="common/lib" />
+
+
+</package>
+]]>
+                    </programlisting>
+                </para>
+                <para>
+                    One more example on how you can use the file element in the package.xml:
+                    <programlisting>
+<![CDATA[
+<package name="jboss-ejb3-nointerface" version="1.0.0-Alpha1">
+
+    <!--  Package to install a dummy jar into JBOSS_AS/common/lib -->
+  <file name="dummy.jar" dest-path="common/lib" />
+
+  <!--  Package to install a another jar into JBOSS_AS/server/default/deployers -->
+  <file name="mydeployer.jar" src-path="deployers" dest-path="server/default/deployers" />
+
+
+</package>
+]]>
+                    </programlisting>
+                </para>
+            </sect3>
+        </sect2>
+
+        <sect2>
+            <title>&lt;pre-install&gt;, &lt;post-install&gt; and other similar scripts</title>
+            <para>
+                A package can contain scripts which could be configured to run during the pre-install, post-install,
+                pre-uninstall and/or post-uninstall phases of a package installation/un-installation. The package.xml
+                allows for &lt;pre-install&gt;, &lt;post-install&gt;, &lt;pre-uninstall&gt; and &lt;post-uninstall&gt;
+                elements. Each of these elements can contain one or more &lt;script&gt; elements.
+                By default, a script file is an Ant build file containing some pre-defined targets. However, the
+                script element allows for any other script types to be used. The script element allows the "processor"
+                attribute to be set to a class which implements the org.jboss.ejb3.packagemanager.script.ScriptProcessor
+                interface. It's then upto that script processor implementation to process the script file. A pre-install,
+                post-install element can have multiple script and each script can be of a different type and can be
+                processed by different script processor implementations.
+            </para>
+            <para>
+                By default, the JBoss Package Manager uses org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor
+                which is capable of processing Ant build files. The Ant build file is expected to contain certain pre-defined
+                targets. The targets that are mandated in the Ant build script file, depend on the context in which the
+                script file is run. For example, if the script has to be run during the pre-install phase of the installation
+                of the package, then the file is expected to contain a target named "pre-install". Here's the entire
+                set of expected targets and the context when they are expected:
+                <informaltable frame="all">
+                    <tgroup cols='2' colsep="1" rowsep="1">
+                        <colspec colwidth='0.5in'/>
+                        <thead>
+                            <row>
+                                <entry>Target Name</entry>
+                                <entry>Context</entry>
+                            </row>
+                        </thead>
+
+                        <tbody>
+                            <row>
+                                <entry>pre-install</entry>
+                                <entry>This target is expected to be present in the Ant script, if the
+                                script is configured to run during the pre-install phase of the package
+                                installation.
+                                </entry>
+                                
+                            </row>
+                        </tbody>
+
+                        <tbody>
+                            <row>
+                                <entry>post-install</entry>
+                                <entry>This target is expected to be present in the Ant script, if the
+                                script is configured to run during the post-install phase of the package
+                                installation.
+                                </entry>
+
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>pre-uninstall</entry>
+                                <entry>This target is expected to be present in the Ant script, if the
+                                script is configured to run during the pre-uninstall phase of the package
+                                installation.
+                                </entry>
+
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>post-uninstall</entry>
+                                <entry>This target is expected to be present in the Ant script, if the
+                                script is configured to run during the post-uninstall phase of the package
+                                installation.
+                                </entry>
+
+                            </row>
+                        </tbody>
+                    </tgroup>
+                </informaltable>
+            </para>
+            <para>
+                A single Ant script file can be used for the various package installation phases, provided it
+                has the required targets in that single Ant build file. Furthermore, the JBoss Package Manager
+                guarantees that the following two Ant properties will be set by the package manager so that they can
+                be referenced within the build scripts:
+                <itemizedlist mark="opencircle">
+                    <listitem>
+                        <para>
+                            JBOSS_HOME - This property will point to the JBoss Application Server home folder against
+                            which this package manager is processing this package.
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            PM_HOME - This property will point to the JBoss Package Manager home folder.
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                The &lt;script&gt; element allows the following attributes:
+                <informaltable frame="all">
+                    <tgroup cols='4' colsep="1" rowsep="1">
+                        <colspec colwidth='0.5in'/>
+                        <thead>
+                            <row>
+                                <entry>Attribute Name</entry>
+                                <entry>Mandatory/Optional</entry>
+                                <entry>Default Value</entry>
+                                <entry>Details</entry>
+                            </row>
+                        </thead>
+
+                        <tbody>
+                            <row>
+                                <entry>script</entry>
+                                <entry>Mandatory</entry>
+                                <entry></entry>
+                                <entry>The value of this attribute, is the relative path to the script file (including
+                                the name of the file), within the package. The path is relative to the location of
+                                package.xml. For example, if the script file is named build.xml and is located at the root
+                                of the package (i.e. at the same level as package.xml), then the value of this attribute
+                                    should be set to "build.xml".
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>processor</entry>
+                                <entry>Optional</entry>
+                                <entry>org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor</entry>
+                                <entry>
+                                    The value for this attribute, specifies the fully qualified class name of the class
+                                    which implements the org.jboss.ejb3.packagemanager.script.ScriptProcessor. The
+                                    implementation class will then be allowed to process this script file. 
+                                </entry>
+                            </row>
+                        </tbody>
+                    </tgroup>
+                </informaltable>
+                
+            </para>
+
+            <sect3>
+                <title>Example usage of the &lt;pre-install&gt;, &lt;post-install&gt;</title>
+                <para>
+                    Following is an example usage of the pre-install, post-install scripts:
+                    <programlisting>
+<![CDATA[
+<package name="jboss-ejb3-nointerface" version="1.0.0-Alpha1">
+
+    <!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->
+  <file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
+
+    <!-- A couple of pre-install files for this package -->
+  <pre-install>
+    <!-- The default Ant script processor is used for this script -->
+    <script file="build.xml"/>
+    <!-- A custom script processor org.somepackage.DotShScriptProcessor
+    will be used to process the other.sh file which is located in the bin
+    sub-folder within the package
+    -->
+    <script file="bin/other.sh" processor="org.somepackage.DotShScriptProcessor"/>
+  </pre-install>
+
+    <!-- A post-install script -->
+  <post-install>
+    <!-- We use the same build.xml file that was used for pre-install,
+    because that build.xml can contain both pre-install and post-install
+    targets -->
+    <script file="build.xml"/>
+  </post-install>
+
+
+</package>
+]]>
+                    </programlisting>
+
+                    
+                </para>
+            </sect3>
+        </sect2>
+
+        <sect2>
+            <title>&lt;system-requirements&gt; element</title>
+            <para>
+                The &lt;system-requirements&gt; element in the package.xml allows the package to specify it's requirements.
+                This element currently just a place-holder. We have to think more about this, specifically what
+                kind of requirements the package is allowed to specify and how is the package manager going to check
+                whether the system where the package is being installed, satisfies those requirements. At the minimal,
+                probably the version of the JBoss Application Server can act as the system requirement. But again, that
+                would require some kind of non-trivial interaction with the application server to check the requirements.
+                Overall, this needs a bit more thinking. This section will be updated appropriately once we have decided
+                upon something.
+            </para>
+        </sect2>
+
+        <sect2>
+            <title>&lt;dependencies&gt; element</title>
+            <para>
+                As we have already mentioned various times in the document, a package usually has dependencies on other
+                packages. The &lt;dependencies&gt; element in the package.xml allows the package to point to a file
+                within the package which lists those dependencies.
+            </para>
+            <para>
+                The package.xml intentionally lets the dependencies to be specified in a separate file within the package,
+                whose location and format is not restricted. This allows for the various different ways in which the
+                dependencies can be listed and processed.
+            </para>
+            <para>
+                By default, the JBoss Package Manager expects the dependencies (if any) to be specified in a xml file
+                which is an Ivy dependency file. For any other type of dependencies file, the &lt;dependencies&gt;
+                element allows, through it's "manager" attribute to specify the fully qualified class name of the class
+                which implements the org.jboss.ejb3.packagemanager.dependency.DependencyManager interface.
+                This implementation of the "manager" will then be responsible for parsing and processing the
+                dependencies listed in the dependency file. By default, JBoss Package Manager uses the
+                org.jboss.ejb3.packagemanager.dependency.IvyDependencyManager for processing the dependency file.
+            </para>
+            <para>
+                A single package can have only one dependencies file, and hence only one dependency manager implementation,
+                listing all the dependencies in that single file.
+            </para>
+            <para>
+                TODO: More thinking and PoC has to be done around this and this section will be updated in the next
+                few days with more details and specific examples. Right now, this is work-in-progress (well, the entire
+                document is actually work-in-progress :-) )
+            </para>
+        </sect2>
+    </sect1>
+    
+    <sect1>
+        <title>Package Build tool</title>
+        <para>
+            As we have seen so far, an package is nothing more than a .jar/.zip file. Expect for the presence of the
+            package.xml in the package, the JBoss Package Manager does not add any other requirements/restrictions on
+            the package format or contents. As such, i personally, don't see any need for an new build tool which allows
+            to create the packages. Already existing tools (there are lots) like Ant build script or anything else
+            can always be used to create these packages.
+        </para>
+        <para>
+            But, if at some point of time, the requirement for such a build tool arises, then we will update this section
+            with the details.
+        </para>
+    </sect1>
+    <sect1>
+        <title>Package Manager</title>
+        <para>
+            Now that we have seen what a package contains and how to create a package, let's now see some details
+            around the JBoss Package Manager which processes these packages.
+        </para>
+        <sect2>
+            <title>Running the Package Manager</title>
+            <para>
+                Note that we currently don't have a script for the package manager. Until then, you can use the
+                org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl class and pass it the appropriate command
+                line arguments. This class has the "main" method which acts as an entry point for the package manager.
+                In it's current form, the JBoss Package Manager can handle the following options:
+                <informaltable frame="all">
+                    <tgroup cols='2' colsep="1" rowsep="1">
+                        <colspec colwidth='0.5in'/>
+                        <thead>
+                            <row>
+                                <entry>Option</entry>
+                                <entry>Description</entry>
+                            </row>
+                        </thead>
+
+                        <tbody>
+                            <row>
+                                <entry>-i</entry>
+                                <entry>The -i option can be used to install a package.
+                                    When the -i option is used, it expects the path to the package to be specified too.
+                                    See later section on what the valid values for path are.
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>-p</entry>
+                                <entry>This option right now is mandatory and it points to
+                                    the JBoss Package Manager home folder. The JBoss Package Manager folder can be
+                                    any folder on the file system. The package manager will use this as it working
+                                    environment and create, extract any of the files it needs to, while processing
+                                    packages.
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>-s</entry>
+                                <entry>
+                                    This option is mandatory and it points to home folder of JBoss Application Server,
+                                    to which this package manager is installing packages.
+                                </entry>
+                            </row>
+                        </tbody>
+                    </tgroup>
+                </informaltable>
+                <note>
+                    <para>
+                        None of these options have been finalized yet. This section will be updated appropriately when
+                        the final set of options is decided.
+                    </para>
+                </note>
+            </para>
+            
+        </sect2>
+        <sect2>
+            <title>Installing a Package</title>
+            <para>
+                To install a package you can pass the -i &lt;packagepath&gt; arguments to the package manager script.
+            </para>
+            <para>
+                The -i argument to the package manager is to let the package manager install a package. The -i argument
+                expects the path to the package manager to be specified. In it's current form, the JBoss Package Manager
+                can handle file:// protocol and http:// protocols. So the JBoss Package Manager, in it's current
+                form is able to work on package available either on the file system or through an HTTP URL.
+            </para>
+        </sect2>
+        <sect2>
+            <title>Removing a Package</title>
+            <para>
+                This is still work-in-progress. Details will be added soon.
+            </para>
+        </sect2>
+        <sect2>
+            <title>Updating a Package</title>
+            <para>
+                This is still work-in-progress. Details will be added soon.
+            </para>
+        </sect2>
+    </sect1>
+</chapter>
+

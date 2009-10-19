@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<chapter id="overview">
+    <title>Overview</title>
+    <sect1>
+        <title>What is JBoss Package Manager</title>
+        <para>
+            JBoss Package Manager is an utility to install, update or remove packages from a JBoss Application Server installation.
+        </para>
+    </sect1>
+    <sect1 id="motivation">
+        <title>Motivation</title>
+        <para>
+            To put in very simple terms, JBoss Application Server, or for that matter any application server is nothing
+            more than a collection of files which collectively provide various services. The files within the application
+            server are either scripts (eg: .bat, .sh), configuration files (eg: .xml) or library files (eg: .jar). The
+            application server provides an environment where various services can co-exist. The existence of each of these
+            services is controlled by the presence of the different type of files mentioned earlier.   
+        </para>
+        <para>
+            So ideally, a new service within the application server could be made available by adding appropriate files
+            required by that service, at the right place in the application server. Similar, is the case with removing
+            an existing service - the files that make up that service, could simply be removed from the application server
+            instance. To take this one step further, an existing service can be upgraded by updating the set of files that
+            make up the service.
+        </para>
+        <para>
+            In a real world, however, this is not so simple. So far, we just assumed that each of these services were
+            independent of each other. What happens if one service depends on some other service? For example, if Service
+            A depended on Service B and we decided to remove Service B from the server, Service A would no longer function.
+            Again, this is a very simple dependency scenario. Dependencies can be (or rather are) far more complicated.
+        </para>
+        <para>
+            If you think about all this, for a while, you will see that this is quite similar to an Operating System,
+            which hosts multiple applications/services/packages. It too is nothing more than a collection of files and these
+            files together govern the services within the operating system. An operating system too has to deal with exactly
+            the same issues that we talked about earlier (like dependencies, new service installations etc...).
+
+        </para>
+        <para>
+            We can thus consider the application server as a mini-operating system. If you look around, you would find that
+            operating systems provide tools to take care of these issues. Each operating system has its own tool or
+            terminology for such tools. Let's just simply call them package managers and let's henceforth call the "services",
+            that we have been talking about so far, as "packages". I guess, this much of an overview is enough to give an
+            idea about what we are trying to achieve with the JBoss Package Manager.
+            The rest of the documentation will only talk about the package manager for JBoss Application Server.
+            <important>
+                Although this utility is currently being developed under the EJBTHREE project, this in no way is tied
+                to be EJBTHREE specifies. If things turn out well, we could probably move it outside EJBTHREE project
+                and make it available to other JBoss projects which end up in JBoss Application Server as packages. But
+                that's still some way to go, so until then you will find this residing in EJBTHREE project SVN trunk.
+            </important>
+        </para>
+    </sect1>
+</chapter>

@@ -1,0 +1,164 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	
+	<!-- POM Model Version -->
+	<modelVersion>4.0.0</modelVersion>
+	
+	<!-- Artifact Information -->
+	<groupId>org.jboss.ejb3</groupId>
+	<artifactId>jboss-ejb3-package-manager</artifactId>
+	<packaging>jar</packaging>
+	<name>JBoss EJB3 Package Manager</name>
+	<version>1.0.0-SNAPSHOT</version>
+	<description>Package manager for JBoss EJB3 package installations into JBoss AS</description>
+	<repositories>
+        <repository>
+            <id>maven2-repository.dev.java.net</id>
+            <name>Java.net Repository for Maven</name>
+          <url>http://download.java.net/maven/2/</url>
+          <layout>default</layout>
+        </repository>
+    </repositories>
+    
+    
+    <build>
+        <plugins>
+            <!-- JDK6 Enforcer -->
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                 <executions>
+                    <execution>
+                        <id>enforce-jdk6</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <requireJavaVersion>
+                                    <version>1.6</version>
+                                </requireJavaVersion>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+
+            </plugin>
+          <!-- Compiler -->
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <source>1.6</source>
+              <target>1.6</target>
+              <showDeprecation>false</showDeprecation>
+              <showWarnings>true</showWarnings>
+              <optimize>true</optimize>
+              <compilerVersion>1.6</compilerVersion>
+              <fork>true</fork>
+              <executable>${JAVA_HOME}/bin/javac</executable>
+            </configuration>
+          </plugin>
+
+            <!-- Surefire (test plugin) -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <printSummary>true</printSummary>
+                    <includes>
+                        <include>**/*TestCase.java</include>
+                        <include>**/*TestSuite.java</include>
+                    </includes>
+                    <forkMode>always</forkMode>
+                    <argLine>-ea</argLine>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    
+	<dependencies>
+    
+        <!--  Ant for script processors -->
+        <dependency>
+            <groupId>ant</groupId>
+            <artifactId>ant</artifactId>
+            <!-- Would have prefered 1.7.x, but there's no jar available for that
+            version in either maven central or jboss repo -->
+            <version>1.6.5</version>
+        </dependency>
+        
+        <!-- Ant Contrib -->
+        <dependency>
+          <groupId>ant-contrib</groupId>
+          <artifactId>ant-contrib</artifactId>
+          <version>1.0b2</version>
+        </dependency>
+        
+        <!--  File operation utils -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        
+        <!-- Logging spi -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-spi</artifactId>
+            <version>2.1.0.GA</version>
+        </dependency>
+        <!-- Log4j logging -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-log4j</artifactId>
+            <version>2.1.0.GA</version>
+        </dependency>
+        
+        
+        <!-- Command line parsing -->
+        <dependency>
+            <groupId>gnu-getopt</groupId>
+            <artifactId>getopt</artifactId>
+            <version>1.0.13</version>
+        </dependency>
+        
+        
+        
+        <!-- XML parsing -->
+        <dependency>
+            <groupId>org.codehaus.woodstox</groupId>
+            <artifactId>woodstox-core-lgpl</artifactId>
+            <version>4.0.6</version>
+        </dependency>
+        <!-- XML MSV schema validator -->
+        <dependency>
+            <groupId>net.java.dev.msv</groupId>
+            <artifactId>msv-core</artifactId>
+            <version>2009.1</version>
+        </dependency>
+
+        <!-- Support for http: protocol for package retrieval -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.0</version>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.6</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Useful util for creating jars within testcases -->
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-impl-base</artifactId>
+            <version>1.0.0-alpha-1</version>
+            <scope>test</scope>
+        </dependency>
+        
+    </dependencies>
+</project>
