@@ -4,6 +4,7 @@
 [
 <!ENTITY overview          SYSTEM "modules/overview.xml">
 <!ENTITY components         SYSTEM "modules/components.xml">
+<!ENTITY ivyDepMgr         SYSTEM "modules/ivy-dep-manager.xml">
 <!ENTITY status         SYSTEM "modules/status.xml">
 ]>
 <book lang="en">
@@ -21,5 +22,6 @@
  
     &overview;
     &components;
+    &ivyDepMgr;
     &status;
 </book>

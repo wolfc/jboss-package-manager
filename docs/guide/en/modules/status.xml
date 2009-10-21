@@ -68,7 +68,13 @@
             see how the install works. That test case has been written with many comments to make sure that each step
             is explained clearly. It covers almost all of the currently implemented functionality in the JBoss Package
             Manager, including HTTP URL support. You can add your own tests there to try out the JBoss Package Manager.
-            To run the tests, use the following Maven command on the package-manager project root:
+         </para>
+         <para>
+             Now that the basic dependency management has been implemented, tests have been added to illustrate the usage
+             and the functionality. The test is named org.jboss.ejb3.packagemanager.test.dependency.unit.DependencyInstallTestCase.
+         </para>
+         <para>
+             To run the tests, use the following Maven command on the package-manager project root:
             <programlisting>
 <![CDATA[
 mvn clean test

@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<chapter id="ivy-dep-mgr">
+    <title>Default dependency manager</title>
+    <para>
+        By default, the JBoss Package Manager uses Ivy as it's dependency manager. The implementation class responsible
+        for managing the dependencies is org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager.
+    </para>
+    <sect1>
+        <title>How it works</title>
+        <para>
+            When an "UnProcessed Dependency" is specified for a package, the package manager with the help of IvyDependencyManager
+            goes through the following steps:
+            <itemizedlist mark="opencircle">
+                <listitem>
+                    <para>
+                        The 2 important files that are required for managing Ivy dependencies are:
+                        <itemizedlist mark="opencircle">
+                            <listitem>
+                                <para>
+                                    Ivy Settings xml file - This file contains the settings for processing the ivy dependencies.
+                                    In it's simplest form, this file points to various repositories from where the dependencies
+                                    can be downloaded.
+                                </para>
+                            </listitem>
+                            <listitem>
+                                <para>
+                                    Ivy dependency file - This file contains the list of dependencies that are to be resolved
+                                    and retrieved through Ivy.
+                                </para>
+                            </listitem>
+                        </itemizedlist>
+                        As a first step, the IvyDependencyManager implements looks for the Ivy settings file.
+                        <para>
+                            The IvyDependencyManager implementation allows individual packages to provide the Ivy settings file.
+                            A package can optionally provide a "ivy-settings.xml" file at the root of the package (i.e. same
+                            level as package.xml). If this file is available, then the package manager which resolving the
+                            dependencies of this package will use these settings to resolve and retrieve the dependencies. This
+                            is useful if some packages require some specific repositories or other Ivy settings.
+                        </para>
+                        <para>
+                            If the package does not contain the "ivy-settings.xml" file, then the package manager checks
+                            for an optional JVM system level property "ivy.settings.file". This system property points to the
+                            absolute file path of the Ivy settings file, which will be used for all packages that do not
+                            have their own ivy settings file.
+                        </para>
+                        <para>
+                            However, if the "ivy.settings.file" property is not set, then the package manager falls back to
+                            a "ivy-default-settings.xml" file, which it packages within itself. The ivy-default-settings.xml
+                            file within the package manager, by default is configured to point to the Maven central repo,
+                            JBoss Snapshots Maven Repo and JBoss Maven Repo. Here are it's contents:
+                            <programlisting>
+<![CDATA[
+<ivysettings>
+  <settings defaultResolver="defaultRepoChain"/>
+  <resolvers>
+    <chain name="defaultRepoChain">
+        <ibiblio name="jboss-snap-m2-repo" root="http://snapshots.jboss.org/maven2/" m2compatible="true" />
+        <ibiblio name="jboss-m2-repo" root="http://repository.jboss.org/maven2/" m2compatible="true" />
+        <ibiblio name="ibiblio" m2compatible="true" />
+    </chain>
+  </resolvers>
+</ivysettings>
+]]>
+                            </programlisting>
+                            
+                        </para>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Once the Ivy settings file is located and Ivy is configured to use this file, as a next step,
+                        the package manager feeds the Ivy dependency file (which is specified as an attribute of the
+                        &lt;unprocessed-dependencies&gt; element of package.xml) to an Ivy processor, to resolve the
+                        dependencies.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Once the Ivy processor resolves these dependencies successfully, as a next step, the package
+                        manager instructs Ivy to retrieve these dependencies to the local filesystem.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        Once that's done, the package manager then starts processing the packages (remember, all
+                        dependencies listed must be packages) just like any other packages. This also means, that these
+                        packages in-turn will be processed for dependencies. 
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        If either of the steps during the dependency processing results in an exception then the
+                        dependency resolution process is halted.
+                    </para>
+                </listitem>
+
+            </itemizedlist>
+            <note>
+                <para>
+                    The terms "resolve" and "retrieve" are Ivy specific. All they do is, search for the dependency in the
+                    right place and download (if necessary) them to a local store.
+                </para>
+            </note>
+            <note>
+                <para>
+                    The implementation of this dependency manager is work-in-progress. Ivy APIs aren't strong enough
+                    nor are they documented, and are very tightly tied with Ant and Ant properties. But some of the basic
+                    functionalities like dependency resolution and retrieval through their APIs is still feasible.
+                    The implementation and the overall dependency management will need continuous thinking. This section
+                    will be updated appropriately.
+                </para>
+            </note>
+        </para>
+        <sect2>
+            <title>Dependency management examples</title>
+            <para>
+                For an overview of the current dependency management functionality, tests have been added to
+                the package manager. Take a look at the org.jboss.ejb3.packagemanager.test.dependency.unit.DependencyInstallTestCase
+                to see how it works.
+            </para>
+        </sect2>
+    </sect1>
+
+</chapter>
