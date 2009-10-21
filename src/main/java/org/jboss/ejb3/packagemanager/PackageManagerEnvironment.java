@@ -22,6 +22,9 @@
 package org.jboss.ejb3.packagemanager;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * PackageManagerEnvironment
@@ -37,13 +40,22 @@ public class PackageManagerEnvironment
    private File packageManagerBuildDir;
 
    private File packageManagerTmpDir;
+   
+   private Map<String, String> properties = new HashMap<String, String>();
 
    /**
     * 
     */
    public PackageManagerEnvironment(String home)
    {
+      this(home, new HashMap<String, String>());
+   }
+   
+   public PackageManagerEnvironment(String home, Map<String, String> props)
+   {
       this.packageManagerHome = new File(home);
+      this.properties = props == null ? new HashMap<String, String>() : props;
+      
       if (!this.packageManagerHome.exists() || !this.packageManagerHome.isDirectory())
       {
          throw new RuntimeException("Package manager home " + home + " doesn't exist or is not a directory");
@@ -79,5 +91,21 @@ public class PackageManagerEnvironment
    public File getPackageManagerTmpDir()
    {
       return this.packageManagerTmpDir;
+   }
+   
+   public String getProperty(String propertyName)
+   {
+      return this.properties.get(propertyName);
+   }
+   
+   public void setProperty(String propertyName, String propertyValue)
+   {
+      this.properties.put(propertyName, propertyValue);
+      
+   }
+   
+   public Map<String, String> getProperties()
+   {
+      return Collections.unmodifiableMap(this.properties);
    }
 }

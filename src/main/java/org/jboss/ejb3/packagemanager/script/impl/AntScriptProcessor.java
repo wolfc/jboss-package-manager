@@ -27,8 +27,8 @@ import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildListener;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
-import org.jboss.ejb3.packagemanager.PackageManager;
-import org.jboss.ejb3.packagemanager.PackageSource;
+import org.jboss.ejb3.packagemanager.PackageContext;
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
 import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
 import org.jboss.ejb3.packagemanager.metadata.Script;
@@ -50,27 +50,29 @@ public class AntScriptProcessor implements ScriptProcessor
    private static Logger logger = Logger.getLogger(AntScriptProcessor.class);
 
    /**
-    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processScript(org.jboss.ejb3.packagemanager.PackageSource, org.jboss.ejb3.packagemanager.metadata.Script)
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processScript(PackageManagerContext, PackageContext, Script)
     */
-   public void processScript(PackageManager pkgManager, PackageSource pkgSource, Script script)
+   @Override
+   public void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, Script script)
          throws ScriptProcessingException
    {
-      File root = pkgSource.getSource();
+      File root = pkgCtx.getPackageRoot();
       File antBuildFile = new File(root, script.getFile());
       if (!antBuildFile.exists())
       {
-         throw new ScriptProcessingException("Ant script " + script.getFile() + " does not exist in " + pkgSource);
+         throw new ScriptProcessingException("Ant script " + script.getFile() + " does not exist in " + pkgCtx);
       }
       Project antProject = new Project();
       // add our build listener to capture ant logging and other stuff
       antProject.addBuildListener(new AntBuildListener());
       // Set the basedir for the ant project to point to the 
       // root of the package.xml file of the package being installed 
-      antProject.setBaseDir(pkgSource.getSource());
+      antProject.setBaseDir(pkgCtx.getPackageRoot());
       // Also set the properties JBOSS_HOME and PM_HOME for the 
       // build scripts to use (if they find it necessary)
-      antProject.setProperty("JBOSS_HOME", pkgManager.getServerHome());
-      antProject.setProperty("PM_HOME",pkgManager.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
+      antProject.setProperty("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      antProject.setProperty("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome()
+            .getAbsolutePath());
       // init the project
       antProject.init();
 
@@ -99,9 +101,9 @@ public class AntScriptProcessor implements ScriptProcessor
       if (!antProject.getTargets().containsKey(targetName))
       {
          throw new ScriptProcessingException("Target " + targetName + " not present in Ant script " + antBuildFile
-               + " for " + pkgSource);
+               + " for " + pkgCtx);
       }
-      logger.info("Running pre-install script " + antBuildFile + " ,target= " + targetName + " for " + pkgSource);
+      logger.info("Running pre-install script " + antBuildFile + " ,target= " + targetName + " for " + pkgCtx);
       try
       {
          antProject.executeTarget(targetName);
@@ -109,7 +111,7 @@ public class AntScriptProcessor implements ScriptProcessor
       catch (Exception e)
       {
          throw new ScriptProcessingException("Exception while running target " + targetName + " in script "
-               + antBuildFile + " for " + pkgSource);
+               + antBuildFile + " for " + pkgCtx);
       }
 
    }
@@ -145,7 +147,7 @@ public class AntScriptProcessor implements ScriptProcessor
        */
       public void messageLogged(BuildEvent buildEvent)
       {
-         
+
          int logLevel = buildEvent.getPriority();
          switch (logLevel)
          {
@@ -185,7 +187,7 @@ public class AntScriptProcessor implements ScriptProcessor
          {
             logger.info(buildEvent.getTarget() + " completed successfully");
          }
-         
+
       }
 
       /**

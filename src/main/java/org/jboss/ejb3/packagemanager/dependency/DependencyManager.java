@@ -19,28 +19,24 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.exception;
+package org.jboss.ejb3.packagemanager.dependency;
+
+import java.util.Set;
+
+import org.jboss.ejb3.packagemanager.PackageContext;
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.exception.DependencyResoultionException;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
 
 /**
- * PackageRetrievalException
+ * DependencyManager
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageRetrievalException extends PackageManagerException
+public interface DependencyManager
 {
-   public PackageRetrievalException(String msg)
-   {
-      super(msg);
-   }
 
-   public PackageRetrievalException(Exception e)
-   {
-      super(e);
-   }
-
-   public PackageRetrievalException(String msg, Exception e)
-   {
-      super(msg, e);
-   }
+   Set<PackageContext> resolveDepedencies(PackageManagerContext pkgMgrContext, PackageContext pkgCtx, UnProcessedDependencies deps)
+         throws DependencyResoultionException;
 }

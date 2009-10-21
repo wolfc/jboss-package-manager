@@ -1,0 +1,11 @@
+<sh:package name="DependencyInstallTestCase-dependeee-package2" version="1.0.1"
+xmlns:sh="http://www.jboss.org/schema">
+
+      
+  <file name="dummy2.jar" dest-path="server/default/deployers" type="library"/>
+  
+  <post-install>
+    <script file="scripts/post-install-build.xml"/>
+  </post-install>
+  
+</sh:package>

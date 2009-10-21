@@ -33,16 +33,21 @@ import org.codehaus.stax2.validation.XMLValidationSchemaFactory;
 import org.jboss.ejb3.packagemanager.metadata.Dependencies;
 import org.jboss.ejb3.packagemanager.metadata.InstallFile;
 import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 import org.jboss.ejb3.packagemanager.metadata.PostInstall;
 import org.jboss.ejb3.packagemanager.metadata.PreInstall;
 import org.jboss.ejb3.packagemanager.metadata.Script;
 import org.jboss.ejb3.packagemanager.metadata.SystemRequirements;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.impl.DependenciesImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.InstallFileImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.PackageImpl;
+import org.jboss.ejb3.packagemanager.metadata.impl.PackagedDependencyImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallScript;
 import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.UnProcessedDependenciesImpl;
 
 /**
  * PackageXMLParser
@@ -134,7 +139,9 @@ public class PackageUnmarshaller
                }
                else if (childElement.equals("dependencies"))
                {
-                  this.processDependencies(pkgMeta, xmlStreamReader);
+                  Dependencies dependencies = this.processDependencies(pkgMeta, xmlStreamReader);
+                  pkgMeta.setDependencies(dependencies);
+                  
                }
                break;
 
@@ -312,10 +319,6 @@ public class PackageUnmarshaller
          {
             script.setFile(xmlStreamReader.getAttributeValue(i));
          }
-         else if ("processor".equals(name))
-         {
-            script.setProcessor(xmlStreamReader.getAttributeValue(i));
-         }
 
       }
       // consume the end event of file
@@ -331,20 +334,48 @@ public class PackageUnmarshaller
    
    private Dependencies processDependencies(Package pkgMetadata, XMLStreamReader2 xmlStreamReader) throws Exception
    {
-      Dependencies depMetadata = null;
-//      for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
-//      {
-//         String name = xmlStreamReader.getAttributeLocalName(i);
-//         if ("file".equals(name))
-//         {
-//            script.setFile(xmlStreamReader.getAttributeValue(i));
-//         }
-//         else if ("processor".equals(name))
-//         {
-//            script.setProcessor(xmlStreamReader.getAttributeValue(i));
-//         }
-//
-//      }
+      Dependencies depMetadata = new DependenciesImpl(pkgMetadata);
+      int event = xmlStreamReader.next();
+      while (event != XMLEvent.END_ELEMENT)
+      {
+         switch (event)
+         {
+            case XMLEvent.START_ELEMENT :
+               String childElement = xmlStreamReader.getLocalName();
+               if (childElement.equals("unprocessed-dependencies"))
+               {
+                  UnProcessedDependencies unProcessedDeps = processUnProcessedDependencies(pkgMetadata, xmlStreamReader);
+                  depMetadata.setUnProcessedDependencies(unProcessedDeps);
+               }
+               else if (childElement.equals("packaged-dependency"))
+               {
+                  PackagedDependency packagedDep = processPackagedDependency(pkgMetadata, xmlStreamReader);
+                  depMetadata.addPackagedDependency(packagedDep);
+               }
+               break;
+               
+         }
+         event = xmlStreamReader.next();
+      }
+      return depMetadata;
+   }
+   
+   private UnProcessedDependencies processUnProcessedDependencies(Package pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
+   {
+      UnProcessedDependencies unProcessedDep = new UnProcessedDependenciesImpl(pkgMeta);
+      for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
+      {
+         String name = xmlStreamReader.getAttributeLocalName(i);
+         if ("file".equals(name))
+         {
+            unProcessedDep.setFile(xmlStreamReader.getAttributeValue(i));
+         }
+         else if ("manager".equals(name))
+         {
+            unProcessedDep.setManager(xmlStreamReader.getAttributeValue(i));
+         }
+
+      }
       // consume the end event of file
       int event = xmlStreamReader.next();
       while (event != XMLEvent.END_ELEMENT)
@@ -352,6 +383,27 @@ public class PackageUnmarshaller
          event = xmlStreamReader.next();
 
       }
-      return depMetadata;
+      return unProcessedDep;
+   }
+   
+   private PackagedDependency processPackagedDependency(Package pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
+   {
+      PackagedDependency packagedDep = new PackagedDependencyImpl(pkgMeta);
+      for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
+      {
+         String name = xmlStreamReader.getAttributeLocalName(i);
+         if ("file".equals(name))
+         {
+            packagedDep.setFile(xmlStreamReader.getAttributeValue(i));
+         }
+      }
+      // consume the end event of file
+      int event = xmlStreamReader.next();
+      while (event != XMLEvent.END_ELEMENT)
+      {
+         event = xmlStreamReader.next();
+
+      }
+      return packagedDep;
    }
 }

@@ -19,21 +19,52 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.installer;
+package org.jboss.ejb3.packagemanager.impl;
 
-import org.jboss.ejb3.packagemanager.PackageContext;
+import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
-import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
+import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 
 /**
- * Installer
+ * DefaultPackageManagerContext
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface Installer
+public class DefaultPackageManagerContext implements PackageManagerContext
 {
 
-   void install(PackageManagerContext pkgMgrCtx, PackageContext pkgCtx, InstallFile file) throws PackageManagerException;
+   /**
+    * The package manager to which this context corresponds
+    */
+   private PackageManager pkgMgr;
+
+   /**
+    * Constructs a context for the {@code pkgMgr}
+    *  
+    * @param pkgMgr The package manager to which this context corresponds
+    */
+   public DefaultPackageManagerContext(PackageManager pkgMgr)
+   {
+      this.pkgMgr = pkgMgr;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManagerContext#getJBossServerHome()
+    */
+   @Override
+   public String getJBossServerHome()
+   {
+      return this.pkgMgr.getServerHome();
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManagerContext#getPackageManagerEnvironment()
+    */
+   @Override
+   public PackageManagerEnvironment getPackageManagerEnvironment()
+   {
+      return this.pkgMgr.getPackageManagerEnvironment();
+   }
+
 }

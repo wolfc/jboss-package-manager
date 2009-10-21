@@ -28,7 +28,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.jar.JarFile;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -36,11 +35,9 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.jboss.ejb3.packagemanager.PackageManager;
-import org.jboss.ejb3.packagemanager.PackageSource;
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.PackageRetrievalException;
 import org.jboss.ejb3.packagemanager.retriever.PackageRetriever;
-import org.jboss.ejb3.packagemanager.util.IOUtil;
 
 /**
  * HttpPackageRetriever
@@ -52,9 +49,10 @@ public class HttpPackageRetriever implements PackageRetriever
 {
 
    /**
-    * @see org.jboss.ejb3.packagemanager.retriever.PackageRetriever#retrievePackage(PackageManager, URL)
+    * @see org.jboss.ejb3.packagemanager.retriever.PackageRetriever#retrievePackage(PackageManagerContext, URL)
     */
-   public PackageSource retrievePackage(PackageManager pkgMgr, URL packagePath) throws PackageRetrievalException
+   @Override
+   public File retrievePackage(PackageManagerContext pkgMgrCtx, URL packagePath) throws PackageRetrievalException
    {
       if (!packagePath.getProtocol().equals("http"))
       {
@@ -71,16 +69,18 @@ public class HttpPackageRetriever implements PackageRetriever
       {
          throw new PackageRetrievalException("Exception while retrieving package " + packagePath, e);
       }
-      if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) 
+      if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK)
       {
-         throw new PackageRetrievalException("Http retrieval wasn't successful, returned status code  " + httpResponse.getStatusLine().getStatusCode());
+         throw new PackageRetrievalException("Http retrieval wasn't successful, returned status code  "
+               + httpResponse.getStatusLine().getStatusCode());
       }
       HttpEntity httpEntity = httpResponse.getEntity();
-      
+
       try
       {
          // TODO: should this tmp be deleted on exit?
-         File tmpPkgFile = File.createTempFile("tmp", ".jar", pkgMgr.getPackageManagerEnvironment().getPackageManagerTmpDir());
+         File tmpPkgFile = File.createTempFile("tmp", ".jar", pkgMgrCtx.getPackageManagerEnvironment()
+               .getPackageManagerTmpDir());
          FileOutputStream fos = new FileOutputStream(tmpPkgFile);
          BufferedOutputStream bos = null;
          BufferedInputStream bis = null;
@@ -91,7 +91,7 @@ public class HttpPackageRetriever implements PackageRetriever
             bis = new BufferedInputStream(is);
             byte[] content = new byte[4096];
             int length;
-            while ((length = bis.read(content)) != -1) 
+            while ((length = bis.read(content)) != -1)
             {
                bos.write(content, 0, length);
             }
@@ -108,24 +108,8 @@ public class HttpPackageRetriever implements PackageRetriever
                bis.close();
             }
          }
-   
-         // package has been retrieved to tmp location, now unpack it to a subfolder in package-manager build folder
-         File extractedPackageDir = new File(pkgMgr.getPackageManagerEnvironment().getPackageManagerBuildDir(), tmpPkgFile
-               .getName());
-         if (!extractedPackageDir.exists())
-         {
-            extractedPackageDir.mkdirs();
-         }
-         
-            IOUtil.extractJarFile(extractedPackageDir, new JarFile(tmpPkgFile));
-            // validate that it contains a package.xml
-            File packageXml = new File(extractedPackageDir, "package.xml");
-            if (!packageXml.exists())
-            {
-               throw new PackageRetrievalException(packagePath + " is not a valid package - it does not contain a package.xml");
-            }
-            // create a package source out of this
-            return new PackageSource(extractedPackageDir);
+         return tmpPkgFile;
+
       }
       catch (IOException ioe)
       {

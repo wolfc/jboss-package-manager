@@ -292,7 +292,7 @@
 
                         <tbody>
                             <row>
-                                <entry>script</entry>
+                                <entry>file</entry>
                                 <entry>Mandatory</entry>
                                 <entry></entry>
                                 <entry>The value of this attribute, is the relative path to the script file (including

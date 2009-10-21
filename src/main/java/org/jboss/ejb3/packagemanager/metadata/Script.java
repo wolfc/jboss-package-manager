@@ -21,7 +21,6 @@
 */
 package org.jboss.ejb3.packagemanager.metadata;
 
-import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 
 /**
  * ScriptMetadata
@@ -49,22 +48,22 @@ public interface Script
     */
    void setFile(String scriptFile);
    
-   /**
-    * Returns the fully qualified name of the class which implements
-    * {@link ScriptProcessor} and is responsible for processing the 
-    * {@link #getFile()} script file
-    * @return
-    */
-   String getProcessor();
-   
-   /**
-    * Sets the script processor which is responsible for processing the
-    * {@link #getFile()} script file
-    * 
-    * @param scriptProcessor Fully qualified name of the class which implements
-    *   {@link ScriptProcessor} 
-    */
-   void setProcessor(String scriptProcessor);
+//   /**
+//    * Returns the fully qualified name of the class which implements
+//    * {@link ScriptProcessor} and is responsible for processing the 
+//    * {@link #getFile()} script file
+//    * @return
+//    */
+//   String getProcessor();
+//   
+//   /**
+//    * Sets the script processor which is responsible for processing the
+//    * {@link #getFile()} script file
+//    * 
+//    * @param scriptProcessor Fully qualified name of the class which implements
+//    *   {@link ScriptProcessor} 
+//    */
+//   void setProcessor(String scriptProcessor);
    
    /**
     * Returns the package installation phase, during which this script

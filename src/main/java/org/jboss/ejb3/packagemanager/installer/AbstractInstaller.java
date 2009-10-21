@@ -23,9 +23,9 @@ package org.jboss.ejb3.packagemanager.installer;
 
 import java.io.File;
 
-import org.jboss.ejb3.packagemanager.PackageManager;
-import org.jboss.ejb3.packagemanager.PackageSource;
-import org.jboss.ejb3.packagemanager.exception.InstallerException;
+import org.jboss.ejb3.packagemanager.PackageContext;
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFile;
 import org.jboss.ejb3.packagemanager.metadata.Package;
 import org.jboss.logging.Logger;
@@ -42,39 +42,40 @@ public abstract class AbstractInstaller implements Installer
    private static Logger logger = Logger.getLogger(AbstractInstaller.class);
 
    /**
-    * @see org.jboss.ejb3.packagemanager.installer.Installer#install(org.jboss.ejb3.packagemanager.PackageSource, org.jboss.ejb3.packagemanager.metadata.InstallFile)
+    * @see org.jboss.ejb3.packagemanager.installer.Installer#install(org.jboss.ejb3.packagemanager.PackageManagerContext, org.jboss.ejb3.packagemanager.PackageContext, InstallFile)
     */
-   public final void install(PackageManager pkgManager, PackageSource pkgSource, InstallFile fileMeta)
-         throws InstallerException
+   @Override
+   public final void install(PackageManagerContext pkgMgrCtx, PackageContext pkgCtx, InstallFile fileMeta)
+         throws PackageManagerException
    {
       // do templating
-      File pkgRoot = pkgSource.getSource();
+      File pkgRoot = pkgCtx.getPackageRoot();
       File srcPathOfFileToInstall = pkgRoot;
       if (fileMeta.getSrcPath() != null)
       {
          srcPathOfFileToInstall = new File(pkgRoot, fileMeta.getSrcPath());
       }
       File fileToInstall = new File(srcPathOfFileToInstall, fileMeta.getName());
-      Package pkg = pkgSource.getPackageMetadata();
+      Package pkg = pkgCtx.getPackage();
       if (!fileToInstall.exists())
       {
-         throw new InstallerException(fileToInstall.getAbsolutePath() + " does not exist, package: " + pkg.getName()
-               + " version: " + pkg.getVersion() + " being installed from " + pkgSource.getSource()
+         throw new PackageManagerException(fileToInstall.getAbsolutePath() + " does not exist, package: " + pkg.getName()
+               + " version: " + pkg.getVersion() + " being installed from " + pkgCtx.getPackageRoot()
                + " is probably corrupt!");
       }
 
       if (fileMeta.getDestPath() == null)
       {
-         throw new InstallerException("File " + fileMeta.getName() + " in package: " + pkg.getName() + " version: "
+         throw new PackageManagerException("File " + fileMeta.getName() + " in package: " + pkg.getName() + " version: "
                + pkg.getVersion() + " does not specify a destination");
       }
-      String destServerHome = pkgManager.getServerHome();
+      String destServerHome = pkgMgrCtx.getJBossServerHome();
       File locationToInstall = new File(destServerHome, fileMeta.getDestPath());
       // TODO: Provide an option on <file> to allow for creating missing destination folders
       // Till then just throw an exception if dest-path is not actually available
       if (!locationToInstall.exists() || !locationToInstall.isDirectory())
       {
-         throw new InstallerException("dest-path " + locationToInstall.getAbsolutePath() + " for file: "
+         throw new PackageManagerException("dest-path " + locationToInstall.getAbsolutePath() + " for file: "
                + fileMeta.getName() + " in package: " + pkg.getName() + " version: " + pkg.getVersion()
                + " is either not present or is not a directory");
       }
@@ -95,7 +96,7 @@ public abstract class AbstractInstaller implements Installer
    }
 
    protected abstract void doInstall(InstallFile fileMetadata, File fileToInstall, File dest)
-         throws InstallerException;
+         throws PackageManagerException;
 
 
 }

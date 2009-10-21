@@ -27,7 +27,7 @@ package org.jboss.ejb3.packagemanager.exception;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class ScriptProcessingException extends Exception
+public class ScriptProcessingException extends PackageManagerException
 {
    public ScriptProcessingException(String msg)
    {

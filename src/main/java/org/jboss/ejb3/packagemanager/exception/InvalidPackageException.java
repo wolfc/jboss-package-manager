@@ -22,25 +22,16 @@
 package org.jboss.ejb3.packagemanager.exception;
 
 /**
- * PackageRetrievalException
+ * InvalidPackageException
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageRetrievalException extends PackageManagerException
+public class InvalidPackageException extends PackageManagerException
 {
-   public PackageRetrievalException(String msg)
+
+   public InvalidPackageException(String msg)
    {
       super(msg);
-   }
-
-   public PackageRetrievalException(Exception e)
-   {
-      super(e);
-   }
-
-   public PackageRetrievalException(String msg, Exception e)
-   {
-      super(msg, e);
    }
 }

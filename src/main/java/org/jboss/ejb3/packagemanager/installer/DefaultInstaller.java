@@ -24,7 +24,7 @@ package org.jboss.ejb3.packagemanager.installer;
 import java.io.File;
 import java.io.IOException;
 
-import org.jboss.ejb3.packagemanager.exception.InstallerException;
+import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFile;
 import org.jboss.ejb3.packagemanager.metadata.Package;
 import org.jboss.ejb3.packagemanager.util.IOUtil;
@@ -45,7 +45,7 @@ public class DefaultInstaller extends AbstractInstaller
     * @see org.jboss.ejb3.packagemanager.installer.AbstractInstaller#doInstall(org.jboss.ejb3.packagemanager.metadata.InstallFile, java.io.File, java.io.File)
     */
    @Override
-   protected void doInstall(InstallFile fileMetadata, File fileToInstall, File dest) throws InstallerException
+   protected void doInstall(InstallFile fileMetadata, File fileToInstall, File dest) throws PackageManagerException
    {
       // just copy from source to dest
       File destFile = new File(dest, fileMetadata.getName());
@@ -62,7 +62,7 @@ public class DefaultInstaller extends AbstractInstaller
       catch (IOException e)
       {
 
-         throw new InstallerException("Could not install file: " + fileMetadata.getName() + " from package: "
+         throw new PackageManagerException("Could not install file: " + fileMetadata.getName() + " from package: "
                + pkgMeta.getName() + " version: " + pkgMeta.getVersion() + " into " + dest.getAbsolutePath());
       }
 

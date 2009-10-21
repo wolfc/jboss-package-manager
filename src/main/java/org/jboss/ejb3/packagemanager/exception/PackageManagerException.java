@@ -27,20 +27,20 @@ package org.jboss.ejb3.packagemanager.exception;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class InstallerException extends Exception
+public class PackageManagerException extends Exception
 {
 
-   public InstallerException(String msg)
+   public PackageManagerException(String msg)
    {
       super(msg);
    }
    
-   public InstallerException(Exception e)
+   public PackageManagerException(Exception e)
    {
       super(e);
    }
    
-   public InstallerException(String msg, Exception e)
+   public PackageManagerException(String msg, Exception e)
    {
       super(msg,e);
    }

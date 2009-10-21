@@ -21,9 +21,22 @@
  */
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jboss.ejb3.packagemanager.metadata.Dependencies;
 import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
 
+/**
+ * 
+ * DependenciesImpl
+ *
+ * @see Dependencies
+ * @author Jaikiran Pai
+ * @version $Revision: $
+ */
 public class DependenciesImpl implements Dependencies
 {
 
@@ -33,14 +46,14 @@ public class DependenciesImpl implements Dependencies
    private Package pkg;
 
    /**
-    * Fully qualified class name of the dependencies manager
+    * Unprocessed dependencies
     */
-   private String depManager;
+   private UnProcessedDependencies unProcessedDeps;
 
    /**
-    * The file containing the dependencies 
+    * A list of packaged dependencies 
     */
-   private String file;
+   private List<PackagedDependency> packagedDeps;
 
    /**
     * Constructor
@@ -52,45 +65,68 @@ public class DependenciesImpl implements Dependencies
    }
 
    /**
-    * Returns the file path, which contains the dependency listing.
-    * The file path is relative to the location of package.xml in the package
+    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getPackagedDependencies()
     */
-   public String getFile()
+   @Override
+   public List<PackagedDependency> getPackagedDependencies()
    {
-      return file;
+      return this.packagedDeps;
    }
 
    /**
-    * Sets the file path containing the dependency listing.
-    * The file path is relative to the location of package.xml in the package
+    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getUnProcessedDependencies()
     */
-   public void setFile(String value)
+   @Override
+   public UnProcessedDependencies getUnProcessedDependencies()
    {
-      this.file = value;
+      return this.unProcessedDeps;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#setPackagedDependencies(java.util.List)
+    */
+   @Override
+   public void setPackagedDependencies(List<PackagedDependency> packagedDependencies)
+   {
+      this.packagedDeps = packagedDependencies;
+
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#setUnProcessedDependencies(org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies)
+    */
+   @Override
+   public void setUnProcessedDependencies(UnProcessedDependencies unProcessedDependencies)
+   {
+      this.unProcessedDeps = unProcessedDependencies;
+
    }
 
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getPackage()
     */
+   @Override
    public Package getPackage()
    {
       return this.pkg;
+
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getManager()
+    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#addPackagedDependency(org.jboss.ejb3.packagemanager.metadata.PackagedDependency)
     */
-   public String getManager()
+   @Override
+   public void addPackagedDependency(PackagedDependency packagedDep)
    {
-      return this.depManager;
-   }
-
-   /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#setManager(java.lang.String)
-    */
-   public void setManager(String depManager)
-   {
-      this.depManager = depManager;
+      if (packagedDep == null)
+      {
+         return;
+      }
+      if (this.packagedDeps == null)
+      {
+         this.packagedDeps = new ArrayList<PackagedDependency>();
+      }
+      this.packagedDeps.add(packagedDep);
 
    }
 

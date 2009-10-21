@@ -22,24 +22,25 @@
 package org.jboss.ejb3.packagemanager.exception;
 
 /**
- * PackageRetrievalException
+ * DependencyResoultionException
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageRetrievalException extends PackageManagerException
+public class DependencyResoultionException extends PackageManagerException
 {
-   public PackageRetrievalException(String msg)
+
+   public DependencyResoultionException(String msg)
    {
       super(msg);
    }
 
-   public PackageRetrievalException(Exception e)
+   public DependencyResoultionException(Exception e)
    {
       super(e);
    }
 
-   public PackageRetrievalException(String msg, Exception e)
+   public DependencyResoultionException(String msg, Exception e)
    {
       super(msg, e);
    }

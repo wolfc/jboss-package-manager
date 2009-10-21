@@ -1,0 +1,6 @@
+<ivy-module version="2.0">
+    <info organisation="org.jboss.ejb3.packagemanager" module="simple-dependency-test"/>
+    <dependencies>
+        <dependency org="org.jboss.ejb3.tmp" name="simple-package" rev="1.0.0.Alpha1"/>
+    </dependencies>
+</ivy-module>

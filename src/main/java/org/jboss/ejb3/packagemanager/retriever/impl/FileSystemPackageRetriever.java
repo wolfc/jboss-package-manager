@@ -22,15 +22,11 @@
 package org.jboss.ejb3.packagemanager.retriever.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
-import java.util.jar.JarFile;
 
-import org.jboss.ejb3.packagemanager.PackageManager;
-import org.jboss.ejb3.packagemanager.PackageSource;
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.PackageRetrievalException;
 import org.jboss.ejb3.packagemanager.retriever.PackageRetriever;
-import org.jboss.ejb3.packagemanager.util.IOUtil;
 
 /**
  * FileSystemPackageRetriever
@@ -42,9 +38,10 @@ public class FileSystemPackageRetriever implements PackageRetriever
 {
 
    /**
-    * @see org.jboss.ejb3.packagemanager.retriever.PackageRetriever#retrievePackage(org.jboss.ejb3.packagemanager.PackageManager, java.net.URL)
+    * @see org.jboss.ejb3.packagemanager.retriever.PackageRetriever#retrievePackage(PackageManagerContext, URL)
     */
-   public PackageSource retrievePackage(PackageManager pkgMgr, URL packagePathURL) throws PackageRetrievalException
+   @Override
+   public File retrievePackage(PackageManagerContext pkgMgrCtx, URL packagePathURL) throws PackageRetrievalException
    {
       if (packagePathURL == null)
       {
@@ -56,38 +53,8 @@ public class FileSystemPackageRetriever implements PackageRetriever
                + " can only retrieve package from a file: URL. It can't handle " + packagePathURL);
       }
       File pkg = new File(packagePathURL.getFile());
-      // TODO: There should be a better way to check for a jar file
-      if (!pkg.getName().endsWith(".jar"))
-      {
-         throw new PackageRetrievalException("File system package retriever can handle only .jar package files. " + pkg
-               + " is not a .jar file");
-      }
-      if (!pkg.exists())
-      {
-         throw new PackageRetrievalException("Package file " + pkg + " does not exist");
-      }
-      try
-      {
-         // the directory to which the package will be extracted
-         File extractedPkgDir = new File(pkgMgr.getPackageManagerEnvironment().getPackageManagerBuildDir(), pkg.getName());
-         if (!extractedPkgDir.exists())
-         {
-            extractedPkgDir.mkdirs();
-         }
-         JarFile jar = new JarFile(pkg);
-         IOUtil.extractJarFile(extractedPkgDir, jar);
-         // validate that it contains a package.xml
-         File packageXml = new File(extractedPkgDir, "package.xml");
-         if (!packageXml.exists())
-         {
-            throw new PackageRetrievalException(pkg + " is not a valid package - it does not contain a package.xml");
-         }
-         return new PackageSource(extractedPkgDir);
-      }
-      catch (IOException ioe)
-      {
-         throw new PackageRetrievalException("Error while processing package file " + pkg, ioe);
-      }
+      return pkg;
+
    }
 
 }

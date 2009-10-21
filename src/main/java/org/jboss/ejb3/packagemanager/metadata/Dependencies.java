@@ -21,59 +21,63 @@
  */
 package org.jboss.ejb3.packagemanager.metadata;
 
+import java.util.List;
+
 /**
  * Represents the metadata for dependencies within a package.
  * 
- * A package can have dependencies on other packages. Dependencies are configured in
- * separate files. The dependencies element just points to that file. The file path is
- * relative to the location of the package.xml within a package.
- * Optionally a dependency manager can be specified through the
- * "manager" attribute. The manager attribute should contain the fully qualified class name
- * of the dependency manager which is responsible for parsing the dependencies file and
- * managing the dependencies listed in that file. The class should implement the
- * org.jboss.ejb3.packagemanager.dependency.DependencyManager interface.
- * By default, org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager will be
- * used as the dependency manager.
+ * A package can have dependencies on other packages. Dependencies can be specified
+ *               and provided in 2 ways.
+ *                   1) A package which depends on other packages can package those dependencies
+ *               within it package jar/zip file. It can then use the "package-dependency"
+ *               element to list such dependencies. 
+ *                   2) Dependencies can be listed separately in a file. The "unprocessed-dependencies" element points
+ *               to that file.
+ *               Irrespective of how the dependencies are specified, the dependencies must always be packages.
  *             
  * @see Package
- * 
+ * @author Jaikiran Pai
  * 
  */
 public interface Dependencies
 {
 
    /**
-    * @return Returns the file path (including the filename) of the dependencies file,
-    *  relative  to the location of package.xml file in the package
-    */
-   String getFile();
-
-   /**
-    * Sets the file path (including hte filename) of the dependencies file.
-    * 
-    * @param depFile Relative file path of the dependencies file of this package
-    *     
-    */
-   void setFile(String depFile);
-   
-   /**
-    * Returns the fully qualified class name of the dependencies manager.
-    * 
+    * Returns the list of packaged dependencies of a package
     * @return
     */
-   String getManager();
+   List<PackagedDependency> getPackagedDependencies();
    
    /**
-    * Sets the fully qualified class name of the dependencies manager.
-    * 
-    * @param depManager Fully qualified class name of the dependencies manager
+    * Sets the list of packaged dependencies of a package
+    * @param packagedDependencies
     */
-   void setManager(String depManager);
+   void setPackagedDependencies(List<PackagedDependency> packagedDependencies);
    
    /**
-    * Returns the package for which this is an dependency
+    * Adds a packaged dependency to the list of packaged dependencies
+    * 
+    * @param packagedDep
+    */
+   void addPackagedDependency(PackagedDependency packagedDep);
+   
+   /**
+    * Returns the unprocessed dependencies of a package
+    * @return
+    */
+   UnProcessedDependencies getUnProcessedDependencies();
+   
+   /**
+    * Sets the unprocessed dependencies of a package
+    *  
+    * @param unProcessedDependencies
+    */
+   void setUnProcessedDependencies(UnProcessedDependencies unProcessedDependencies);
+   
+   /**
+    * Returns the package to which this dependencies correspond to
+    * 
     * @return
     */
    Package getPackage();
-
 }

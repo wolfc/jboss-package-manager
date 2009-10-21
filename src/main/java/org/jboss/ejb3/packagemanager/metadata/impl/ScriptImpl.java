@@ -25,7 +25,7 @@ import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
 import org.jboss.ejb3.packagemanager.metadata.Script;
 
 /**
- * ScriptMetadataImpl
+ * ScriptImpl
  *
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -34,14 +34,9 @@ public abstract class ScriptImpl implements Script
 {
 
    /**
-    * The script processor
+    * The script file (default is package-script.xml)
     */
-   private String scriptProcessor;
-
-   /**
-    * The script file
-    */
-   private String scriptFile;
+   private String scriptFile = "package-script.xml";
 
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.Script#getFile()
@@ -49,14 +44,6 @@ public abstract class ScriptImpl implements Script
    public String getFile()
    {
       return this.scriptFile;
-   }
-
-   /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Script#getProcessor()
-    */
-   public String getProcessor()
-   {
-      return this.scriptProcessor;
    }
 
    /**
@@ -69,15 +56,6 @@ public abstract class ScriptImpl implements Script
          throw new IllegalArgumentException("Script file value cannot be null");
       }
       this.scriptFile = scriptFile;
-   }
-
-   /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Script#setProcessor(java.lang.String)
-    */
-   public void setProcessor(String scriptProcessor)
-   {
-      this.scriptProcessor = scriptProcessor;
-
    }
 
    /**

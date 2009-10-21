@@ -1,0 +1,11 @@
+<sh:package name="DependencyInstallTestCase-dependeee-package1" version="1.0.0"
+xmlns:sh="http://www.jboss.org/schema">
+
+      
+  <file name="dummy1.jar" dest-path="server/default/deployers" type="library"/>
+  
+  <pre-install>
+    <script file="scripts/pre-install-build.xml"/>
+  </pre-install>
+  
+</sh:package>

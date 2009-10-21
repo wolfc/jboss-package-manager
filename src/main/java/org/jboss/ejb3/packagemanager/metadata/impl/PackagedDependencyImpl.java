@@ -19,28 +19,61 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.exception;
+package org.jboss.ejb3.packagemanager.metadata.impl;
+
+import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 
 /**
- * PackageRetrievalException
+ * PackagedDependencyImpl
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageRetrievalException extends PackageManagerException
+public class PackagedDependencyImpl implements PackagedDependency
 {
-   public PackageRetrievalException(String msg)
+
+   private Package pkg;
+   
+   private String file;
+   
+   public PackagedDependencyImpl(Package pkg)
    {
-      super(msg);
+      this.pkg = pkg;
+       
    }
 
-   public PackageRetrievalException(Exception e)
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackagedDependency#getFile()
+    */
+   @Override
+   public String getFile()
    {
-      super(e);
+      return this.file;
    }
 
-   public PackageRetrievalException(String msg, Exception e)
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackagedDependency#getPackage()
+    */
+   @Override
+   public Package getPackage()
    {
-      super(msg, e);
+      return this.pkg;
+      
    }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackagedDependency#setFile(java.lang.String)
+    */
+   @Override
+   public void setFile(String file)
+   {
+      if (file == null)
+      {
+         throw new IllegalArgumentException("A non-null file is mandatory for a packaged-dependency");
+      }
+      this.file = file;
+      
+   }
+   
 }

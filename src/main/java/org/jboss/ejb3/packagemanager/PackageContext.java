@@ -19,28 +19,43 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.exception;
+package org.jboss.ejb3.packagemanager;
+
+import java.io.File;
+import java.net.URL;
+
+import org.jboss.ejb3.packagemanager.metadata.Package;
 
 /**
- * PackageRetrievalException
+ * PackageContext
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageRetrievalException extends PackageManagerException
+public interface PackageContext
 {
-   public PackageRetrievalException(String msg)
-   {
-      super(msg);
-   }
 
-   public PackageRetrievalException(Exception e)
-   {
-      super(e);
-   }
-
-   public PackageRetrievalException(String msg, Exception e)
-   {
-      super(msg, e);
-   }
+   /**
+    * Returns the source of the package
+    * 
+    * @return
+    */
+   URL getPackageSource();
+   
+   /**
+    * The root of the package where it has been
+    * extracted
+    * @return
+    */
+   File getPackageRoot();
+   
+   /**
+    * Returns the package metadata parsed out of 
+    * the package.xml file available in the package source.
+    * 
+    *  @see #getPackageSource()
+    * 
+    * @return
+    */
+   Package getPackage();
 }

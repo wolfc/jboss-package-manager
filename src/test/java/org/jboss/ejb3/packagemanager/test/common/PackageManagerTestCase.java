@@ -29,10 +29,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.export.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.spec.JavaArchiveFactory;
+import org.junit.Assert;
 
 /**
  * PackageManagerTestCase
@@ -44,6 +48,11 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
  */
 public abstract class PackageManagerTestCase
 {
+
+   /**
+    * Logger
+    */
+   private static Logger logger = Logger.getLogger(PackageManagerTestCase.class);
 
    /**
     * Base dir
@@ -143,9 +152,9 @@ public abstract class PackageManagerTestCase
     * 
     * @param jar The jar file which is to be written to the file system
     * @param destFile The file to which the jar is to be written
-    * @throws Exception
+    * @throws IOException
     */
-   protected void exportZip(JavaArchive jar, File destFile) throws Exception
+   protected void exportZip(JavaArchive jar, File destFile) throws IOException
    {
       InputStream is = ZipExporter.exportZip(jar);
       FileOutputStream fos = new FileOutputStream(destFile);
@@ -174,6 +183,176 @@ public abstract class PackageManagerTestCase
             bis.close();
          }
       }
+   }
+
+   /**
+    * Creates a dummy jar file containing a dummy .class file
+    * The dummy.jar file is created in the project's "target" directory. If target/dummy.jar
+    * already exists, then the existing File is returned.
+    * 
+    * @return Returns target/dummy.jar File
+    * @throws IOException
+    */
+   protected File createDummyJar() throws IOException
+   {
+      // Create a jar using ShrinkWrap API.
+      // The jar will look like:
+      // dummy.jar
+      //    |
+      //    |--- org/jboss/ejb3/packagemanager/test/common/Dummy.class
+      //           |--- jboss
+      //                    |--- ejb3
+      //                            |--- packagemanager
+      //                                    |--- test
+      //                                            |--- common
+      //                                                    |--- Dummy.class
+
+      File dummyJar = new File(targetDir, "dummy.jar");
+      // if it already exists then no need to recreate it
+      if (dummyJar.exists())
+      {
+         return dummyJar;
+      }
+      JavaArchive jar = JavaArchiveFactory.create(dummyJar.getName());
+      jar.addClass(Dummy.class);
+      // write out to file system at target/dummy.jar
+      logger.debug("Writing out the created jar " + jar.toString(true));
+      this.exportZip(jar, dummyJar);
+      return dummyJar;
+
+   }
+
+   /**
+    * Creates a simple package with the following contents:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/common/lib. Nothing 
+    * else is configured in the package.xml
+    *   
+    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
+    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createSimplePackage(String packageFileName) throws IOException
+   {
+      File dummyJar = this.createDummyJar();
+
+      // Now let's package the dummy.jar, package.xml into a package
+      File simplePackage = new File(targetDir, packageFileName);
+      JavaArchive pkg = JavaArchiveFactory.create(simplePackage.getName());
+      pkg.addResource("dummy.jar", dummyJar);
+      URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-just-install-file.xml");
+      File file = new File(packageXmlURL.getFile());
+      pkg.addResource("package.xml", file);
+      // now write out the package to disk
+      logger.debug("Writing out the created package " + pkg.toString(true));
+      this.exportZip(pkg, simplePackage);
+
+      return simplePackage;
+   }
+
+   /**
+    * Creates a package containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the pre-install script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "test.txt" under JBOSS_HOME/bin folder, when the script is run.
+    *   
+    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
+    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPreInstallScript(String packageFileName) throws IOException
+   {
+      File dummyJar = this.createDummyJar();
+
+      // Now let's package the dummy.jar, package.xml and build.xml into a package
+      File packageWithPreInstallScript = new File(targetDir, packageFileName);
+      JavaArchive pkg = JavaArchiveFactory.create(packageWithPreInstallScript.getName());
+      pkg.addResource("dummy.jar", dummyJar);
+      URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-pre-install-script.xml");
+      File packageXmlFile = new File(packageXmlURL.getFile());
+      pkg.addResource("package.xml", packageXmlFile);
+      URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
+      File buildFile = new File(buildXmlURL.getFile());
+      pkg.addResource("build.xml", buildFile);
+
+      // now write out the package to disk
+      logger.debug("Writing out the created package " + pkg.toString(true));
+      this.exportZip(pkg, packageWithPreInstallScript);
+      return packageWithPreInstallScript;
+   }
+
+   /**
+    * Creates a package  containing a file to install and a packaged-dependency. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dependee-package.jar (this is the packaged dependency)
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- dummy.jar
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/lib. Also
+    * the package.xml is configured to mark dependee-package.jar as a packaged-dependency.
+    *  
+    * The "dependee" package contains the following:
+    * 
+    * <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    * 
+    * The package.xml of the dependee package is configured to install the dummy.jar to JBOSS_HOME/common/lib.
+    * Nothing else is configured in the package.xml of the dependee package
+    *   
+    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
+    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithSimplePackagedDependency(String packageFileName) throws IOException
+   {
+      // let's create a simple "dependee" package
+      File dependeePackage = this.createSimplePackage("dependee-package.jar");
+
+      // Now package this dependee package and also any other files in the dependent package
+      File packageWithPackagedDependency = new File(targetDir, packageFileName);
+      JavaArchive pkg = JavaArchiveFactory.create(packageWithPackagedDependency.getName());
+      pkg.addResource("dependee-package.jar", dependeePackage);
+      // package the other files
+      File dummyJar = this.createDummyJar();
+      pkg.addResource("dummy.jar", dummyJar);
+      URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-packaged-dependency.xml");
+      File packageXmlFile = new File(packageXmlURL.getFile());
+      pkg.addResource("package.xml", packageXmlFile);
+
+      // now write out the package to disk
+      logger.debug("Writing out the created package " + pkg.toString(true));
+      this.exportZip(pkg, packageWithPackagedDependency);
+
+      return packageWithPackagedDependency;
+
    }
 
    /**
@@ -222,5 +401,99 @@ public abstract class PackageManagerTestCase
       // server/<servername>/deployers
       File serverDeployers = new File(serverProf, "deployers");
       serverDeployers.mkdirs();
+   }
+
+   /**
+    * (Recursively) removes any files from the JBoss installation represented by
+    * {@code jbossHome}
+    * 
+    * NOTE: Use with extreme caution and 
+    * 
+    * @param jbossHome
+    * @throws IOException
+    */
+   protected void cleanupJBossInstance(File jbossHome) throws IOException
+   {
+      // Deleting is extremely dangerous, since we never know if the user 
+      // unintentionally (or maliciously) passed a directory which is not JBOSS_HOME.
+      // So let's atleast make sure that the jbossHome is within this project's 
+      // "target" directory. If not, we won't delete anything (outside our scope)
+      // and just throw an IOException
+
+      if (this.isChildOfTargetFolder(jbossHome))
+      {
+         this.recursivelyDeleteFiles(jbossHome);
+         return;
+      }
+      else
+      {
+         throw new IOException(
+               jbossHome
+                     + " is not under the project \"target\" folder -" +
+                     		" Deleting the contents of that folder is not in the scope of this method");
+      }
+
+   }
+
+   protected void assertFileExistenceUnderJBossHome(File jbossHome, String file)
+   {
+      File fileToBeChecked = new File(jbossHome, file);
+      Assert.assertTrue("Expected to find file " + fileToBeChecked + " but not found", fileToBeChecked.exists());
+   }
+   
+   /**
+    * 
+    * @param file
+    * @return
+    */
+   private boolean isChildOfTargetFolder(File file)
+   {
+      if (file == null)
+      {
+         return false;
+      }
+      if (file.equals(this.targetDir))
+      {
+         return false;
+      }
+      file = file.getParentFile();
+      while (file != null)
+      {
+         if (this.targetDir.equals(file))
+         {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * 
+    * @param parent
+    * @throws IOException
+    */
+   private void recursivelyDeleteFiles(File parent) throws IOException
+   {
+      File[] filesAndDirs = parent.listFiles();
+      List<File> filesDirs = Arrays.asList(filesAndDirs);
+      for (File file : filesDirs)
+      {
+         if (file.isFile())
+         {
+            file.delete();
+         }
+         else if (file.isDirectory())
+         {
+            // recurse
+            this.recursivelyDeleteFiles(file);
+         }
+      }
+   }
+
+   protected File getPerTestTargetDir(Class<?> testClass)
+   {
+      File testCaseTargetDir = new File(targetDir, testClass.getName().replace('.', '/'));
+      testCaseTargetDir.mkdirs();
+      return testCaseTargetDir;
    }
 }

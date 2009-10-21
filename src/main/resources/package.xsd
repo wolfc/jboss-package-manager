@@ -43,10 +43,12 @@
 
             <xs:sequence>
                 <xs:element name="system-requirements" minOccurs="0" maxOccurs="1" type="jboss:system-requirementsType"/>
-                <xs:element name="file" minOccurs="1" maxOccurs="unbounded" type="jboss:fileType"/>
+                <xs:element name="file" minOccurs="0" maxOccurs="unbounded" type="jboss:fileType"/>
                 <xs:element name="dependencies" minOccurs="0" maxOccurs="1" type="jboss:dependenciesType"/>
                 <xs:element name="pre-install" minOccurs="0" maxOccurs="1" type="jboss:pre-installType"/>
                 <xs:element name="post-install" minOccurs="0" maxOccurs="1" type="jboss:post-installType"/>
+                <xs:element name="pre-uninstall" minOccurs="0" maxOccurs="1" type="jboss:pre-uninstallType"/>
+                <xs:element name="post-uninstall" minOccurs="0" maxOccurs="1" type="jboss:post-uninstallType"/>
             </xs:sequence>
             <xs:attribute name="name" use="required" type="xs:string"/>
             <xs:attribute name="version" use="required" type="xs:string"/>
@@ -82,22 +84,24 @@
     <xs:complexType name="dependenciesType">
         <xs:annotation>
             <xs:documentation>
-                A package can have dependencies on other packages. Dependencies are configured in
-                separate files. The dependencies element just points to that file. The file path is
-                relative to the location of the package.xml within a package.
-                Optionally a dependency manager can be specified through the
-                "manager" attribute. The manager attribute should contain the fully qualified class name
-                of the dependency manager which is responsible for parsing the dependencies file and
-                managing the dependencies listed in that file. The class should implement the
-                org.jboss.ejb3.packagemanager.dependency.DependencyManager interface.
-                By default, org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager will be
-                used as the dependency manager.
+                A package can have dependencies on other packages. Dependencies can be specified
+                and provided in 2 ways.
+                    1) A package which depends on other packages can package those dependencies
+                within it package jar/zip file. It can then use the "package-dependency"
+                element to list such dependencies. 
+                    2) Dependencies can be listed separately in a file. The "unprocessed-dependencies" element points
+                to that file.
+                Irrespective of how the dependencies are specified, the dependencies must always be packages.
             </xs:documentation>
         </xs:annotation>
-        <xs:attribute name="file" type="xs:string" use="required"/>
-        <xs:attribute name="manager" type="xs:string" use="optional"
-                      default="org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager"/>
+        <xs:sequence>
+            <xs:element name="packaged-dependency" minOccurs="0" maxOccurs="unbounded" type="jboss:packaged-dependencyType"/>
+            <xs:element name="unprocessed-dependencies" minOccurs="0" maxOccurs="1" type="jboss:unprocessed-dependenciesType"/>
+        </xs:sequence>
+        
+
     </xs:complexType>
+
 
 
     <xs:complexType name="pre-installType">
@@ -131,23 +135,83 @@
         </xs:sequence>
     </xs:complexType>
 
+    <xs:complexType name="pre-uninstallType">
+        <xs:annotation>
+            <xs:documentation>
+                A pre-uninstall element is used to point to pre-uninstall scripts that
+                are to be run before un-installing the package. There can be any number
+                of pre-uninstall scripts and they will be run in the same order as
+                they appear in the xml
+            </xs:documentation>
+
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>
+        </xs:sequence>
+
+    </xs:complexType>
+
+    <xs:complexType name="post-uninstallType">
+        <xs:annotation>
+            <xs:documentation>
+                A post-uninstall element is used to point to post-uninstall scripts that
+                are to be run after installing the package. There can be any number
+                of post-uninstall scripts and they will be run in the same order as
+                they appear in the xml
+            </xs:documentation>
+
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:complexType name="scriptType">
         <xs:annotation>
             <xs:documentation>
-                A script element points to a file containing a script.
-                The file attribute of this element should contain the path of the script, relative to the location of
+                A script element points to a Ant build script file.
+                The file attribute of this element contains the path of the script, relative to the location of
                 package.xml in the package.
-                The processor attribute of a script can be used to specify the fully qualified name of the
-                class which implements the org.jboss.ejb3.packagemanager.script.ScriptProcessor interface.
-                By default the processor of a script is the Ant processor
-                (org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor) which processes Ant build script
+                By default the file attribute value is "package-script.xml"
 
             </xs:documentation>
 
         </xs:annotation>
+        <xs:attribute name="file" type="xs:string" use="optional" default="package-script.xml"/>
+        <!--<xs:attribute name="processor" type="xs:string" use="optional"
+                      default="org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor"/> -->
+    </xs:complexType>
+
+    <xs:complexType name="packaged-dependencyType">
+        <xs:annotation>
+            <xs:documentation>
+                A "packaged-dependency" element points to a dependency package. The "file" attribute is relative to the
+                location of the package.xml within the package.
+            </xs:documentation>
+
+        </xs:annotation>
         <xs:attribute name="file" type="xs:string" use="required"/>
-        <xs:attribute name="processor" type="xs:string" use="optional"
-                      default="org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor"/>
+
+    </xs:complexType>
+
+    <xs:complexType name="unprocessed-dependenciesType">
+        <xs:annotation>
+            <xs:documentation>
+                The "unprocessed-dependencies"  element is used to point to the file containing a list of dependencies
+                of the package. The "file" attribute is relative to the location of the package.xml within the package.
+                Optionally a dependency manager can be specified through the "manager" attribute. The manager attribute should
+                contain the fully qualified class name of the dependency manager which is responsible for parsing the
+                dependencies file and managing the dependencies listed in that file. The class should implement the
+                org.jboss.ejb3.packagemanager.dependency.DependencyManager interface.
+                By default, org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager will be
+                used as the dependency manager.
+            </xs:documentation>
+
+        </xs:annotation>
+        <xs:attribute name="file" type="xs:string" use="required"/>
+        <xs:attribute name="manager" type="xs:string" use="optional"
+                      default="org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager"/>
+
     </xs:complexType>
 
 </xs:schema>

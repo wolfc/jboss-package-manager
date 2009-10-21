@@ -23,7 +23,7 @@ package org.jboss.ejb3.packagemanager;
 
 import java.net.URL;
 
-import org.jboss.ejb3.packagemanager.exception.InstallerException;
+import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.installer.Installer;
 import org.jboss.ejb3.packagemanager.metadata.InstallFile;
 import org.jboss.ejb3.packagemanager.metadata.Script;
@@ -65,17 +65,17 @@ public interface PackageManager
     * Installs a package 
     * 
     * @param packagePath The URL path of the package file
-    * @throws InstallerException If any exceptions occur during installation
+    * @throws PackageManagerException If any exceptions occur during installation
     */
-   void installPackage(String packagePath) throws InstallerException;
+   void installPackage(String packagePath) throws PackageManagerException;
    
    /**
     * Installs a package 
     * 
     * @param packageURL The URL of the package file
-    * @throws InstallerException If any exceptions occur during installation
+    * @throws PackageManagerException If any exceptions occur during installation
     */
-   void installPackage(URL packageURL) throws InstallerException;
+   void installPackage(URL packageURL) throws PackageManagerException;
    
    /**
     * Removes a package using the name of the package
@@ -90,12 +90,6 @@ public interface PackageManager
     */
    Installer getInstaller(InstallFile fileMeta);
    
-   /**
-    * Returns an appropriate {@link ScriptProcessor} for the {@link Script}
-    * @param script The script in a package
-    * @return
-    */
-   ScriptProcessor getScriptProcessor(Script script);
    
    /**
     * A package manager works against a JBoss AS server. This method returns the 

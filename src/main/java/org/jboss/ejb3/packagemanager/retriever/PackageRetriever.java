@@ -21,10 +21,10 @@
 */
 package org.jboss.ejb3.packagemanager.retriever;
 
+import java.io.File;
 import java.net.URL;
 
-import org.jboss.ejb3.packagemanager.PackageManager;
-import org.jboss.ejb3.packagemanager.PackageSource;
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.PackageRetrievalException;
 
 /**
@@ -35,5 +35,5 @@ import org.jboss.ejb3.packagemanager.exception.PackageRetrievalException;
  */
 public interface PackageRetriever
 {
-   PackageSource retrievePackage(PackageManager pkgMgr, URL packagePath) throws PackageRetrievalException;
+   File retrievePackage(PackageManagerContext pkgMgrCtx, URL packagePath) throws PackageRetrievalException;
 }
