@@ -19,23 +19,34 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.metadata;
+package org.jboss.ejb3.packagemanager.db;
+
+import java.util.Set;
+
+import org.jboss.ejb3.packagemanager.PackageContext;
+import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 
 /**
- * PackagedDependency
+ * PackageDatabaseManager
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface PackagedDependency
+public interface PackageDatabaseManager
 {
-   String getFile();
+
+   InstalledPackage installPackage(PackageContext pkgCtx);
    
-   void setFile(String file);
+   InstalledPackage getInstalledPackage(String name);
    
-   /**
-    * Returns the package for which this is an dependency
-    * @return
-    */
-   PackageType getPackage();
+   boolean isPackageInstalled(String name);
+   
+   Set<InstalledPackage> getDependentPackages(String name);
+   
+   InstalledPackage upgradePackage(PackageContext pkgCtx);
+   
+   void removePackage(String name) throws PackageNotInstalledException;
+   
+   void removePackage(InstalledPackage installedPackage);
 }

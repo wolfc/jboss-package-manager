@@ -23,18 +23,35 @@ package org.jboss.ejb3.packagemanager.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.jar.JarFile;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.dependency.DependencyManager;
+import org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager;
+import org.jboss.ejb3.packagemanager.exception.DependencyResoultionException;
 import org.jboss.ejb3.packagemanager.exception.InvalidPackageException;
 import org.jboss.ejb3.packagemanager.exception.PackageRetrievalException;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.DependenciesType;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
+import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
+import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
+import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
+import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 import org.jboss.ejb3.packagemanager.retriever.PackageRetriever;
 import org.jboss.ejb3.packagemanager.retriever.impl.PackageRetrievalFactory;
 import org.jboss.ejb3.packagemanager.util.IOUtil;
 import org.jboss.ejb3.packagemanager.xml.PackageUnmarshaller;
+import org.jboss.logging.Logger;
 
 /**
  * DefaultPackageContext
@@ -44,6 +61,11 @@ import org.jboss.ejb3.packagemanager.xml.PackageUnmarshaller;
  */
 public class DefaultPackageContext implements PackageContext
 {
+
+   /**
+    * Logger
+    */
+   private static Logger logger = Logger.getLogger(DefaultPackageContext.class);
 
    /**
     * Source of the of the package
@@ -64,7 +86,12 @@ public class DefaultPackageContext implements PackageContext
    /**
     * The package metadata
     */
-   private org.jboss.ejb3.packagemanager.metadata.Package pkg;
+   private org.jboss.ejb3.packagemanager.metadata.PackageType pkg;
+
+   /**
+    * Set of dependency packages for this package context
+    */
+   private Set<PackageContext> dependencyPackages = new HashSet<PackageContext>();
 
    /**
     * Constructs a package context out of a package source, for 
@@ -73,11 +100,13 @@ public class DefaultPackageContext implements PackageContext
     * @param pkgMgrCtx Package manager context
     * @param packageSrc Source of the package
     */
-   public DefaultPackageContext(PackageManagerContext pkgMgrCtx, URL packageSrc) throws InvalidPackageException
+   public DefaultPackageContext(PackageManagerContext pkgMgrCtx, URL packageSrc) throws InvalidPackageException,
+         DependencyResoultionException
    {
       this.packageSource = packageSrc;
       this.pkgMgrCtx = pkgMgrCtx;
       initPackageContext();
+      initPackageDependencies();
    }
 
    /**
@@ -98,13 +127,163 @@ public class DefaultPackageContext implements PackageContext
       return this.packageRoot;
    }
 
-   /**
-    * @see PackageContext#getPackage()
-    */
-   @Override
-   public Package getPackage()
+   
+   public PackageType getPackage()
    {
       return this.pkg;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getDependencyPackages()
+    */
+   @Override
+   public Set<PackageContext> getDependencyPackages()
+   {
+      return this.dependencyPackages;
+
+   }
+   
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getInstallationFiles()
+    */
+   @Override
+   public List<InstallFileType> getInstallationFiles()
+   {
+      return Collections.unmodifiableList(this.pkg.getFiles());
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getPackageName()
+    */
+   @Override
+   public String getPackageName()
+   {
+      return this.pkg.getName();
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getPackageVersion()
+    */
+   @Override
+   public String getPackageVersion()
+   {
+      return this.pkg.getVersion();
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getPostInstallScripts()
+    */
+   @Override
+   public List<ScriptType> getPostInstallScripts()
+   {
+      PostInstallType postInstall = this.pkg.getPostInstall();
+      if (postInstall == null)
+      {
+         return Collections.EMPTY_LIST;
+      }
+      List<ScriptType> postInstallScripts = postInstall.getScripts();
+      if (postInstallScripts == null)
+      {
+         return Collections.EMPTY_LIST;
+      }
+      return Collections.unmodifiableList(postInstallScripts);
+      
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getPreInstallScripts()
+    */
+   @Override
+   public List<ScriptType> getPreInstallScripts()
+   {
+      PreInstallType preInstall = this.pkg.getPreInstall();
+      if (preInstall == null)
+      {
+         return Collections.EMPTY_LIST;
+      }
+      List<ScriptType> preInstallScripts = preInstall.getScripts();
+      if (preInstallScripts == null)
+      {
+         return Collections.EMPTY_LIST;
+      }
+      return Collections.unmodifiableList(preInstallScripts);
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageContext#getSystemRequirements()
+    */
+   @Override
+   public SystemRequirementsType getSystemRequirements()
+   {
+      return this.pkg.getSystemRequirements();
+   }
+
+   private void initPackageDependencies() throws DependencyResoultionException, InvalidPackageException
+   {
+      // packaged dependencies
+      this.dependencyPackages.addAll(this.getPackagedDependencyPackages());
+      // unprocessed dependencies
+      this.dependencyPackages.addAll(this.getUnprocessedDependencyPackages());
+   }
+
+   private Set<PackageContext> getUnprocessedDependencyPackages() throws DependencyResoultionException
+   {
+      DependenciesType dependencies = this.pkg.getDependencies();
+      if (dependencies == null || dependencies.getUnProcessedDependencies() == null)
+      {
+         logger.debug("No unprocessed dependencies for " + this);
+         return Collections.EMPTY_SET;
+      }
+      UnProcessedDependenciesType unProcessedDeps = dependencies.getUnProcessedDependencies();
+      File dependencyFile = new File(this.getPackageRoot(), unProcessedDeps.getFile());
+      if (!dependencyFile.exists())
+      {
+         throw new DependencyResoultionException("Dependency file " + dependencyFile + " not found for " + this);
+      }
+      DependencyManager depManager = this.getDependencyManager(unProcessedDeps);
+      if (depManager == null)
+      {
+         // TODO: Revisit this
+         return Collections.EMPTY_SET;
+      }
+      Set<PackageContext> dependencyPackages = depManager.resolveDepedencies(this.pkgMgrCtx, this, unProcessedDeps);
+      return dependencyPackages;
+   }
+
+   private Set<PackageContext> getPackagedDependencyPackages() throws InvalidPackageException,
+         DependencyResoultionException
+   {
+
+      DependenciesType dependencies = this.pkg.getDependencies();
+      if (dependencies == null || dependencies.getPackagedDependencies() == null
+            || dependencies.getPackagedDependencies().isEmpty())
+      {
+         logger.debug("No packaged dependency for " + this);
+         return Collections.EMPTY_SET;
+      }
+      List<PackagedDependency> packagedDeps = dependencies.getPackagedDependencies();
+      Set<PackageContext> depPackageCtxs = new HashSet<PackageContext>();
+      for (PackagedDependency packagedDep : packagedDeps)
+      {
+         String relativePathToDependencyPackage = packagedDep.getFile();
+         File dependencyPackage = new File(this.getPackageRoot(), relativePathToDependencyPackage);
+         if (!dependencyPackage.exists())
+         {
+            throw new DependencyResoultionException("packaged-dependency file " + dependencyPackage + " does not exist");
+         }
+         PackageContext dependencyPkgCtx;
+         try
+         {
+            dependencyPkgCtx = new DefaultPackageContext(this.pkgMgrCtx, dependencyPackage.toURI().toURL());
+            depPackageCtxs.add(dependencyPkgCtx);
+
+         }
+         catch (MalformedURLException mue)
+         {
+            throw new RuntimeException(mue);
+         }
+      }
+      return depPackageCtxs;
    }
 
    /**
@@ -165,6 +344,46 @@ public class DefaultPackageContext implements PackageContext
       }
    }
 
+   private DependencyManager getDependencyManager(UnProcessedDependenciesType dependencies)
+   {
+      if (dependencies == null)
+      {
+         return null;
+      }
+      String depManagerClassName = dependencies.getManager();
+      if (depManagerClassName == null)
+      {
+         // our default is ivy dependency manager
+         return new IvyDependencyManager();
+      }
+      Class<?> dependencyManager = null;
+      // load the script processor
+      try
+      {
+         dependencyManager = Class.forName(depManagerClassName, true, Thread.currentThread().getContextClassLoader());
+      }
+      catch (ClassNotFoundException cnfe)
+      {
+         throw new RuntimeException("Could not load dependency manager: " + depManagerClassName, cnfe);
+      }
+      // make sure the dependency manager specified in the metadata
+      // does indeed implement the DependencyManager interface
+      if (!DependencyManager.class.isAssignableFrom(dependencyManager))
+      {
+         throw new RuntimeException("Dependency manager " + depManagerClassName + " does not implement "
+               + DependencyManager.class);
+      }
+      try
+      {
+         return (DependencyManager) dependencyManager.newInstance();
+      }
+      catch (Exception e)
+      {
+         throw new RuntimeException("Could not instantiate dependency manager " + depManagerClassName, e);
+      }
+
+   }
+
    @Override
    public String toString()
    {
@@ -183,4 +402,6 @@ public class DefaultPackageContext implements PackageContext
       return sb.toString();
 
    }
+
+   
 }

@@ -30,10 +30,10 @@ import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
+import org.jboss.ejb3.packagemanager.test.uninstall.unit.UnInstallTestCase;
 import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchiveFactory;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -57,34 +57,28 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
    private static PackageManager pkgMgr;
 
    /**
-    * The JBoss Home used in this test
+    * The JBoss Home used in each test
     */
    private static File jbossHome;
 
    /**
-    * Package manager home used in this test
+    * Package manager home used in each test
     */
    private static File pkgMgrHome;
 
-   private File perTestTargetDir = this.getPerTestTargetDir(this.getClass());
+   private static File perTestTargetDir = getPerTestTargetDir(DependencyInstallTestCase.class);
 
    /**
     * Do the necessary setup
     * @throws Exception
     */
    @BeforeClass
-   public static void setup() throws Exception
+   public static void beforeClass() throws Exception
    {
-      pkgMgrHome = setupPackageManagerHome();
-      jbossHome = setupDummyJBoss();
+      pkgMgrHome = setupPackageManagerHome(DependencyInstallTestCase.class);
+      jbossHome = setupDummyJBoss(DependencyInstallTestCase.class);
       PackageManagerEnvironment env = new PackageManagerEnvironment(pkgMgrHome.getAbsolutePath());
       pkgMgr = new DefaultPackageManagerImpl(env, jbossHome.getAbsolutePath());
-   }
-
-   @Before
-   public void beforeTest() throws Exception
-   {
-      this.cleanupJBossInstance(jbossHome);
    }
 
    /**
@@ -105,6 +99,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       // this package was expected to install dummy.jar to JBOSS_HOME/common/lib and JBOSS_HOME/server/default/lib folders
       this.assertFileExistenceUnderJBossHome(jbossHome, "common/lib/dummy.jar");
       this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/lib/dummy.jar");
+
    }
 
    /**
@@ -141,7 +136,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
    {
       File dummyJar = this.createDummyJar();
       // create the package
-      File packageWithUnprocessedDeps = new File(this.perTestTargetDir, "package-with-unprocessed-dependencies.jar");
+      File packageWithUnprocessedDeps = new File(perTestTargetDir, "package-with-unprocessed-dependencies.jar");
       JavaArchive archive = JavaArchiveFactory.create(packageWithUnprocessedDeps.getName());
       archive.addResource("dummy.jar", dummyJar);
       List<URL> resources = this.getResources(this.getClass(), "some-deployer-jboss-beans.xml", "ivy.xml");
@@ -179,7 +174,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
 
       File dummyJar = this.createDummyJar();
       // create dependee package#1
-      File dependeePackageOne = new File(this.perTestTargetDir, "dependee-package-one.jar");
+      File dependeePackageOne = new File(perTestTargetDir, "dependee-package-one.jar");
       JavaArchive archiveOne = JavaArchiveFactory.create(dependeePackageOne.getName());
       archiveOne.addResource("dummy1.jar", dummyJar);
       URL packageXmlURL = this.getResource(this.getClass(), "dependee-package1.xml");
@@ -195,7 +190,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       this.exportZip(archiveOne, dependeePackageOne);
 
       // create dependee package#2
-      File dependeePackageTwo = new File(this.perTestTargetDir, "dependee-package-two.jar");
+      File dependeePackageTwo = new File(perTestTargetDir, "dependee-package-two.jar");
       JavaArchive archiveTwo = JavaArchiveFactory.create(dependeePackageTwo.getName());
       archiveTwo.addResource("dummy2.jar", dummyJar);
       URL packageXmlTwo = this.getResource(this.getClass(), "dependee-package2.xml");
@@ -227,7 +222,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       this.exportZip(archiveThree, dependeePackageThree);
 
       // Create the final package with all these 3 packages as the package-dependencies
-      File aggregatedPacakge = new File(this.perTestTargetDir, packageFileName);
+      File aggregatedPacakge = new File(perTestTargetDir, packageFileName);
       JavaArchive aggregatedArchive = JavaArchiveFactory.create(aggregatedPacakge.getName());
       aggregatedArchive.addResource("dummy-main.jar", dummyJar);
       URL aggPackageXml = this.getResource(this.getClass(), "package-with-multiple-packaged-dependencies.xml");

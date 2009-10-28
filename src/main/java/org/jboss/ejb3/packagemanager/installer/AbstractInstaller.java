@@ -25,9 +25,10 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.entity.InstalledFile;
+import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.logging.Logger;
 
 /**
@@ -41,12 +42,43 @@ public abstract class AbstractInstaller implements Installer
 
    private static Logger logger = Logger.getLogger(AbstractInstaller.class);
 
+   protected PackageManagerContext packageMgrContext;
+
+   public AbstractInstaller(PackageManagerContext packageMgrCtx)
+   {
+      this.packageMgrContext = packageMgrCtx;
+   }
+
    /**
-    * @see org.jboss.ejb3.packagemanager.installer.Installer#install(org.jboss.ejb3.packagemanager.PackageManagerContext, org.jboss.ejb3.packagemanager.PackageContext, InstallFile)
+    * @see org.jboss.ejb3.packagemanager.installer.Installer#uninstall(org.jboss.ejb3.packagemanager.PackageManagerContext, org.jboss.ejb3.packagemanager.PackageContext)
     */
    @Override
-   public final void install(PackageManagerContext pkgMgrCtx, PackageContext pkgCtx, InstallFile fileMeta)
-         throws PackageManagerException
+   public void uninstall(InstalledPackage pkg, InstalledFile installedFile) throws PackageManagerException
+   {
+      String jbossHome = pkg.getPackageManager().getJbossHome();
+      File relativePathToFile = new File(jbossHome, installedFile.getInstalledPath());
+      File fileToUninstall = new File(relativePathToFile, installedFile.getFileName());
+      if (!fileToUninstall.exists())
+      {
+         throw new PackageManagerException("Installed file missing: " + fileToUninstall.getAbsolutePath()
+               + " - cannot uninstall!");
+      }
+      if (fileToUninstall.isDirectory())
+      {
+         throw new PackageManagerException("Installed file is a directory : " + fileToUninstall.getAbsolutePath()
+               + " - cannot uninstall!");
+      }
+      fileToUninstall.delete();
+      logger.info("Uninstalled file " + fileToUninstall + " from package  " + pkg.getPackageName());
+
+   }
+
+
+   /**
+    * 
+    */
+   @Override
+   public final void install(PackageContext pkgCtx, InstallFileType fileMeta) throws PackageManagerException
    {
       // do templating
       File pkgRoot = pkgCtx.getPackageRoot();
@@ -56,34 +88,33 @@ public abstract class AbstractInstaller implements Installer
          srcPathOfFileToInstall = new File(pkgRoot, fileMeta.getSrcPath());
       }
       File fileToInstall = new File(srcPathOfFileToInstall, fileMeta.getName());
-      Package pkg = pkgCtx.getPackage();
+
       if (!fileToInstall.exists())
       {
-         throw new PackageManagerException(fileToInstall.getAbsolutePath() + " does not exist, package: " + pkg.getName()
-               + " version: " + pkg.getVersion() + " being installed from " + pkgCtx.getPackageRoot()
+         throw new PackageManagerException(fileToInstall.getAbsolutePath() + " does not exist, package: " + pkgCtx
+               + " being installed from " + pkgCtx.getPackageRoot()
                + " is probably corrupt!");
       }
 
       if (fileMeta.getDestPath() == null)
       {
-         throw new PackageManagerException("File " + fileMeta.getName() + " in package: " + pkg.getName() + " version: "
-               + pkg.getVersion() + " does not specify a destination");
+         throw new PackageManagerException("File " + fileMeta.getName() + " in package: " + pkgCtx
+               + " does not specify a destination");
       }
-      String destServerHome = pkgMgrCtx.getJBossServerHome();
+      String destServerHome = this.packageMgrContext.getJBossServerHome();
       File locationToInstall = new File(destServerHome, fileMeta.getDestPath());
       // TODO: Provide an option on <file> to allow for creating missing destination folders
       // Till then just throw an exception if dest-path is not actually available
       if (!locationToInstall.exists() || !locationToInstall.isDirectory())
       {
          throw new PackageManagerException("dest-path " + locationToInstall.getAbsolutePath() + " for file: "
-               + fileMeta.getName() + " in package: " + pkg.getName() + " version: " + pkg.getVersion()
+               + fileMeta.getName() + " in package: " + pkgCtx
                + " is either not present or is not a directory");
       }
       try
       {
          doInstall(fileMeta, fileToInstall, locationToInstall);
-         logger.info("Installed file " + fileMeta.getName() + " from package: " + pkg.getName() + " version: "
-               + pkg.getVersion() + " to " + locationToInstall.getAbsolutePath());
+         logger.info("Installed file " + fileMeta.getName() + " from package: " + pkgCtx + " to " + locationToInstall.getAbsolutePath());
 
          // TODO: Write to DB about file install completion
       }
@@ -95,8 +126,7 @@ public abstract class AbstractInstaller implements Installer
       }
    }
 
-   protected abstract void doInstall(InstallFile fileMetadata, File fileToInstall, File dest)
+   protected abstract void doInstall(InstallFileType fileMetadata, File fileToInstall, File dest)
          throws PackageManagerException;
-
 
 }

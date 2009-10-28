@@ -24,9 +24,10 @@ package org.jboss.ejb3.packagemanager.installer;
 import java.io.File;
 import java.io.IOException;
 
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.util.IOUtil;
 import org.jboss.logging.Logger;
 
@@ -41,15 +42,20 @@ public class DefaultInstaller extends AbstractInstaller
 
    private static Logger logger = Logger.getLogger(DefaultInstaller.class);
 
+   public DefaultInstaller(PackageManagerContext packageMgrCtx)
+   {
+      super(packageMgrCtx);
+   }
+   
    /**
-    * @see org.jboss.ejb3.packagemanager.installer.AbstractInstaller#doInstall(org.jboss.ejb3.packagemanager.metadata.InstallFile, java.io.File, java.io.File)
+    * @see org.jboss.ejb3.packagemanager.installer.AbstractInstaller#doInstall(org.jboss.ejb3.packagemanager.metadata.InstallFileType, java.io.File, java.io.File)
     */
    @Override
-   protected void doInstall(InstallFile fileMetadata, File fileToInstall, File dest) throws PackageManagerException
+   protected void doInstall(InstallFileType fileMetadata, File fileToInstall, File dest) throws PackageManagerException
    {
       // just copy from source to dest
       File destFile = new File(dest, fileMetadata.getName());
-      Package pkgMeta = fileMetadata.getPackage();
+      PackageType pkgMeta = fileMetadata.getPackage();
       if (destFile.exists())
       {
          logger.info("File " + fileMetadata.getName() + " from package: " + pkgMeta.getName() + " version: "

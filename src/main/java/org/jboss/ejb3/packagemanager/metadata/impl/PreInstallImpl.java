@@ -24,9 +24,9 @@ package org.jboss.ejb3.packagemanager.metadata.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.ejb3.packagemanager.metadata.Package;
-import org.jboss.ejb3.packagemanager.metadata.PreInstall;
-import org.jboss.ejb3.packagemanager.metadata.Script;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
+import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * PreInstallMetadataImpl
@@ -34,32 +34,32 @@ import org.jboss.ejb3.packagemanager.metadata.Script;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PreInstallImpl implements PreInstall
+public class PreInstallImpl implements PreInstallType
 {
 
    /**
     * The package to which this pre-install belongs
     */
-   private Package pkgMetadata;
+   private PackageType pkgMetadata;
 
    /**
     * pre-install scripts
     */
-   private List<Script> scripts;
+   private List<ScriptType> scripts;
 
    /**
     * Constructor
-    * @param pkgMeta The {@link Package} to which this pre-install belongs
+    * @param pkgMeta The {@link PackageType} to which this pre-install belongs
     */
-   public PreInstallImpl(Package pkgMeta)
+   public PreInstallImpl(PackageType pkgMeta)
    {
       this.pkgMetadata = pkgMeta;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PreInstall#addScript(org.jboss.ejb3.packagemanager.metadata.Script)
+    * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#addScript(org.jboss.ejb3.packagemanager.metadata.ScriptType)
     */
-   public void addScript(Script script)
+   public void addScript(ScriptType script)
    {
       if (script == null)
       {
@@ -67,31 +67,31 @@ public class PreInstallImpl implements PreInstall
       }
       if (this.scripts == null)
       {
-         this.scripts = new ArrayList<Script>();
+         this.scripts = new ArrayList<ScriptType>();
       }
       this.scripts.add(script);
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PreInstall#getPackage()
+    * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#getPackage()
     */
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkgMetadata;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PreInstall#getScripts()
+    * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#getScripts()
     */
-   public List<Script> getScripts()
+   public List<ScriptType> getScripts()
    {
       return this.scripts;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PreInstall#setScripts(java.util.List)
+    * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#setScripts(java.util.List)
     */
-   public void setScripts(List<Script> scripts)
+   public void setScripts(List<ScriptType> scripts)
    {
       if (scripts == null)
       {

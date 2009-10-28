@@ -37,7 +37,7 @@ package org.jboss.ejb3.packagemanager.metadata;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface UnProcessedDependencies
+public interface UnProcessedDependenciesType
 {
 
    /**
@@ -72,5 +72,5 @@ public interface UnProcessedDependencies
     * Returns the package for which this is an dependency
     * @return
     */
-   Package getPackage();
+   PackageType getPackage();
 }

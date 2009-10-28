@@ -24,21 +24,21 @@ package org.jboss.ejb3.packagemanager.metadata.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.ejb3.packagemanager.metadata.Dependencies;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
-import org.jboss.ejb3.packagemanager.metadata.Package;
-import org.jboss.ejb3.packagemanager.metadata.PostInstall;
-import org.jboss.ejb3.packagemanager.metadata.PreInstall;
-import org.jboss.ejb3.packagemanager.metadata.SystemRequirements;
+import org.jboss.ejb3.packagemanager.metadata.DependenciesType;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
+import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
+import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
+import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
 
-public class PackageImpl implements Package
+public class PackageImpl implements PackageType
 {
 
-   protected SystemRequirements systemRequirements;
+   protected SystemRequirementsType systemRequirements;
 
-   protected List<InstallFile> files;
+   protected List<InstallFileType> files;
 
-   protected Dependencies dependencies;
+   protected DependenciesType dependencies;
 
    protected String name;
 
@@ -47,34 +47,34 @@ public class PackageImpl implements Package
    /**
     * Post-install for this package
     */
-   protected PostInstall postInstall;
+   protected PostInstallType postInstall;
 
    /**
     * Pre-install for this package
     */
-   protected PreInstall preInstall;
+   protected PreInstallType preInstall;
 
    public PackageImpl()
    {
 
    }
 
-   public SystemRequirements getSystemRequirements()
+   public SystemRequirementsType getSystemRequirements()
    {
       return systemRequirements;
    }
 
-   public void setSystemRequirements(SystemRequirements value)
+   public void setSystemRequirements(SystemRequirementsType value)
    {
       this.systemRequirements = ((SystemRequirementsImpl) value);
    }
 
-   public List<InstallFile> getFiles()
+   public List<InstallFileType> getFiles()
    {
       return this.files;
    }
 
-   public void setFiles(List<InstallFile> files)
+   public void setFiles(List<InstallFileType> files)
    {
       if (files == null || files.isEmpty())
       {
@@ -83,12 +83,12 @@ public class PackageImpl implements Package
       this.files = files;
    }
 
-   public Dependencies getDependencies()
+   public DependenciesType getDependencies()
    {
       return dependencies;
    }
 
-   public void setDependencies(Dependencies value)
+   public void setDependencies(DependenciesType value)
    {
       this.dependencies = value;
    }
@@ -114,9 +114,9 @@ public class PackageImpl implements Package
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Package#addFile(org.jboss.ejb3.packagemanager.metadata.InstallFile)
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#addFile(org.jboss.ejb3.packagemanager.metadata.InstallFileType)
     */
-   public void addFile(InstallFile file)
+   public void addFile(InstallFileType file)
    {
       if (file == null)
       {
@@ -124,41 +124,41 @@ public class PackageImpl implements Package
       }
       if (this.files == null)
       {
-         this.files = new ArrayList<InstallFile>();
+         this.files = new ArrayList<InstallFileType>();
       }
       this.files.add(file);
 
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Package#getPostInstall()
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#getPostInstall()
     */
-   public PostInstall getPostInstall()
+   public PostInstallType getPostInstall()
    {
       return this.postInstall;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Package#getPreInstall()
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#getPreInstall()
     */
-   public PreInstall getPreInstall()
+   public PreInstallType getPreInstall()
    {
       return this.preInstall;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Package#setPostInstall(org.jboss.ejb3.packagemanager.metadata.PostInstall)
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#setPostInstall(org.jboss.ejb3.packagemanager.metadata.PostInstallType)
     */
-   public void setPostInstall(PostInstall postInstall)
+   public void setPostInstall(PostInstallType postInstall)
    {
       this.postInstall = postInstall;
 
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Package#setPreInstall(org.jboss.ejb3.packagemanager.metadata.PreInstall)
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#setPreInstall(org.jboss.ejb3.packagemanager.metadata.PreInstallType)
     */
-   public void setPreInstall(PreInstall preInstall)
+   public void setPreInstall(PreInstallType preInstall)
    {
       this.preInstall = preInstall;
 

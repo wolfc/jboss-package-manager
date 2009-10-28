@@ -47,7 +47,7 @@ import org.jboss.ejb3.packagemanager.dependency.DependencyManager;
 import org.jboss.ejb3.packagemanager.exception.DependencyResoultionException;
 import org.jboss.ejb3.packagemanager.exception.InvalidPackageException;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageContext;
-import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 import org.jboss.logging.Logger;
 
 /**
@@ -75,7 +75,7 @@ public class IvyDependencyManager implements DependencyManager
     */
    @Override
    public Set<PackageContext> resolveDepedencies(PackageManagerContext pkgMgrContext, PackageContext pkgCtx,
-         UnProcessedDependencies deps) throws DependencyResoultionException
+         UnProcessedDependenciesType deps) throws DependencyResoultionException
    {
       IvySettings ivySettings = new IvySettings();
       // set the basedir to the package root
@@ -121,8 +121,8 @@ public class IvyDependencyManager implements DependencyManager
          ModuleDescriptor md = resolveReport.getModuleDescriptor();
          // the dependency packages will be retrieved to a sub folder under the package manager's
          // tmp folder
-         File pkgTmpDir = new File(pkgMgrContext.getPackageManagerEnvironment().getPackageManagerTmpDir(), pkgCtx
-               .getPackage().getName());
+         File pkgTmpDir = new File(pkgMgrContext.getPackageManagerEnvironment().getPackageManagerTmpDir(), pkgCtx.getPackageName());
+               
          pkgTmpDir.mkdir();
 
          ModuleRevisionId mRID = md.getModuleRevisionId();

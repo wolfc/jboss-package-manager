@@ -27,7 +27,7 @@ package org.jboss.ejb3.packagemanager.metadata;
  * 
  * 
  */
-public interface SystemRequirements
+public interface SystemRequirementsType
 {
-   Package getPackage();
+   PackageType getPackage();
 }

@@ -21,8 +21,6 @@
  */
 package org.jboss.ejb3.packagemanager.impl;
 
-import gnu.getopt.Getopt;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,21 +31,20 @@ import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
-import org.jboss.ejb3.packagemanager.dependency.DependencyManager;
-import org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager;
+import org.jboss.ejb3.packagemanager.db.DefaultDatabaseManager;
+import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
+import org.jboss.ejb3.packagemanager.entity.InstalledFile;
+import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
+import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.installer.DefaultInstaller;
 import org.jboss.ejb3.packagemanager.installer.Installer;
 import org.jboss.ejb3.packagemanager.installer.MergingInstaller;
-import org.jboss.ejb3.packagemanager.metadata.Dependencies;
 import org.jboss.ejb3.packagemanager.metadata.FileType;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
-import org.jboss.ejb3.packagemanager.metadata.PostInstall;
-import org.jboss.ejb3.packagemanager.metadata.PreInstall;
-import org.jboss.ejb3.packagemanager.metadata.Script;
-import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor;
 import org.jboss.logging.Logger;
@@ -83,6 +80,11 @@ public class DefaultPackageManagerImpl implements PackageManager
    private PackageManagerContext pkgMgrCtx;
 
    /**
+    * Package database manager
+    */
+   private PackageDatabaseManager pkgDatabaseManager;
+
+   /**
     * Creates the default package manager for a server 
     * 
     * @param environment The package manager environment
@@ -93,6 +95,7 @@ public class DefaultPackageManagerImpl implements PackageManager
       this.environment = environment;
       this.installationServerHome = jbossHome;
       this.pkgMgrCtx = new DefaultPackageManagerContext(this);
+      this.pkgDatabaseManager = new DefaultDatabaseManager(this.pkgMgrCtx);
    }
 
    /**
@@ -170,12 +173,18 @@ public class DefaultPackageManagerImpl implements PackageManager
       {
          throw new PackageManagerException("Package context is null");
       }
-      // proceed with installation of the package
-      Package pkgToInstall = pkgContext.getPackage();
-      if (pkgToInstall.getFiles() == null)
+      // check if package is already installed
+      boolean packageAlreadyInstalled = this.pkgDatabaseManager.isPackageInstalled(pkgContext.getPackageName());
+      if (packageAlreadyInstalled)
       {
-         throw new PackageManagerException("There are no files to install for package: " + pkgToInstall.getName()
-               + " version: " + pkgToInstall.getVersion());
+         throw new PackageManagerException("Package " + pkgContext + " is already installed");
+      }
+      logger.debug("New package " + pkgContext + " being installed");
+      // proceed with installation of the package
+      
+      if (pkgContext.getInstallationFiles() == null)
+      {
+         throw new PackageManagerException("There are no files to install for package: " + pkgContext);
       }
       // work on dependencies first (because if deps are not satisfied then no point
       // running the pre-install step.
@@ -185,50 +194,113 @@ public class DefaultPackageManagerImpl implements PackageManager
       // pre-installation step
       this.preInstallPackage(pkgContext);
       // install files in this package
-      for (InstallFile fileToInstall : pkgToInstall.getFiles())
+      for (InstallFileType fileToInstall : pkgContext.getInstallationFiles())
       {
          Installer installer = getInstaller(fileToInstall);
-         installer.install(this.pkgMgrCtx, pkgContext, fileToInstall);
+         installer.install(pkgContext, fileToInstall);
       }
       // post-installation step
       this.postInstallPackage(pkgContext);
       logger.info("Installed " + pkgContext);
+      this.pkgDatabaseManager.installPackage(pkgContext);
    }
 
    /**
     * @see org.jboss.ejb3.packagemanager.PackageManager#removePackage(java.lang.String)
     */
-   public void removePackage(String packageName)
+   @Override
+   public void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException
    {
-      // TODO Auto-generated method stub
-
+      this.removePackage(packageName, false);
    }
 
+   
+   protected void removePackage(String packageName, boolean forceRemove) throws PackageNotInstalledException, PackageManagerException
+   {
+      // get the installed package
+      boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
+      if (!isPackageInstalled)
+      {
+         throw new PackageNotInstalledException("Package " + packageName + " is not installed - so cannot be removed!");
+      }
+      if (!forceRemove)
+      {
+         // check if other packages are dependent on this package
+         // If yes, then do NOT remove this package. Else remove this package
+         Set<InstalledPackage> dependentPackages = this.pkgDatabaseManager.getDependentPackages(packageName);
+         if (dependentPackages != null && !dependentPackages.isEmpty())
+         {
+            throw new PackageManagerException("Other packages are dependent on package " + packageName
+                  + " - cannot remove this package!");
+         }
+      }
+      InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
+      // TODO : Revisit this installer creation
+      Installer installer = new DefaultInstaller(this.pkgMgrCtx);
+      // install files in this package
+      for (InstalledFile fileToUninstall : installedPackage.getInstallationFiles())
+      {
+         installer.uninstall(installedPackage, fileToUninstall);
+      }
+      this.pkgDatabaseManager.removePackage(installedPackage);
+   }
+   
    /**
     * @see org.jboss.ejb3.packagemanager.PackageManager#updatePackage(java.lang.String)
     */
    @Override
-   public void updatePackage(String packageFilePath)
+   public void updatePackage(String packageFilePath) throws PackageManagerException
    {
-      // WIP
-      //      URL packageUrl = null;
-      //      try
-      //      {
-      //         packageUrl = this.getPackageURL(packageFilePath);
-      //      }
-      //      catch (MalformedURLException mue)
-      //      {
-      //         throw new InstallerException("Cannot parse path " + packageFilePath, mue);
-      //      }
-      //      this.updatePackage(packageUrl);
+      if (packageFilePath == null)
+      {
+         throw new PackageManagerException("Package path is null");
+      }
+      URL packageURL = null;
+      try
+      {
+         packageURL = this.getPackageURL(packageFilePath);
+      }
+      catch (MalformedURLException mue)
+      {
+         throw new PackageManagerException("Cannot parse path " + packageFilePath, mue);
+      }
+      this.updatePackage(packageURL);
    }
 
    @Override
-   public void updatePackage(URL packageURL)
+   public void updatePackage(URL packageURL) throws PackageManagerException
    {
+      if (packageURL == null)
+      {
+         throw new PackageManagerException("Package URL is null");
+      }
 
+      // create a package context
+      PackageContext pkgCtx = new DefaultPackageContext(this.pkgMgrCtx, packageURL);
+      this.updatePackage(pkgCtx);
    }
 
+   public void updatePackage(PackageContext pkgContext) throws PackageManagerException
+   {
+      // TODO: Revisit
+//      // first remove
+//      this.removeIfExists(pkgContext.getPackageName());
+//      
+      // now install new version
+      this.installPackage(pkgContext);
+      
+   }
+
+   private void removeIfExists(String packageName) throws PackageManagerException
+   {
+      // get the installed package
+      boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
+      if (!isPackageInstalled)
+      {
+         return;
+      }
+      this.removePackage(packageName);
+   }
    /**
     * Parses the {@code pkgPath} string and returns an appropriate URL.
     * 
@@ -255,9 +327,9 @@ public class DefaultPackageManagerImpl implements PackageManager
    }
 
    /**
-    * Returns the appropriate {@link Installer} for the {@link InstallFile}
+    * Returns the appropriate {@link Installer} for the {@link InstallFileType}
     */
-   public Installer getInstaller(InstallFile file)
+   private Installer getInstaller(InstallFileType file)
    {
       if (file == null)
       {
@@ -266,49 +338,9 @@ public class DefaultPackageManagerImpl implements PackageManager
       FileType fileType = file.getType();
       if (fileType == FileType.CONFIG)
       {
-         return new MergingInstaller();
+         return new MergingInstaller(this.pkgMgrCtx);
       }
-      return new DefaultInstaller();
-   }
-
-   private DependencyManager getDependencyManager(UnProcessedDependencies dependencies)
-   {
-      if (dependencies == null)
-      {
-         return null;
-      }
-      String depManagerClassName = dependencies.getManager();
-      if (depManagerClassName == null)
-      {
-         // our default is ivy dependency manager
-         return new IvyDependencyManager();
-      }
-      Class<?> dependencyManager = null;
-      // load the script processor
-      try
-      {
-         dependencyManager = Class.forName(depManagerClassName, true, Thread.currentThread().getContextClassLoader());
-      }
-      catch (ClassNotFoundException cnfe)
-      {
-         throw new RuntimeException("Could not load dependency manager: " + depManagerClassName, cnfe);
-      }
-      // make sure the dependency manager specified in the metadata
-      // does indeed implement the DependencyManager interface
-      if (!DependencyManager.class.isAssignableFrom(dependencyManager))
-      {
-         throw new RuntimeException("Dependency manager " + depManagerClassName + " does not implement "
-               + DependencyManager.class);
-      }
-      try
-      {
-         return (DependencyManager) dependencyManager.newInstance();
-      }
-      catch (Exception e)
-      {
-         throw new RuntimeException("Could not instantiate dependency manager " + depManagerClassName, e);
-      }
-
+      return new DefaultInstaller(this.pkgMgrCtx);
    }
 
    /**
@@ -321,15 +353,14 @@ public class DefaultPackageManagerImpl implements PackageManager
     */
    protected void preInstallPackage(PackageContext pkgCtx) throws PackageManagerException
    {
-      Package pkgMetadata = pkgCtx.getPackage();
       // find any pre-install scripts
-      PreInstall preInstall = pkgMetadata.getPreInstall();
-      if (preInstall == null || preInstall.getScripts() == null || preInstall.getScripts().isEmpty())
+      List<ScriptType> preInstallScripts = pkgCtx.getPreInstallScripts();
+      if (preInstallScripts == null || preInstallScripts.isEmpty())
       {
          logger.debug("There are no pre-install scripts for " + pkgCtx);
          return;
       }
-      for (Script script : preInstall.getScripts())
+      for (ScriptType script : preInstallScripts)
       {
          // TODO: Can we just have one instance of the script processor to process
          // all scripts? Stateful/stateless?
@@ -349,15 +380,14 @@ public class DefaultPackageManagerImpl implements PackageManager
     */
    protected void postInstallPackage(PackageContext pkgCtx) throws PackageManagerException
    {
-      Package pkgMetadata = pkgCtx.getPackage();
       // find any post-install scripts
-      PostInstall postInstall = pkgMetadata.getPostInstall();
-      if (postInstall == null || postInstall.getScripts() == null || postInstall.getScripts().isEmpty())
+      List<ScriptType> postInstallScripts = pkgCtx.getPostInstallScripts();
+      if (postInstallScripts == null || postInstallScripts.isEmpty())
       {
          logger.debug("There are no post-install scripts for " + pkgCtx);
          return;
       }
-      for (Script script : postInstall.getScripts())
+      for (ScriptType script : postInstallScripts)
       {
          ScriptProcessor scriptProcessor = new AntScriptProcessor();
          // TODO: Can we just have one instance of the script processor to process
@@ -371,7 +401,7 @@ public class DefaultPackageManagerImpl implements PackageManager
     * Process any dependencies listed for the package. Dependency processing
     * will include resolving and retrieving the appropriate dependency packages
     * and install those packages. Dependency packages, either in the form of {@link PackagedDependency}
-    * or {@link UnProcessedDependencies} will be installed during this process.
+    * or {@link UnProcessedDependenciesType} will be installed during this process.
     * 
     * First the packaged dependencies are installed and then the unprocessed dependencies
     * 
@@ -380,92 +410,11 @@ public class DefaultPackageManagerImpl implements PackageManager
     */
    protected void installDependencies(PackageContext pkgContext) throws PackageManagerException
    {
-      // first process packaged dependencies
-      installPackagedDependencies(pkgContext);
-      // now now process the dependencies, that have been listed in a dependency file, through
-      // a dependency manager
-      installUnProcessedPackages(pkgContext);
-   }
-
-   /**
-    * Processes {@link UnProcessedDependencies} by using the dependency manager specified
-    * through {@link UnProcessedDependencies#getManager()}
-    * 
-    * @param pkgContext The package context for which the dependencies are being resolved
-    * @throws PackageManagerException If any exceptions occur while processing the dependencies for the package
-    */
-   protected void installUnProcessedPackages(PackageContext pkgContext) throws PackageManagerException
-   {
-      Package pkgMeta = pkgContext.getPackage();
-      Dependencies dependencies = pkgMeta.getDependencies();
-      if (dependencies == null || dependencies.getUnProcessedDependencies() == null)
+      Set<PackageContext> dependencies = pkgContext.getDependencyPackages();
+      for (PackageContext dependencyPackage : dependencies)
       {
-         logger.debug("No unprocessed dependencies for " + pkgContext);
-         return;
-      }
-      UnProcessedDependencies unProcessedDeps = dependencies.getUnProcessedDependencies();
-      File dependencyFile = new File(pkgContext.getPackageRoot(), unProcessedDeps.getFile());
-      if (!dependencyFile.exists())
-      {
-         throw new PackageManagerException("Dependency file " + dependencyFile + " not found for " + pkgContext);
-      }
-      DependencyManager depManager = this.getDependencyManager(unProcessedDeps);
-      if (depManager == null)
-      {
-         return;
-      }
-      Set<PackageContext> dependencyPackages = depManager.resolveDepedencies(this.pkgMgrCtx, pkgContext,
-            unProcessedDeps);
-      if (dependencyPackages == null || dependencyPackages.isEmpty())
-      {
-         logger.debug("Dependency manager did not find any dependency packages to be installed for " + pkgContext);
-         return;
-      }
-      for (PackageContext dependencyPkg : dependencyPackages)
-      {
-         logger.info("Installing dependency package: " + dependencyPkg + " for dependent package: " + pkgContext);
-         this.installPackage(dependencyPkg);
-      }
-   }
-
-   /**
-    * Processes packaged dependencies {@link PackagedDependency} of a package. These
-    * dependency packages are installed during this process.
-    *  
-    * @param pkgContext
-    * @throws PackageManagerException
-    */
-   protected void installPackagedDependencies(PackageContext pkgContext) throws PackageManagerException
-   {
-      Package pkgMeta = pkgContext.getPackage();
-      Dependencies dependencies = pkgMeta.getDependencies();
-      if (dependencies == null || dependencies.getPackagedDependencies() == null
-            || dependencies.getPackagedDependencies().isEmpty())
-      {
-         logger.debug("No packaged dependency for " + pkgContext);
-         return;
-      }
-      List<PackagedDependency> packagedDeps = dependencies.getPackagedDependencies();
-      for (PackagedDependency packagedDep : packagedDeps)
-      {
-         String relativePathToDependencyPackage = packagedDep.getFile();
-         File dependencyPackage = new File(pkgContext.getPackageRoot(), relativePathToDependencyPackage);
-         if (!dependencyPackage.exists())
-         {
-            throw new PackageManagerException("packaged-dependency file " + dependencyPackage + " does not exist");
-         }
-         PackageContext dependencyPkgCtx;
-         try
-         {
-            dependencyPkgCtx = new DefaultPackageContext(this.pkgMgrCtx, dependencyPackage.toURI().toURL());
-         }
-         catch (MalformedURLException mue)
-         {
-            throw new RuntimeException(mue);
-         }
-
-         logger.info("Installing packaged dependency: " + dependencyPkgCtx + " for dependent package: " + pkgContext);
-         this.installPackage(dependencyPkgCtx);
+         logger.info("Installing dependency package : " + dependencyPackage + " for dependent package: " + pkgContext);
+         this.updatePackage(dependencyPackage);
       }
    }
 

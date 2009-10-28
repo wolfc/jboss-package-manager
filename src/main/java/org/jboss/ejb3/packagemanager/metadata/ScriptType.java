@@ -31,7 +31,7 @@ package org.jboss.ejb3.packagemanager.metadata;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface Script
+public interface ScriptType
 {
 
    /**

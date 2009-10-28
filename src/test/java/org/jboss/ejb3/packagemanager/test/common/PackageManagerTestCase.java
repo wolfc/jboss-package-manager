@@ -28,6 +28,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -75,12 +78,43 @@ public abstract class PackageManagerTestCase
     * @throws IOException If there are any IO exceptions during creation of the 
     *   JBoss AS directory structure
     */
-   protected static File setupDummyJBoss() throws IOException
+   protected static File setupDummyJBoss(Class<?> testClass) throws IOException
    {
-      File dummyJBossHome = new File(targetDir, "jboss-as");
+      File dummyJBossHome = new File(getPerTestTargetDir(testClass), "jboss-as");
       dummyJBossHome.mkdirs();
       createJBossDirectoryStructure(dummyJBossHome);
+
       return dummyJBossHome;
+
+   }
+
+   private static void setupDatabase(File dbHome) throws IOException, SQLException
+   {
+      System.setProperty("derby.system.home", dbHome.getAbsolutePath());
+      InputStream sql = Thread.currentThread().getContextClassLoader().getResourceAsStream(
+            "package-manager-sql-scripts.sql");
+      if (sql == null)
+      {
+         throw new RuntimeException(
+               "Could not find package-manager-sql-scripts.sql in classpath - Cannot setup database");
+      }
+      Connection conn = DriverManager.getConnection("jdbc:derby:pmdb;create=true");
+      DBUtil.runSql(conn, sql);
+      logger.info("Successfully setup package manager database at " + dbHome);
+
+   }
+
+   protected static void removeInstalledPackages() throws IOException, SQLException
+   {
+      InputStream sql = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("remove-packages-script.sql");
+      if (sql == null)
+      {
+         throw new RuntimeException("Could not find remove-packages-script.sql in classpath - Cannot cleanup database");
+      }
+
+      Connection conn = DriverManager.getConnection("jdbc:derby:pmdb");
+      DBUtil.runSql(conn, sql);
 
    }
 
@@ -93,10 +127,25 @@ public abstract class PackageManagerTestCase
     * @return Returns the File corresponding to the package manager home
     * @throws IOException
     */
-   protected static File setupPackageManagerHome() throws IOException
+   protected static File setupPackageManagerHome(Class<?> testClass) throws IOException
    {
-      File pkgMgrHome = new File(targetDir, "pm-home");
+      File pkgMgrHome = new File(getPerTestTargetDir(testClass), "pm-home");
+      if (pkgMgrHome.exists())
+      {
+         recursivelyDeleteFiles(pkgMgrHome, true);
+      }
+
       pkgMgrHome.mkdirs();
+      File packageManagerDBHome = new File(pkgMgrHome, "package-manager-db-home");
+      packageManagerDBHome.mkdirs();
+      try
+      {
+         setupDatabase(packageManagerDBHome);
+      }
+      catch (SQLException sqle)
+      {
+         throw new RuntimeException(sqle);
+      }
       return pkgMgrHome;
    }
 
@@ -363,6 +412,7 @@ public abstract class PackageManagerTestCase
     */
    private static void createJBossDirectoryStructure(File jbossHome) throws IOException
    {
+      cleanupJBossInstance(jbossHome, true);
       // bin folder
       File jbossBin = new File(jbossHome, "bin");
       jbossBin.mkdirs();
@@ -395,6 +445,9 @@ public abstract class PackageManagerTestCase
       // server/<servername>/conf
       File serverConf = new File(serverProf, "conf");
       serverConf.mkdirs();
+      // server/<servername>/data
+      File serverData = new File(serverProf, "data");
+      serverData.mkdirs();
       // server/<servername>/deploy
       File serverDeploy = new File(serverProf, "deploy");
       serverDeploy.mkdirs();
@@ -412,7 +465,13 @@ public abstract class PackageManagerTestCase
     * @param jbossHome
     * @throws IOException
     */
-   protected void cleanupJBossInstance(File jbossHome) throws IOException
+   protected static void cleanupJBossInstance(File jbossHome) throws IOException
+   {
+      cleanupJBossInstance(jbossHome, false);
+
+   }
+
+   protected static void cleanupJBossInstance(File jbossHome, boolean deleteDir) throws IOException
    {
       // Deleting is extremely dangerous, since we never know if the user 
       // unintentionally (or maliciously) passed a directory which is not JBOSS_HOME.
@@ -420,18 +479,17 @@ public abstract class PackageManagerTestCase
       // "target" directory. If not, we won't delete anything (outside our scope)
       // and just throw an IOException
 
-      if (this.isChildOfTargetFolder(jbossHome))
+      if (isChildOfTargetFolder(jbossHome))
       {
-         this.recursivelyDeleteFiles(jbossHome);
-         return;
+         recursivelyDeleteFiles(jbossHome, deleteDir);
       }
       else
       {
-         throw new IOException(
-               jbossHome
-                     + " is not under the project \"target\" folder -" +
-                     		" Deleting the contents of that folder is not in the scope of this method");
+         throw new IOException(jbossHome + " is not under the project \"target\" folder -"
+               + " Deleting the contents of that folder is not in the scope of this method");
       }
+
+      return;
 
    }
 
@@ -440,29 +498,36 @@ public abstract class PackageManagerTestCase
       File fileToBeChecked = new File(jbossHome, file);
       Assert.assertTrue("Expected to find file " + fileToBeChecked + " but not found", fileToBeChecked.exists());
    }
-   
+
+   protected void assertFileAbsenceUnderJBossHome(File jbossHome, String file)
+   {
+      File fileToBeChecked = new File(jbossHome, file);
+      Assert.assertFalse("Did not expect to find file " + fileToBeChecked, fileToBeChecked.exists());
+   }
+
    /**
     * 
     * @param file
     * @return
     */
-   private boolean isChildOfTargetFolder(File file)
+   private static boolean isChildOfTargetFolder(File file)
    {
       if (file == null)
       {
          return false;
       }
-      if (file.equals(this.targetDir))
+      if (file.equals(targetDir))
       {
          return false;
       }
       file = file.getParentFile();
       while (file != null)
       {
-         if (this.targetDir.equals(file))
+         if (targetDir.equals(file))
          {
             return true;
          }
+         file = file.getParentFile();
       }
       return false;
    }
@@ -472,7 +537,7 @@ public abstract class PackageManagerTestCase
     * @param parent
     * @throws IOException
     */
-   private void recursivelyDeleteFiles(File parent) throws IOException
+   private static void recursivelyDeleteFiles(File parent, boolean deleteDir) throws IOException
    {
       File[] filesAndDirs = parent.listFiles();
       List<File> filesDirs = Arrays.asList(filesAndDirs);
@@ -485,12 +550,17 @@ public abstract class PackageManagerTestCase
          else if (file.isDirectory())
          {
             // recurse
-            this.recursivelyDeleteFiles(file);
+            recursivelyDeleteFiles(file, deleteDir);
          }
       }
+      if (deleteDir)
+      {
+         parent.delete();
+      }
+
    }
 
-   protected File getPerTestTargetDir(Class<?> testClass)
+   protected static File getPerTestTargetDir(Class<?> testClass)
    {
       File testCaseTargetDir = new File(targetDir, testClass.getName().replace('.', '/'));
       testCaseTargetDir.mkdirs();

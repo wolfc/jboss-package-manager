@@ -36,14 +36,14 @@ import java.util.List;
  * @author Jaikiran Pai              
  *
  */
-public interface Package
+public interface PackageType
 {
 
    /**
     * @return Returns the system requirements of this package
     *     
     */
-   SystemRequirements getSystemRequirements();
+   SystemRequirementsType getSystemRequirements();
 
    /**
     * Sets the system requirements of this package
@@ -51,13 +51,13 @@ public interface Package
     * @param sysRequirements The system requirements for this package
     *     
     */
-   void setSystemRequirements(SystemRequirements sysRequirements);
+   void setSystemRequirements(SystemRequirementsType sysRequirements);
 
    /**
     * @return Returns the files that are to be installed for this package
     *     
     */
-   List<InstallFile> getFiles();
+   List<InstallFileType> getFiles();
 
    /**
     * Sets the files to be installed by the package
@@ -65,7 +65,7 @@ public interface Package
     * @param files The files to be installed by the package
     *     
     */
-   void setFiles(List<InstallFile> files);
+   void setFiles(List<InstallFileType> files);
 
    /**
     * Add a file to be installed, into the list of files to install
@@ -73,13 +73,13 @@ public interface Package
     * 
     * @param file File to install
     */
-   void addFile(InstallFile file);
+   void addFile(InstallFileType file);
 
    /**
     * 
     * @return Returns the dependencies of this package
     */
-   Dependencies getDependencies();
+   DependenciesType getDependencies();
 
    /**
     * Sets the dependencies of this package
@@ -87,7 +87,7 @@ public interface Package
     * @param dependencies Dependencies of this package
     *     
     */
-   void setDependencies(Dependencies deps);
+   void setDependencies(DependenciesType deps);
 
    /**
     * @return Returns the name of this package
@@ -122,26 +122,26 @@ public interface Package
     * 
     * @return
     */
-   PreInstall getPreInstall();
+   PreInstallType getPreInstall();
 
    /**
     * Sets the pre-install related metadata for this package
     * 
     * @param preInstall Pre-install 
     */
-   void setPreInstall(PreInstall preInstall);
+   void setPreInstall(PreInstallType preInstall);
 
    /**
     * Returns any post-install metadata related to this package
     * 
     * @return
     */
-   PostInstall getPostInstall();
+   PostInstallType getPostInstall();
 
    /**
     * Sets the post-install related metadata for this package
     * 
     * @param postInstall Post-install 
     */
-   void setPostInstall(PostInstall postInstall);
+   void setPostInstall(PostInstallType postInstall);
 }

@@ -21,16 +21,16 @@
  */
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.FileType;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
 
-public class InstallFileImpl implements InstallFile
+public class InstallFileImpl implements InstallFileType
 {
 
-   private Package pkg;
+   private PackageType pkg;
 
-   public InstallFileImpl(Package pkgMetadata)
+   public InstallFileImpl(PackageType pkgMetadata)
    {
       if (pkgMetadata == null)
       {
@@ -113,7 +113,7 @@ public class InstallFileImpl implements InstallFile
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.InstallFile#setType(org.jboss.ejb3.packagemanager.metadata.FileType)
+    * @see org.jboss.ejb3.packagemanager.metadata.InstallFileType#setType(org.jboss.ejb3.packagemanager.metadata.FileType)
     */
    public void setFileType(FileType ftype)
    {
@@ -121,9 +121,9 @@ public class InstallFileImpl implements InstallFile
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.InstallFile#getPackage()
+    * @see org.jboss.ejb3.packagemanager.metadata.InstallFileType#getPackage()
     */
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkg;
    }

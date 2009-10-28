@@ -21,26 +21,26 @@
 */
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
-import org.jboss.ejb3.packagemanager.metadata.Package;
-import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 
 /**
  * UnProcessedDependenciesImpl
  * 
  * Represents the metadata for unprocessed-dependencies element.
  * 
- * @see UnProcessedDependencies 
+ * @see UnProcessedDependenciesType 
  * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class UnProcessedDependenciesImpl implements UnProcessedDependencies
+public class UnProcessedDependenciesImpl implements UnProcessedDependenciesType
 {
 
    /**
     * The package to which this dependency metadata corresponds
     */
-   private Package pkg;
+   private PackageType pkg;
 
    /**
     * Fully qualified class name of the dependencies manager
@@ -56,7 +56,7 @@ public class UnProcessedDependenciesImpl implements UnProcessedDependencies
     * Constructor
     * @param pkgMetadata The package to which this dependencies correspond
     */
-   public UnProcessedDependenciesImpl(Package pkgMetadata)
+   public UnProcessedDependenciesImpl(PackageType pkgMetadata)
    {
       this.pkg = pkgMetadata;
    }
@@ -80,15 +80,15 @@ public class UnProcessedDependenciesImpl implements UnProcessedDependencies
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getPackage()
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#getPackage()
     */
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkg;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getManager()
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#getManager()
     */
    public String getManager()
    {
@@ -96,7 +96,7 @@ public class UnProcessedDependenciesImpl implements UnProcessedDependencies
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#setManager(java.lang.String)
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#setManager(java.lang.String)
     */
    public void setManager(String depManager)
    {

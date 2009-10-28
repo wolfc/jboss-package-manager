@@ -19,48 +19,66 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.metadata;
+package org.jboss.ejb3.packagemanager.entity;
 
-import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 
 /**
- * PostInstallMetadata
+ * PackageManagerEntity
  *
- * Represents the metadata for the post-install element
- * in a package.xml file
- * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface PostInstall
+@Entity
+@Table(name = "package_manager")
+public class PackageManagerEntity
 {
 
-   /**
-    * Returns the list of post-install scripts for a package
-    * 
-    * @return
-    */
-   List<Script> getScripts();
+   @Id
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
+   private long id;
 
-   /**
-    * Sets the list of post-install scripts for a package
-    * 
-    * @param scripts The post-install scripts
-    */
-   void setScripts(List<Script> scripts);
+   private String jbossHome;
 
-   /**
-    * Adds a pre-install script to the list of post-install scripts 
-    * for this package
-    * @param script
-    */
-   void addScript(Script script);
+   private PackageManagerEntity()
+   {
+      // for jpa
+   }
 
-   /**
-    * Returns the package to which this post-install step
-    * belongs to
-    * @return
-    */
-   Package getPackage();
+   public PackageManagerEntity(String jbossHome)
+   {
+      this.jbossHome = jbossHome;
+   }
+
+   public PackageManagerEntity(PackageManagerContext pkgMgrCtx)
+   {
+      this.jbossHome = pkgMgrCtx.getJBossServerHome();
+   }
+
+   public long getId()
+   {
+      return id;
+   }
+
+   public void setId(long id)
+   {
+      this.id = id;
+   }
+
+   public String getJbossHome()
+   {
+      return jbossHome;
+   }
+
+   public void setJbossHome(String jbossHome)
+   {
+      this.jbossHome = jbossHome;
+   }
 
 }

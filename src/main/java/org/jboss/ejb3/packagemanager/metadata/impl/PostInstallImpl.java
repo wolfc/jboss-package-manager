@@ -24,9 +24,9 @@ package org.jboss.ejb3.packagemanager.metadata.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.ejb3.packagemanager.metadata.Package;
-import org.jboss.ejb3.packagemanager.metadata.PostInstall;
-import org.jboss.ejb3.packagemanager.metadata.Script;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
+import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * PostInstallMetadataImpl
@@ -34,32 +34,32 @@ import org.jboss.ejb3.packagemanager.metadata.Script;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PostInstallImpl implements PostInstall
+public class PostInstallImpl implements PostInstallType
 {
 
    /**
     * The package to which this post-install belongs
     */
-   private Package pkgMetadata;
+   private PackageType pkgMetadata;
 
    /**
     * post-install scripts
     */
-   private List<Script> scripts;
+   private List<ScriptType> scripts;
 
    /**
     * Constructor
-    * @param pkgMeta The {@link Package} to which this post-install belongs
+    * @param pkgMeta The {@link PackageType} to which this post-install belongs
     */
-   public PostInstallImpl(Package pkgMeta)
+   public PostInstallImpl(PackageType pkgMeta)
    {
       this.pkgMetadata = pkgMeta;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PostInstall#addScript(org.jboss.ejb3.packagemanager.metadata.Script)
+    * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#addScript(org.jboss.ejb3.packagemanager.metadata.ScriptType)
     */
-   public void addScript(Script script)
+   public void addScript(ScriptType script)
    {
       if (script == null)
       {
@@ -67,32 +67,32 @@ public class PostInstallImpl implements PostInstall
       }
       if (this.scripts == null)
       {
-         this.scripts = new ArrayList<Script>();
+         this.scripts = new ArrayList<ScriptType>();
       }
       this.scripts.add(script);
 
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PostInstall#getPackage()
+    * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#getPackage()
     */
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkgMetadata;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PostInstall#getScripts()
+    * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#getScripts()
     */
-   public List<Script> getScripts()
+   public List<ScriptType> getScripts()
    {
       return this.scripts;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.PostInstall#setScripts(java.util.List)
+    * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#setScripts(java.util.List)
     */
-   public void setScripts(List<Script> scripts)
+   public void setScripts(List<ScriptType> scripts)
    {
       if (scripts == null)
       {

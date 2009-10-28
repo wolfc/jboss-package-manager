@@ -24,10 +24,7 @@ package org.jboss.ejb3.packagemanager;
 import java.net.URL;
 
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.installer.Installer;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
-import org.jboss.ejb3.packagemanager.metadata.Script;
-import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
+import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 
 /**
  * PackageManager
@@ -52,14 +49,14 @@ public interface PackageManager
     * 
     * @param packagePath The URL path to the package file
     */
-   void updatePackage(String packagePath);
+   void updatePackage(String packagePath) throws PackageManagerException;
    
    /**
     * Updates the package
     * 
     * @param packageURL The URL of the package file
     */
-   void updatePackage(URL packageURL);
+   void updatePackage(URL packageURL) throws PackageManagerException;
    
    /**
     * Installs a package 
@@ -81,14 +78,7 @@ public interface PackageManager
     * Removes a package using the name of the package
     * @param packageName Name of the package to be uninstalled
     */
-   void removePackage(String packageName);
-   
-   /**
-    * Returns an appropriate {@link Installer} for the {@link InstallFile}
-    * @param fileMeta The file in the package, to be installed
-    * @return 
-    */
-   Installer getInstaller(InstallFile fileMeta);
+   void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException;
    
    
    /**

@@ -24,31 +24,31 @@ package org.jboss.ejb3.packagemanager.metadata.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.ejb3.packagemanager.metadata.Dependencies;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.DependenciesType;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
-import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 
 /**
  * 
  * DependenciesImpl
  *
- * @see Dependencies
+ * @see DependenciesType
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class DependenciesImpl implements Dependencies
+public class DependenciesImpl implements DependenciesType
 {
 
    /**
     * The package to which this dependency metadata corresponds
     */
-   private Package pkg;
+   private PackageType pkg;
 
    /**
     * Unprocessed dependencies
     */
-   private UnProcessedDependencies unProcessedDeps;
+   private UnProcessedDependenciesType unProcessedDeps;
 
    /**
     * A list of packaged dependencies 
@@ -59,13 +59,13 @@ public class DependenciesImpl implements Dependencies
     * Constructor
     * @param pkgMetadata The package to which this dependencies correspond
     */
-   public DependenciesImpl(Package pkgMetadata)
+   public DependenciesImpl(PackageType pkgMetadata)
    {
       this.pkg = pkgMetadata;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getPackagedDependencies()
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#getPackagedDependencies()
     */
    @Override
    public List<PackagedDependency> getPackagedDependencies()
@@ -74,16 +74,16 @@ public class DependenciesImpl implements Dependencies
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getUnProcessedDependencies()
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#getUnProcessedDependencies()
     */
    @Override
-   public UnProcessedDependencies getUnProcessedDependencies()
+   public UnProcessedDependenciesType getUnProcessedDependencies()
    {
       return this.unProcessedDeps;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#setPackagedDependencies(java.util.List)
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#setPackagedDependencies(java.util.List)
     */
    @Override
    public void setPackagedDependencies(List<PackagedDependency> packagedDependencies)
@@ -93,27 +93,27 @@ public class DependenciesImpl implements Dependencies
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#setUnProcessedDependencies(org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies)
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#setUnProcessedDependencies(org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType)
     */
    @Override
-   public void setUnProcessedDependencies(UnProcessedDependencies unProcessedDependencies)
+   public void setUnProcessedDependencies(UnProcessedDependenciesType unProcessedDependencies)
    {
       this.unProcessedDeps = unProcessedDependencies;
 
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#getPackage()
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#getPackage()
     */
    @Override
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkg;
 
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Dependencies#addPackagedDependency(org.jboss.ejb3.packagemanager.metadata.PackagedDependency)
+    * @see org.jboss.ejb3.packagemanager.metadata.DependenciesType#addPackagedDependency(org.jboss.ejb3.packagemanager.metadata.PackagedDependency)
     */
    @Override
    public void addPackagedDependency(PackagedDependency packagedDep)

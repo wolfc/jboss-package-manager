@@ -29,6 +29,7 @@ import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.main.Main;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
+import org.jboss.ejb3.packagemanager.test.uninstall.unit.UnInstallTestCase;
 import org.jboss.logging.Logger;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -53,12 +54,12 @@ public class BasicInstallTestCase extends PackageManagerTestCase
    private static PackageManager pkgMgr;
 
    /**
-    * The JBoss Home used in this test
+    * The JBoss Home used in each test
     */
    private static File jbossHome;
 
    /**
-    * Package manager home used in this test
+    * Package manager home used in each test
     */
    private static File pkgMgrHome;
 
@@ -67,18 +68,12 @@ public class BasicInstallTestCase extends PackageManagerTestCase
     * @throws Exception
     */
    @BeforeClass
-   public static void setup() throws Exception
+   public static void beforeClass() throws Exception
    {
-      pkgMgrHome = setupPackageManagerHome();
-      jbossHome = setupDummyJBoss();
+      pkgMgrHome = setupPackageManagerHome(BasicInstallTestCase.class);
+      jbossHome = setupDummyJBoss(BasicInstallTestCase.class);
       PackageManagerEnvironment env = new PackageManagerEnvironment(pkgMgrHome.getAbsolutePath());
       pkgMgr = new DefaultPackageManagerImpl(env, jbossHome.getAbsolutePath());
-   }
-   
-   @Before
-   public void beforeTest() throws Exception
-   {
-      this.cleanupJBossInstance(jbossHome);
    }
 
    /**
@@ -124,30 +119,6 @@ public class BasicInstallTestCase extends PackageManagerTestCase
       // As a further test, also check that the dummy.jar packaged in this package was
       // also installed (at JBOSS_HOME/server/default/deploy folder)
       this.assertFileExistenceUnderJBossHome(this.jbossHome, "server/default/deploy/dummy.jar");
-   }
-
-   /**
-    * Test that the command line variant of the package manager works as expected. 
-    * 
-    *  TODO: Note that the params passed through the command line are still work-in-progress
-    *  and they might change in future. This test case then needs to change appropriately. 
-    * 
-    * @throws Exception
-    */
-   @Test
-   public void testMainMethodOfDefaultPackageManager() throws Exception
-   {
-      File commandLineTestPackage = this.createSimplePackage("command-line-test-package.jar");
-
-      String commandLineArgs[] = new String[]
-      {"-i", commandLineTestPackage.getAbsolutePath(), "-p", this.pkgMgrHome.getAbsolutePath(), "-s",
-            this.jbossHome.getAbsolutePath()};
-
-      // run the package manager
-      Main.main(commandLineArgs);
-
-      // now check that the file was installed in that location
-      this.assertFileExistenceUnderJBossHome(this.jbossHome, "common/lib/dummy.jar");
 
    }
 

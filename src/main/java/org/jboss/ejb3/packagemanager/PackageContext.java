@@ -23,8 +23,12 @@ package org.jboss.ejb3.packagemanager;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
+import java.util.Set;
 
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
+import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
 
 /**
  * PackageContext
@@ -41,21 +45,29 @@ public interface PackageContext
     * @return
     */
    URL getPackageSource();
-   
+
    /**
     * The root of the package where it has been
     * extracted
     * @return
     */
    File getPackageRoot();
-   
+
+   String getPackageName();
+
+   String getPackageVersion();
+
    /**
-    * Returns the package metadata parsed out of 
-    * the package.xml file available in the package source.
-    * 
-    *  @see #getPackageSource()
-    * 
-    * @return
+    * @return Returns the set of dependency package contexts for this 
+    * package context. Returns an empty set if there are no dependencies
     */
-   Package getPackage();
+   Set<PackageContext> getDependencyPackages();
+
+   SystemRequirementsType getSystemRequirements();
+
+   List<ScriptType> getPostInstallScripts();
+
+   List<ScriptType> getPreInstallScripts();
+
+   List<InstallFileType> getInstallationFiles();
 }

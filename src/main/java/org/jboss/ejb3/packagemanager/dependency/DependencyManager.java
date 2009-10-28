@@ -26,7 +26,7 @@ import java.util.Set;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.DependencyResoultionException;
-import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 
 /**
  * DependencyManager
@@ -37,6 +37,6 @@ import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
 public interface DependencyManager
 {
 
-   Set<PackageContext> resolveDepedencies(PackageManagerContext pkgMgrContext, PackageContext pkgCtx, UnProcessedDependencies deps)
+   Set<PackageContext> resolveDepedencies(PackageManagerContext pkgMgrContext, PackageContext pkgCtx, UnProcessedDependenciesType deps)
          throws DependencyResoultionException;
 }

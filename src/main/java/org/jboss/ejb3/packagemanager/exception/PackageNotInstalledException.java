@@ -19,50 +19,19 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager.metadata;
-
-import java.util.List;
+package org.jboss.ejb3.packagemanager.exception;
 
 /**
- * PreInstallMetadata
- * 
- * Represents the metadata for the pre-install element
- * in a package.xml file
- * 
- * 
+ * PackageNotInstalledException
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface PreInstall
+public class PackageNotInstalledException extends PackageManagerException
 {
 
-   /**
-    * Returns the list of pre-install scripts for a package
-    * 
-    * @return
-    */
-   List<Script> getScripts();
-   
-   /**
-    * Sets the list of pre-install scripts for a package
-    * 
-    * @param scripts The pre-install scripts
-    */ 
-   void setScripts(List<Script> scripts);
-   
-   /**
-    * Adds a pre-install script to the list of pre-install scripts 
-    * for this package
-    * @param script
-    */
-   void addScript(Script script);
-   
-   /**
-    * Returns the package to which this pre-install step
-    * belongs to
-    * @return
-    */
-   Package getPackage();
-   
+   public PackageNotInstalledException(String packageName)
+   {
+      super("Package: " + packageName + " is not installed");
+   }
 }

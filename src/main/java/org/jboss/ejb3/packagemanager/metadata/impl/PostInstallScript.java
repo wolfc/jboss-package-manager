@@ -22,7 +22,7 @@
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
-import org.jboss.ejb3.packagemanager.metadata.PostInstall;
+import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
 
 /**
  * PostInstallScript
@@ -37,15 +37,15 @@ public class PostInstallScript extends ScriptImpl
     * The post-install step to which this script 
     * belongs
     */
-   private PostInstall postInstallMeta;
+   private PostInstallType postInstallMeta;
 
    /**
     * Constructor
     * 
-    * @param postInstallMeta The {@link PostInstall} to which this
+    * @param postInstallMeta The {@link PostInstallType} to which this
     * post-install script belongs to
     */
-   public PostInstallScript(PostInstall postInstallMeta)
+   public PostInstallScript(PostInstallType postInstallMeta)
    {
       this.postInstallMeta = postInstallMeta;
    }
@@ -60,12 +60,12 @@ public class PostInstallScript extends ScriptImpl
    }
 
    /**
-    * Returns the {@link PostInstall} to which this post-install script
+    * Returns the {@link PostInstallType} to which this post-install script
     * belongs to
     * 
     * @return
     */
-   public PostInstall getPostInstallMetadata()
+   public PostInstallType getPostInstallMetadata()
    {
       return this.postInstallMeta;
    }

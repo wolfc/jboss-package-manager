@@ -35,11 +35,11 @@ import java.util.List;
  *               to that file.
  *               Irrespective of how the dependencies are specified, the dependencies must always be packages.
  *             
- * @see Package
+ * @see PackageType
  * @author Jaikiran Pai
  * 
  */
-public interface Dependencies
+public interface DependenciesType
 {
 
    /**
@@ -65,19 +65,19 @@ public interface Dependencies
     * Returns the unprocessed dependencies of a package
     * @return
     */
-   UnProcessedDependencies getUnProcessedDependencies();
+   UnProcessedDependenciesType getUnProcessedDependencies();
    
    /**
     * Sets the unprocessed dependencies of a package
     *  
     * @param unProcessedDependencies
     */
-   void setUnProcessedDependencies(UnProcessedDependencies unProcessedDependencies);
+   void setUnProcessedDependencies(UnProcessedDependenciesType unProcessedDependencies);
    
    /**
     * Returns the package to which this dependencies correspond to
     * 
     * @return
     */
-   Package getPackage();
+   PackageType getPackage();
 }

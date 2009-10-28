@@ -23,8 +23,9 @@ package org.jboss.ejb3.packagemanager.installer;
 
 import java.io.File;
 
+import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 
 /**
  * MergingInstaller
@@ -36,10 +37,19 @@ public class MergingInstaller extends DefaultInstaller//AbstractInstaller
 {
 
    /**
-    * @see org.jboss.ejb3.packagemanager.installer.AbstractInstaller#doInstall(org.jboss.ejb3.packagemanager.metadata.InstallFile, java.io.File, java.io.File)
+    * @param packageMgrCtx
+    */
+   public MergingInstaller(PackageManagerContext packageMgrCtx)
+   {
+      super(packageMgrCtx);
+      
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.installer.AbstractInstaller#doInstall(org.jboss.ejb3.packagemanager.metadata.InstallFileType, java.io.File, java.io.File)
     */
    @Override
-   protected void doInstall(InstallFile fileMetadata, File fileToInstall, File dest) throws PackageManagerException
+   protected void doInstall(InstallFileType fileMetadata, File fileToInstall, File dest) throws PackageManagerException
    {
       
       super.doInstall(fileMetadata, fileToInstall, dest);

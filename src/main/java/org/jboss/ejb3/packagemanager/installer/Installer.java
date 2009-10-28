@@ -22,9 +22,10 @@
 package org.jboss.ejb3.packagemanager.installer;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
-import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.entity.InstalledFile;
+import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 
 /**
  * Installer
@@ -35,5 +36,7 @@ import org.jboss.ejb3.packagemanager.metadata.InstallFile;
 public interface Installer
 {
 
-   void install(PackageManagerContext pkgMgrCtx, PackageContext pkgCtx, InstallFile file) throws PackageManagerException;
+   void install(PackageContext pkgCtx, InstallFileType fileToInstall) throws PackageManagerException;
+   
+   void uninstall(InstalledPackage installedPackage, InstalledFile fileToUnInstall) throws PackageManagerException;
 }

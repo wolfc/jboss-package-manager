@@ -24,7 +24,7 @@ package org.jboss.ejb3.packagemanager.script;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
-import org.jboss.ejb3.packagemanager.metadata.Script;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * ScriptProcessor
@@ -35,5 +35,5 @@ import org.jboss.ejb3.packagemanager.metadata.Script;
 public interface ScriptProcessor
 {
 
-   void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, Script script) throws ScriptProcessingException;
+   void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, ScriptType script) throws ScriptProcessingException;
 }

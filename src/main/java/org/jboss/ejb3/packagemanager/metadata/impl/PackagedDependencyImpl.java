@@ -21,7 +21,7 @@
 */
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 
 /**
@@ -33,11 +33,11 @@ import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 public class PackagedDependencyImpl implements PackagedDependency
 {
 
-   private Package pkg;
+   private PackageType pkg;
    
    private String file;
    
-   public PackagedDependencyImpl(Package pkg)
+   public PackagedDependencyImpl(PackageType pkg)
    {
       this.pkg = pkg;
        
@@ -56,7 +56,7 @@ public class PackagedDependencyImpl implements PackagedDependency
     * @see org.jboss.ejb3.packagemanager.metadata.PackagedDependency#getPackage()
     */
    @Override
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkg;
       

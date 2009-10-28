@@ -22,7 +22,7 @@
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
-import org.jboss.ejb3.packagemanager.metadata.Script;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * ScriptImpl
@@ -30,7 +30,7 @@ import org.jboss.ejb3.packagemanager.metadata.Script;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public abstract class ScriptImpl implements Script
+public abstract class ScriptImpl implements ScriptType
 {
 
    /**
@@ -39,7 +39,7 @@ public abstract class ScriptImpl implements Script
    private String scriptFile = "package-script.xml";
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Script#getFile()
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#getFile()
     */
    public String getFile()
    {
@@ -47,7 +47,7 @@ public abstract class ScriptImpl implements Script
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Script#setFile(java.lang.String)
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#setFile(java.lang.String)
     */
    public void setFile(String scriptFile)
    {
@@ -59,7 +59,7 @@ public abstract class ScriptImpl implements Script
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.Script#getScriptExecutionPhase()
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#getScriptExecutionPhase()
     */
    public abstract PackageInstallationPhase getScriptExecutionPhase();
 

@@ -21,21 +21,48 @@
 */
 package org.jboss.ejb3.packagemanager.metadata;
 
+import java.util.List;
+
 /**
- * PackagedDependency
+ * PreInstallMetadata
+ * 
+ * Represents the metadata for the pre-install element
+ * in a package.xml file
+ * 
+ * 
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface PackagedDependency
+public interface PreInstallType
 {
-   String getFile();
-   
-   void setFile(String file);
+
+   /**
+    * Returns the list of pre-install scripts for a package
+    * 
+    * @return
+    */
+   List<ScriptType> getScripts();
    
    /**
-    * Returns the package for which this is an dependency
+    * Sets the list of pre-install scripts for a package
+    * 
+    * @param scripts The pre-install scripts
+    */ 
+   void setScripts(List<ScriptType> scripts);
+   
+   /**
+    * Adds a pre-install script to the list of pre-install scripts 
+    * for this package
+    * @param script
+    */
+   void addScript(ScriptType script);
+   
+   /**
+    * Returns the package to which this pre-install step
+    * belongs to
     * @return
     */
    PackageType getPackage();
+   
 }

@@ -31,7 +31,7 @@ import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
 import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
-import org.jboss.ejb3.packagemanager.metadata.Script;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.logging.Logger;
 
@@ -50,10 +50,10 @@ public class AntScriptProcessor implements ScriptProcessor
    private static Logger logger = Logger.getLogger(AntScriptProcessor.class);
 
    /**
-    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processScript(PackageManagerContext, PackageContext, Script)
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processScript(PackageManagerContext, PackageContext, ScriptType)
     */
    @Override
-   public void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, Script script)
+   public void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, ScriptType script)
          throws ScriptProcessingException
    {
       File root = pkgCtx.getPackageRoot();

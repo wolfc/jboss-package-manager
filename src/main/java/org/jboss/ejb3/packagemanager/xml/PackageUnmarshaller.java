@@ -30,15 +30,15 @@ import org.codehaus.stax2.XMLInputFactory2;
 import org.codehaus.stax2.XMLStreamReader2;
 import org.codehaus.stax2.validation.XMLValidationSchema;
 import org.codehaus.stax2.validation.XMLValidationSchemaFactory;
-import org.jboss.ejb3.packagemanager.metadata.Dependencies;
-import org.jboss.ejb3.packagemanager.metadata.InstallFile;
-import org.jboss.ejb3.packagemanager.metadata.Package;
+import org.jboss.ejb3.packagemanager.metadata.DependenciesType;
+import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
-import org.jboss.ejb3.packagemanager.metadata.PostInstall;
-import org.jboss.ejb3.packagemanager.metadata.PreInstall;
-import org.jboss.ejb3.packagemanager.metadata.Script;
-import org.jboss.ejb3.packagemanager.metadata.SystemRequirements;
-import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependencies;
+import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
+import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
+import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
+import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
 import org.jboss.ejb3.packagemanager.metadata.impl.DependenciesImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.InstallFileImpl;
 import org.jboss.ejb3.packagemanager.metadata.impl.PackageImpl;
@@ -59,13 +59,13 @@ public class PackageUnmarshaller
 {
 
    /**
-    * Creates {@link Package} out of the URL pointing to a package.xml file
+    * Creates {@link PackageType} out of the URL pointing to a package.xml file
     * 
     * @param packageXml package.xml URL 
-    * @return Returns the {@link Package} corresponding to the package.xml
+    * @return Returns the {@link PackageType} corresponding to the package.xml
     * @throws Exception If any exceptions occur during processing the package.xml
     */
-   public Package unmarshal(URL packageXml) throws Exception
+   public PackageType unmarshal(URL packageXml) throws Exception
    {
 
 
@@ -82,7 +82,7 @@ public class PackageUnmarshaller
       xmlStreamReader.validateAgainst(schema);
       
       // parse the xml
-      Package pkgMetadata = null;
+      PackageType pkgMetadata = null;
       while (xmlStreamReader.hasNext())
       {
          int event = xmlStreamReader.next();
@@ -94,9 +94,9 @@ public class PackageUnmarshaller
       return pkgMetadata;
    }
 
-   private Package processPackage(XMLStreamReader2 xmlStreamReader) throws Exception
+   private PackageType processPackage(XMLStreamReader2 xmlStreamReader) throws Exception
    {
-      Package pkgMeta = new PackageImpl();
+      PackageType pkgMeta = new PackageImpl();
       for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
       {
          String name = xmlStreamReader.getAttributeLocalName(i);
@@ -119,27 +119,27 @@ public class PackageUnmarshaller
                String childElement = xmlStreamReader.getLocalName();
                if (childElement.equals("system-requirements"))
                {
-                  SystemRequirements sysReqs = processSystemRequirements(pkgMeta, xmlStreamReader);
+                  SystemRequirementsType sysReqs = processSystemRequirements(pkgMeta, xmlStreamReader);
                   pkgMeta.setSystemRequirements(sysReqs);
                }
                else if (childElement.equals("file"))
                {
-                  InstallFile file = processFiles(pkgMeta, xmlStreamReader);
+                  InstallFileType file = processFiles(pkgMeta, xmlStreamReader);
                   pkgMeta.addFile(file);
                }
                else if (childElement.equals("pre-install"))
                {
-                  PreInstall preInstall = processPreInstall(pkgMeta, xmlStreamReader);
+                  PreInstallType preInstall = processPreInstall(pkgMeta, xmlStreamReader);
                   pkgMeta.setPreInstall(preInstall);
                }
                else if (childElement.equals("post-install"))
                {
-                  PostInstall postInstall = processPostInstall(pkgMeta, xmlStreamReader);
+                  PostInstallType postInstall = processPostInstall(pkgMeta, xmlStreamReader);
                   pkgMeta.setPostInstall(postInstall);
                }
                else if (childElement.equals("dependencies"))
                {
-                  Dependencies dependencies = this.processDependencies(pkgMeta, xmlStreamReader);
+                  DependenciesType dependencies = this.processDependencies(pkgMeta, xmlStreamReader);
                   pkgMeta.setDependencies(dependencies);
                   
                }
@@ -159,7 +159,7 @@ public class PackageUnmarshaller
     * @return
     * @throws Exception
     */
-   private SystemRequirements processSystemRequirements(Package pkgMeta,
+   private SystemRequirementsType processSystemRequirements(PackageType pkgMeta,
          XMLStreamReader2 xmlStreamReader) throws Exception
    {
       // TODO Implement
@@ -179,9 +179,9 @@ public class PackageUnmarshaller
     * @return
     * @throws Exception
     */
-   private InstallFile processFiles(Package pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
+   private InstallFileType processFiles(PackageType pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
    {
-      InstallFile fileMeta = new InstallFileImpl(pkgMeta);
+      InstallFileType fileMeta = new InstallFileImpl(pkgMeta);
       for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
       {
          String name = xmlStreamReader.getAttributeLocalName(i);
@@ -221,10 +221,10 @@ public class PackageUnmarshaller
     * @return
     * @throws Exception
     */
-   private PreInstall processPreInstall(Package pkgMeta, XMLStreamReader2 xmlStreamReader)
+   private PreInstallType processPreInstall(PackageType pkgMeta, XMLStreamReader2 xmlStreamReader)
          throws Exception
    {
-      PreInstall preInstall = new PreInstallImpl(pkgMeta);
+      PreInstallType preInstall = new PreInstallImpl(pkgMeta);
       int event = xmlStreamReader.next();
       while (event != XMLEvent.END_ELEMENT)
       {
@@ -234,7 +234,7 @@ public class PackageUnmarshaller
                String childElement = xmlStreamReader.getLocalName();
                if (childElement.equals("script"))
                {
-                  Script script = processPreInstallScript(preInstall, xmlStreamReader);
+                  ScriptType script = processPreInstallScript(preInstall, xmlStreamReader);
                   preInstall.addScript(script);
                }
                break;
@@ -251,10 +251,10 @@ public class PackageUnmarshaller
     * @return
     * @throws Exception
     */
-   private PostInstall processPostInstall(Package pkgMeta, XMLStreamReader2 xmlStreamReader)
+   private PostInstallType processPostInstall(PackageType pkgMeta, XMLStreamReader2 xmlStreamReader)
          throws Exception
    {
-      PostInstall postInstall = new PostInstallImpl(pkgMeta);
+      PostInstallType postInstall = new PostInstallImpl(pkgMeta);
       int event = xmlStreamReader.next();
       while (event != XMLEvent.END_ELEMENT)
       {
@@ -264,7 +264,7 @@ public class PackageUnmarshaller
                String childElement = xmlStreamReader.getLocalName();
                if (childElement.equals("script"))
                {
-                  Script script = processPostInstallScript(postInstall, xmlStreamReader);
+                  ScriptType script = processPostInstallScript(postInstall, xmlStreamReader);
                   postInstall.addScript(script);
                }
                break;
@@ -281,7 +281,7 @@ public class PackageUnmarshaller
     * @return
     * @throws Exception
     */
-   private PreInstallScript processPreInstallScript(PreInstall preInstallMeta, XMLStreamReader2 xmlStreamReader)
+   private PreInstallScript processPreInstallScript(PreInstallType preInstallMeta, XMLStreamReader2 xmlStreamReader)
          throws Exception
    {
       PreInstallScript preInstallScript = new PreInstallScript(preInstallMeta);
@@ -296,7 +296,7 @@ public class PackageUnmarshaller
     * @return
     * @throws Exception
     */
-   private PostInstallScript processPostInstallScript(PostInstall postInstallMeta,
+   private PostInstallScript processPostInstallScript(PostInstallType postInstallMeta,
          XMLStreamReader2 xmlStreamReader) throws Exception
    {
       PostInstallScript postInstallScript = new PostInstallScript(postInstallMeta);
@@ -309,7 +309,7 @@ public class PackageUnmarshaller
     * @param xmlStreamReader
     * @return
     */
-   private Script processScript(Script script, XMLStreamReader2 xmlStreamReader) throws Exception
+   private ScriptType processScript(ScriptType script, XMLStreamReader2 xmlStreamReader) throws Exception
    {
 
       for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
@@ -332,9 +332,9 @@ public class PackageUnmarshaller
       return script;
    }
    
-   private Dependencies processDependencies(Package pkgMetadata, XMLStreamReader2 xmlStreamReader) throws Exception
+   private DependenciesType processDependencies(PackageType pkgMetadata, XMLStreamReader2 xmlStreamReader) throws Exception
    {
-      Dependencies depMetadata = new DependenciesImpl(pkgMetadata);
+      DependenciesType depMetadata = new DependenciesImpl(pkgMetadata);
       int event = xmlStreamReader.next();
       while (event != XMLEvent.END_ELEMENT)
       {
@@ -344,7 +344,7 @@ public class PackageUnmarshaller
                String childElement = xmlStreamReader.getLocalName();
                if (childElement.equals("unprocessed-dependencies"))
                {
-                  UnProcessedDependencies unProcessedDeps = processUnProcessedDependencies(pkgMetadata, xmlStreamReader);
+                  UnProcessedDependenciesType unProcessedDeps = processUnProcessedDependencies(pkgMetadata, xmlStreamReader);
                   depMetadata.setUnProcessedDependencies(unProcessedDeps);
                }
                else if (childElement.equals("packaged-dependency"))
@@ -360,9 +360,9 @@ public class PackageUnmarshaller
       return depMetadata;
    }
    
-   private UnProcessedDependencies processUnProcessedDependencies(Package pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
+   private UnProcessedDependenciesType processUnProcessedDependencies(PackageType pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
    {
-      UnProcessedDependencies unProcessedDep = new UnProcessedDependenciesImpl(pkgMeta);
+      UnProcessedDependenciesType unProcessedDep = new UnProcessedDependenciesImpl(pkgMeta);
       for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)
       {
          String name = xmlStreamReader.getAttributeLocalName(i);
@@ -386,7 +386,7 @@ public class PackageUnmarshaller
       return unProcessedDep;
    }
    
-   private PackagedDependency processPackagedDependency(Package pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
+   private PackagedDependency processPackagedDependency(PackageType pkgMeta, XMLStreamReader2 xmlStreamReader) throws Exception
    {
       PackagedDependency packagedDep = new PackagedDependencyImpl(pkgMeta);
       for (int i = 0; i < xmlStreamReader.getAttributeCount(); i++)

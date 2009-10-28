@@ -22,7 +22,7 @@
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
-import org.jboss.ejb3.packagemanager.metadata.PreInstall;
+import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
 
 /**
  * PreInstallScript
@@ -36,15 +36,15 @@ public class PreInstallScript extends ScriptImpl
     * The pre-install step to which this script 
     * belongs
     */
-   private PreInstall preInstallMeta;
+   private PreInstallType preInstallMeta;
 
    /**
     * Constructor
     * 
-    * @param preInstallMeta The {@link PreInstall} to which this
+    * @param preInstallMeta The {@link PreInstallType} to which this
     * pre-install script belongs to
     */
-   public PreInstallScript(PreInstall preInstallMeta)
+   public PreInstallScript(PreInstallType preInstallMeta)
    {
       this.preInstallMeta = preInstallMeta;
    }
@@ -59,12 +59,12 @@ public class PreInstallScript extends ScriptImpl
    }
    
    /**
-    * Returns the {@link PreInstall} to which this pre-install script
+    * Returns the {@link PreInstallType} to which this pre-install script
     * belongs to
     * 
     * @return
     */
-   public PreInstall getPreInstallMetadata()
+   public PreInstallType getPreInstallMetadata()
    {
       return this.preInstallMeta;
    }

@@ -31,7 +31,7 @@ package org.jboss.ejb3.packagemanager.metadata;
  * @author Jaikiran Pai
  * 
  */
-public interface InstallFile
+public interface InstallFileType
 {
 
    /**
@@ -107,6 +107,6 @@ public interface InstallFile
     *  
     * @return
     */
-   Package getPackage();
+   PackageType getPackage();
 
 }

@@ -21,21 +21,46 @@
 */
 package org.jboss.ejb3.packagemanager.metadata;
 
+import java.util.List;
+
 /**
- * PackagedDependency
+ * PostInstallMetadata
  *
+ * Represents the metadata for the post-install element
+ * in a package.xml file
+ * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface PackagedDependency
+public interface PostInstallType
 {
-   String getFile();
-   
-   void setFile(String file);
-   
+
    /**
-    * Returns the package for which this is an dependency
+    * Returns the list of post-install scripts for a package
+    * 
+    * @return
+    */
+   List<ScriptType> getScripts();
+
+   /**
+    * Sets the list of post-install scripts for a package
+    * 
+    * @param scripts The post-install scripts
+    */
+   void setScripts(List<ScriptType> scripts);
+
+   /**
+    * Adds a pre-install script to the list of post-install scripts 
+    * for this package
+    * @param script
+    */
+   void addScript(ScriptType script);
+
+   /**
+    * Returns the package to which this post-install step
+    * belongs to
     * @return
     */
    PackageType getPackage();
+
 }

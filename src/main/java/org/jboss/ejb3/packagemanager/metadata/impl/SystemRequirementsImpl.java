@@ -21,22 +21,22 @@
  */
 package org.jboss.ejb3.packagemanager.metadata.impl;
 
-import org.jboss.ejb3.packagemanager.metadata.Package;
-import org.jboss.ejb3.packagemanager.metadata.SystemRequirements;
+import org.jboss.ejb3.packagemanager.metadata.PackageType;
+import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
 
-public class SystemRequirementsImpl implements SystemRequirements
+public class SystemRequirementsImpl implements SystemRequirementsType
 {
-   private Package pkg;
+   private PackageType pkg;
 
-   public SystemRequirementsImpl(Package pkgMetadata)
+   public SystemRequirementsImpl(PackageType pkgMetadata)
    {
       this.pkg = pkgMetadata;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.SystemRequirements#getPackage()
+    * @see org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType#getPackage()
     */
-   public Package getPackage()
+   public PackageType getPackage()
    {
       return this.pkg;
    }
