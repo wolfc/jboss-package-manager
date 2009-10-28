@@ -30,7 +30,9 @@ import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 
 /**
  * Main
- *
+ * 
+ * TODO: This needs a lot of rework - currently WIP.
+ * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
@@ -45,55 +47,62 @@ public class Main
     *  TODO: The command line arguments, haven't yet been finalized
     * 
     * @param args
+    * @throws PackageManagerException 
     */
-   public static void main(String[] args)
+   public static void main(String[] args) throws PackageManagerException
    {
-      Getopt getOpt = new Getopt("packagemanager", args, "i:u:e:s:p:");
-      int opt;
-      String packageFilePath = null;
+      
+      Getopt arguments = new Getopt("packagemanager", args, "i:u:r:s:p:");
+      int argument;
       String jbossHome = null;
-      String packageNameToUninstall = null;
       String pmHome = System.getProperty("java.io.tmpdir");
-      while ((opt = getOpt.getopt()) != -1)
+      // TODO: Better handling of commands/options
+      while ((argument = arguments.getopt()) != -1)
       {
-         switch (opt)
+         switch (argument)
          {
-            case 'i' :
-               packageFilePath = getOpt.getOptarg();
-               break;
-            case 'u' :
-               packageFilePath = getOpt.getOptarg();
-               break;
-            case 'e' :
-               packageNameToUninstall = getOpt.getOptarg();
-               break;
             case 's' :
-               jbossHome = getOpt.getOptarg();
+               jbossHome = arguments.getOptarg();
                break;
             case 'p' :
-               pmHome = getOpt.getOptarg();
+               pmHome = arguments.getOptarg();
                break;
-            default :
-               throw new Error("Unhandled code " + opt);
          }
       }
-      if (jbossHome == null || packageFilePath == null)
+      
+      if (jbossHome == null)
       {
-         throw new Error("JBoss home or package file not specified");
+         throw new Error("JBoss Server Home not specified");
       }
       PackageManagerEnvironment env = new PackageManagerEnvironment(pmHome);
       PackageManager pm = new DefaultPackageManagerImpl(env, jbossHome);
-
-      // install the package
-      try
+      
+      Getopt commands = new Getopt("packagemanager", args, "i:u:r:s:p:");
+      int command;
+      String packageToOperateOn = null;
+      // TODO: Better handling of commands/options
+      while ((command = commands.getopt()) != -1)
       {
-         pm.installPackage(packageFilePath);
+         switch (command)
+         {
+            case 'i' :
+               packageToOperateOn = commands.getOptarg();
+               pm.installPackage(packageToOperateOn);
+               break;
+            case 'u' :
+               packageToOperateOn = commands.getOptarg();
+               pm.updatePackage(packageToOperateOn);
+               break;
+            case 'r' :
+               packageToOperateOn = commands.getOptarg();
+               pm.removePackage(packageToOperateOn);
+               break;
+         }
       }
-      catch (PackageManagerException ie)
-      {
-         throw new RuntimeException(ie);
-      }
+      
 
    }
+   
+   
 
 }

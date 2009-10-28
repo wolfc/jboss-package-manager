@@ -201,8 +201,8 @@ public class DefaultPackageManagerImpl implements PackageManager
       }
       // post-installation step
       this.postInstallPackage(pkgContext);
-      logger.info("Installed " + pkgContext);
       this.pkgDatabaseManager.installPackage(pkgContext);
+      logger.info("Installed " + pkgContext);
    }
 
    /**
@@ -212,6 +212,7 @@ public class DefaultPackageManagerImpl implements PackageManager
    public void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException
    {
       this.removePackage(packageName, false);
+      logger.info("Uninstalled " + packageName);
    }
 
    

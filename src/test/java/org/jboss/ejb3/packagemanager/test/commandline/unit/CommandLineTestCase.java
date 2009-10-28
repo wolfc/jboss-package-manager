@@ -25,10 +25,12 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.main.Main;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
 import org.jboss.logging.Logger;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -72,7 +74,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
    }
 
    /**
-    * Test that the command line variant of the package manager works as expected. 
+    * Test that the install operation from the command line works as expected. 
     * 
     *  TODO: Note that the params passed through the command line are still work-in-progress
     *  and they might change in future. This test case then needs to change appropriately. 
@@ -80,7 +82,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
     * @throws Exception
     */
    @Test
-   public void testMainMethodOfDefaultPackageManager() throws Exception
+   public void testInstall() throws Exception
    {
       File commandLineTestPackage = this.createSimplePackage("command-line-test-package.jar");
 
@@ -93,6 +95,82 @@ public class CommandLineTestCase extends PackageManagerTestCase
 
       // now check that the file was installed in that location
       this.assertFileExistenceUnderJBossHome(this.jbossHome, "common/lib/dummy.jar");
+
+   }
+
+   /**
+    * Test that the uninstall operation from the command line works as expected. 
+    * 
+    *  TODO: Note that the params passed through the command line are still work-in-progress
+    *  and they might change in future. This test case then needs to change appropriately. 
+    * 
+    * @throws Exception
+    */
+   @Test
+   public void testUnInstallOfNonExistentPackage() throws Exception
+   {
+      // test that non-existent package uninstallation is not allowed
+
+      String commandLineArgs[] = new String[]
+      {"-r", "blahblahblah", "-p", this.pkgMgrHome.getAbsolutePath(), "-s", this.jbossHome.getAbsolutePath()};
+      File commandLineTestPackage = this.createSimplePackage("command-line-test-package.jar");
+
+      // run the package manager
+      try
+      {
+         Main.main(commandLineArgs);
+         Assert
+               .fail("Uninstallation of non-existent package did not throw any errors. Expected package manager to throw error");
+      }
+      catch (PackageNotInstalledException pnie)
+      {
+         // expected
+      }
+
+   }
+
+   /**
+    * Test that the uninstall operation from the command line works as expected. 
+    * 
+    *  TODO: Note that the params passed through the command line are still work-in-progress
+    *  and they might change in future. This test case then needs to change appropriately. 
+    * 
+    * @throws Exception
+    */
+   @Test
+   public void testUnInstall() throws Exception
+   {
+      // first install and then uninstall
+      File packageWithScripts = this.createPackageWithPreInstallScript("commandline-uninstall-test-package.jar");
+      // test that non-existent package uninstallation is not allowed
+
+      String commandLineArgs[] = new String[]
+      {"-i", packageWithScripts.toURI().toURL().toExternalForm(), "-p", this.pkgMgrHome.getAbsolutePath(), "-s",
+            this.jbossHome.getAbsolutePath()};
+
+      // run the package manager
+      Main.main(commandLineArgs);
+
+      // do a simple test that the package was installed
+      this.assertFileExistenceUnderJBossHome(this.jbossHome, "server/default/deploy/dummy.jar");
+
+      // now uninstall
+      commandLineArgs = new String[]
+      {"-r", "common-package-with-pre-install", "-p", this.pkgMgrHome.getAbsolutePath(), "-s",
+            this.jbossHome.getAbsolutePath()};
+
+      // run the package manager
+      Main.main(commandLineArgs);
+
+      // now test that the files were uninstalled
+      this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
+
+      // Remember that the JBOSS_HOME/bin/test.txt file was created
+      // by an script and was NOT included as an installation file (i.e. through
+      // "file" element in the package.xml). Such files are NOT tracked/controlled
+      // by the package manager and hence will not be touched on uninstallation
+      // (unless ofcourse, the post/pre uninstall scripts take care of these files)
+      this.assertFileExistenceUnderJBossHome(jbossHome, "bin/test.txt");
 
    }
 }

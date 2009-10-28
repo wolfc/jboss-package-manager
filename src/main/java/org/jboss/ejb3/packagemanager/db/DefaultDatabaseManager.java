@@ -302,7 +302,6 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
       try
       {
          installedPackage = em.merge(installedPackage);
-         logger.info("Deleting installed package = " + installedPackage.getId());
          em.remove(installedPackage);
          tx.commit();
          logger.info("Deleted installed package = " + installedPackage.getId());
