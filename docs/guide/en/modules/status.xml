@@ -34,21 +34,6 @@
             <itemizedlist>
                 <listitem>
                     <para>
-                        Dependency Management implementation through Ivy
-                    </para>
-                </listitem>
-                <listitem>
-                    <para>
-                        A simple database management which allows for maintaining/tracking installed package information
-                    </para>
-                </listitem>
-                <listitem>
-                    <para>
-                        Update/Remove(Un-Install) features
-                    </para>
-                </listitem>
-                <listitem>
-                    <para>
                         Diff/Merging of configuration files and maybe checksum comparisons on files being installed
                     </para>
                 </listitem>
@@ -72,6 +57,9 @@
          <para>
              Now that the basic dependency management has been implemented, tests have been added to illustrate the usage
              and the functionality. The test is named org.jboss.ejb3.packagemanager.test.dependency.unit.DependencyInstallTestCase.
+         </para>
+         <para>
+             For tests around remove/uninstall functionality, have a look at org.jboss.ejb3.packagemanager.test.uninstall.unit.UnInstallTestCase.
          </para>
          <para>
              To run the tests, use the following Maven command on the package-manager project root:

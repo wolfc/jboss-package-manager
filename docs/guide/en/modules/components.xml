@@ -714,6 +714,24 @@
                         </tbody>
                         <tbody>
                             <row>
+                                <entry>-u</entry>
+                                <entry>The -u option can be used to upgrade a package.
+                                    When the -u option is used, it expects the path to the package to be specified too.
+                                    See later section on what the valid values for path are.
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
+                                <entry>-r</entry>
+                                <entry>The -r option can be used to remove/uninstall a package.
+                                    When the -r option is used, it expects the name of the already installed package to
+                                    be specified.
+                                </entry>
+                            </row>
+                        </tbody>
+                        <tbody>
+                            <row>
                                 <entry>-p</entry>
                                 <entry>This option right now is mandatory and it points to
                                     the JBoss Package Manager home folder. The JBoss Package Manager folder can be
@@ -754,15 +772,48 @@
                 can handle file:// protocol and http:// protocols. So the JBoss Package Manager, in it's current
                 form is able to work on package available either on the file system or through an HTTP URL.
             </para>
+            <para>
+                If a package with the same package name is already installed in the system, then this new installation
+                will not be allowed. The package manager will throw an error indicating the presence of an already
+                installed package with the same name. In situations like this, you might want to consider using the
+                upgrade option of the package manager. The details of upgrading a package will be discussed in later
+                sections.
+            </para>
         </sect2>
         <sect2>
             <title>Removing a Package</title>
             <para>
-                This is still work-in-progress. Details will be added soon.
+                An already installed package can be removed by using the -r argument to the package manager. The -r option
+                should be followed by the name of the package which is already installed. The package manager will look
+                for the installed package by this name and if not found, will throw back an error. If the package with
+                this name is found to be installed, the package will be removed.
+            </para>
+            <para>
+                Removing a package from a system, includes the process of removing any files that were installed during
+                the installation of the package. Any pre/post uninstall scripts, corresponding to this package being removed,
+                will also be run.
+                <important>
+                    <para>
+                        Uninstalling a package will NOT uninstall the dependencies. For example, if a package ABC was
+                        installed along with its dependency packages XYZ and PQR, then during the uninstallation of
+                        package ABC, neither XYZ nor PQR will be uninstalled. 
+                    </para>
+                </important>
+                <note>
+
+                    <para>
+                        TODO: How and where do we keep the pre/post uninstall scripts? Because during uninstall, we will
+                        not have access to the original package contents.
+                    </para>
+                </note>
+            </para>
+            <para>
+                Also note that, if there are other packages which are dependent on the package ABC being uninstalled,
+                then such package ABC will not be uninstalled.
             </para>
         </sect2>
         <sect2>
-            <title>Updating a Package</title>
+            <title>Upgrading a Package</title>
             <para>
                 This is still work-in-progress. Details will be added soon.
             </para>
