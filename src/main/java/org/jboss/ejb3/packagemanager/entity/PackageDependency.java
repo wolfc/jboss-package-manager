@@ -45,12 +45,12 @@ public class PackageDependency
    @GeneratedValue(strategy = GenerationType.IDENTITY)
    private long id;
 
-   @ManyToOne (cascade=CascadeType.REFRESH)
-   @JoinColumn(name = "dependent_package_id")
+   @ManyToOne(cascade = CascadeType.REFRESH)
+   @JoinColumn(name = "dependent_package")
    private InstalledPackage dependentPackage;
 
-   @ManyToOne(cascade=CascadeType.REFRESH)
-   @JoinColumn(name = "dependee_package_id")
+   @ManyToOne(cascade = CascadeType.REFRESH)
+   @JoinColumn(name = "dependee_package")
    private InstalledPackage dependeePackage;
 
    public long getId()
@@ -83,4 +83,35 @@ public class PackageDependency
       this.dependeePackage = dependeePackage;
    }
 
+   /**
+    * @see java.lang.Object#equals(java.lang.Object)
+    */
+   @Override
+   public boolean equals(Object obj)
+   {
+      if (obj == null)
+      {
+         return false;
+      }
+      if (!(obj instanceof PackageDependency))
+      {
+         return false;
+      }
+      PackageDependency other = (PackageDependency) obj;
+      if (this.dependeePackage != null && this.dependentPackage != null)
+      {
+         return this.dependeePackage.equals(other.getDependeePackage()) && this.dependentPackage.equals(other.getDependentPackage());
+      }
+      return false;
+   }
+
+   /**
+    * @see java.lang.Object#hashCode()
+    */
+   @Override
+   public int hashCode()
+   {
+      // TODO Auto-generated method stub
+      return super.hashCode();
+   }
 }

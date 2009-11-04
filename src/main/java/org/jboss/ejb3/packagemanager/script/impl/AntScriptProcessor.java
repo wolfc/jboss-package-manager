@@ -103,7 +103,7 @@ public class AntScriptProcessor implements ScriptProcessor
          throw new ScriptProcessingException("Target " + targetName + " not present in Ant script " + antBuildFile
                + " for " + pkgCtx);
       }
-      logger.info("Running pre-install script " + antBuildFile + " ,target= " + targetName + " for " + pkgCtx);
+      logger.info("Running script " + antBuildFile + " ,target= " + targetName + " for " + pkgCtx);
       try
       {
          antProject.executeTarget(targetName);

@@ -22,8 +22,8 @@
 
   <!-- A time/date based rolling appender -->
   <appender name="FILE" class="org.jboss.logging.appender.DailyRollingFileAppender">
-    <param name="File" value="target/test.log"/>
-    <param name="Threshold" value="INFO"/>
+    <param name="File" value="log/test.log"/>
+    <param name="Threshold" value="DEBUG"/>
     <param name="Append" value="false"/>
 
     <!-- Rollover at midnight each day -->
@@ -49,7 +49,7 @@
 
   <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
     <param name="Target" value="System.out"/>
-
+    <param name="Threshold" value="INFO"/>
     <layout class="org.apache.log4j.PatternLayout">
       <!-- The default pattern: Date Priority [Category] Message\n -->
       <param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%c{1}] %m%n"/>
@@ -60,15 +60,6 @@
   <!-- ================ -->
   <!-- Limit categories -->
   <!-- ================ -->
-
-  <category name="org.jboss">
-    <priority value="INFO"/>
-  </category>
-
-  <category name="org.jboss.ejb3">
-    <priority value="ALL"/>
-  </category>
-
 
   <!-- ======================= -->
   <!-- Setup the Root category -->

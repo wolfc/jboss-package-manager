@@ -21,17 +21,25 @@
 */
 package org.jboss.ejb3.packagemanager.main;
 
-import gnu.getopt.Getopt;
+import jargs.gnu.CmdLineParser;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
+import org.jboss.ejb3.packagemanager.util.DBUtil;
+import org.jboss.logging.Logger;
 
 /**
  * Main
  * 
- * TODO: This needs a lot of rework - currently WIP.
+ * TODO: Command line parsing is WIP.
  * 
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -39,6 +47,11 @@ import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 public class Main
 {
 
+   /**
+    * Logger
+    */
+   private static Logger logger = Logger.getLogger(Main.class);
+   
    /**
     * One of the entry points to the package manager.
     * Accepts the command line arguments and carries out appropriate operations
@@ -51,58 +64,126 @@ public class Main
     */
    public static void main(String[] args) throws PackageManagerException
    {
-      
-      Getopt arguments = new Getopt("packagemanager", args, "i:u:r:s:p:");
-      int argument;
-      String jbossHome = null;
-      String pmHome = System.getProperty("java.io.tmpdir");
-      // TODO: Better handling of commands/options
-      while ((argument = arguments.getopt()) != -1)
+      CmdLineParser cmdLineParser = new CmdLineParser();
+      CmdLineParser.Option setupCmdOption = cmdLineParser.addStringOption("setup");
+      CmdLineParser.Option installCmdOption = cmdLineParser.addStringOption('i', "install");
+      CmdLineParser.Option upgradeCmdOption = cmdLineParser.addStringOption('u', "upgrade");
+      CmdLineParser.Option removeCmdOption = cmdLineParser.addStringOption('r', "remove");
+      CmdLineParser.Option packageManagerHomeCmdOption = cmdLineParser.addStringOption('p', "pmhome");
+      CmdLineParser.Option jbossHomeCmdOption = cmdLineParser.addStringOption('s', "jbossHome");
+
+      try
       {
-         switch (argument)
-         {
-            case 's' :
-               jbossHome = arguments.getOptarg();
-               break;
-            case 'p' :
-               pmHome = arguments.getOptarg();
-               break;
-         }
+         cmdLineParser.parse(args);
       }
-      
+      catch (CmdLineParser.OptionException e)
+      {
+         System.err.println("Error parsing command " + e.getMessage());
+         printUsage();
+         throw new PackageManagerException(e.getMessage());
+      }
+      File currentDir = new File(".");
+      String packageManagerHome = (String) cmdLineParser.getOptionValue(packageManagerHomeCmdOption,currentDir.getAbsolutePath());
+      String jbossHome = (String) cmdLineParser.getOptionValue(jbossHomeCmdOption);
+      if (packageManagerHome == null)
+      {
+         throw new PackageManagerException("Package manager home has not been set");
+      }
       if (jbossHome == null)
       {
-         throw new Error("JBoss Server Home not specified");
+         throw new PackageManagerException("JBoss Home has not been set");
       }
-      PackageManagerEnvironment env = new PackageManagerEnvironment(pmHome);
-      PackageManager pm = new DefaultPackageManagerImpl(env, jbossHome);
-      
-      Getopt commands = new Getopt("packagemanager", args, "i:u:r:s:p:");
-      int command;
-      String packageToOperateOn = null;
-      // TODO: Better handling of commands/options
-      while ((command = commands.getopt()) != -1)
+
+      File pmHome = new File(packageManagerHome);
+      if (!pmHome.exists())
       {
-         switch (command)
-         {
-            case 'i' :
-               packageToOperateOn = commands.getOptarg();
-               pm.installPackage(packageToOperateOn);
-               break;
-            case 'u' :
-               packageToOperateOn = commands.getOptarg();
-               pm.updatePackage(packageToOperateOn);
-               break;
-            case 'r' :
-               packageToOperateOn = commands.getOptarg();
-               pm.removePackage(packageToOperateOn);
-               break;
-         }
+         throw new PackageManagerException("Package manager home " + pmHome + " does not exist!");
       }
-      
+
+      File jbHome = new File(jbossHome);
+      if (!jbHome.exists())
+      {
+         throw new PackageManagerException("JBoss home " + jbHome + " does not exist!");
+      }
+      logger.info("Using Package Manager Home: " + packageManagerHome);
+      logger.info("Using JBoss Home: " + jbossHome);
+      PackageManagerEnvironment env = new PackageManagerEnvironment(packageManagerHome);
+      PackageManager pm = new DefaultPackageManagerImpl(env, jbossHome);
+
+      String schemaSetupScript = (String) cmdLineParser.getOptionValue(setupCmdOption);
+      if (schemaSetupScript != null)
+      {
+         File schemaFile = new File(schemaSetupScript);
+         if (!schemaFile.exists())
+         {
+            throw new PackageManagerException(
+                  "Could not setup the database for package manager, because of non-existent schema file "
+                        + schemaSetupScript);
+         }
+         Connection conn = null;
+         try
+         {
+            conn = DriverManager.getConnection("jdbc:derby:pmdb;create=true");
+            DBUtil.runSql(conn, schemaFile);
+            logger.info("Successfully setup the package manager database");
+         }
+         catch (SQLException sqle)
+         {
+            throw new PackageManagerException("Could not setup package manager database: ", sqle);
+         }
+         catch (IOException ioe)
+         {
+            throw new PackageManagerException("Could not setup package manager database: ", ioe);
+         }
+         finally
+         {
+            if (conn != null)
+            {
+               try
+               {
+                  conn.close();
+               }
+               catch (SQLException sqle)
+               {
+                  // can't do much
+                  logger.trace("Could not close connection:",sqle);
+               }
+            }
+         }
+
+      }
+
+      String packageToInstall = (String) cmdLineParser.getOptionValue(installCmdOption);
+      String packageToUpgrade = (String) cmdLineParser.getOptionValue(upgradeCmdOption);
+      String packageToRemove = (String) cmdLineParser.getOptionValue(removeCmdOption);
+
+      if (packageToInstall != null)
+      {
+         // it's time to install
+         pm.installPackage(packageToInstall);
+
+      }
+
+      if (packageToUpgrade != null)
+      {
+         // upgrade!
+         pm.updatePackage(packageToUpgrade);
+      }
+
+      if (packageToRemove != null)
+      {
+         // out you go!
+         pm.removePackage(packageToRemove);
+      }
 
    }
+
    
-   
+   private static void printUsage()
+   {
+      System.out
+            .println("Usage: packagemanager [-i path_to_package] [-r package_name] [-u path_to_package] [-p path_to_package_manager_home]\n"
+                  + " [-s path_to_jboss_home]");
+   }
 
 }

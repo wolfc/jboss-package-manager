@@ -73,6 +73,27 @@
                     <argLine>-ea</argLine>
                 </configuration>
             </plugin>
+            
+            <!-- Assembly Plugin -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-4</version>
+                <executions>
+                  <execution>
+                    <id>make-assembly</id> 
+                    <phase>package</phase>
+                    <goals>
+                      <goal>single</goal>
+                    </goals>
+                  </execution>
+                </executions>
+                <configuration>
+                  <descriptors>
+                    <descriptor>src/main/assemble/assemble.xml</descriptor>
+                  </descriptors>
+                </configuration>
+                <inherited>false</inherited>
+              </plugin>
         </plugins>
     </build>
     
@@ -117,10 +138,11 @@
         
         
         <!-- Command line parsing -->
+        
         <dependency>
-            <groupId>gnu-getopt</groupId>
-            <artifactId>getopt</artifactId>
-            <version>1.0.13</version>
+            <groupId>net.sf</groupId>
+            <artifactId>jargs</artifactId>
+            <version>1.0</version>
         </dependency>
         
         

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jboss.ejb3.packagemanager.util.DBUtil;
 import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.export.ZipExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -56,6 +57,11 @@ public abstract class PackageManagerTestCase
     * Logger
     */
    private static Logger logger = Logger.getLogger(PackageManagerTestCase.class);
+   
+   /**
+    * File name of the package manager DB schema file
+    */
+   private static final String PACKAGE_MANAGER_DB_SCHEMA_FILE_NAME = "schema.sql";
 
    /**
     * Base dir
@@ -91,8 +97,8 @@ public abstract class PackageManagerTestCase
    private static void setupDatabase(File dbHome) throws IOException, SQLException
    {
       System.setProperty("derby.system.home", dbHome.getAbsolutePath());
-      InputStream sql = Thread.currentThread().getContextClassLoader().getResourceAsStream(
-            "package-manager-sql-scripts.sql");
+      InputStream sql = Thread.currentThread().getContextClassLoader().getResourceAsStream(PACKAGE_MANAGER_DB_SCHEMA_FILE_NAME);
+
       if (sql == null)
       {
          throw new RuntimeException(
@@ -256,7 +262,7 @@ public abstract class PackageManagerTestCase
       //                                            |--- common
       //                                                    |--- Dummy.class
 
-      File dummyJar = new File(targetDir, "dummy.jar");
+      File dummyJar = new File(getPerTestTargetDir(this.getClass()), "dummy.jar");
       // if it already exists then no need to recreate it
       if (dummyJar.exists())
       {
@@ -293,7 +299,7 @@ public abstract class PackageManagerTestCase
       File dummyJar = this.createDummyJar();
 
       // Now let's package the dummy.jar, package.xml into a package
-      File simplePackage = new File(targetDir, packageFileName);
+      File simplePackage = new File(getPerTestTargetDir(this.getClass()), packageFileName);
       JavaArchive pkg = JavaArchiveFactory.create(simplePackage.getName());
       pkg.addResource("dummy.jar", dummyJar);
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-just-install-file.xml");
@@ -333,7 +339,7 @@ public abstract class PackageManagerTestCase
       File dummyJar = this.createDummyJar();
 
       // Now let's package the dummy.jar, package.xml and build.xml into a package
-      File packageWithPreInstallScript = new File(targetDir, packageFileName);
+      File packageWithPreInstallScript = new File(getPerTestTargetDir(this.getClass()), packageFileName);
       JavaArchive pkg = JavaArchiveFactory.create(packageWithPreInstallScript.getName());
       pkg.addResource("dummy.jar", dummyJar);
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-pre-install-script.xml");
@@ -386,7 +392,7 @@ public abstract class PackageManagerTestCase
       File dependeePackage = this.createSimplePackage("dependee-package.jar");
 
       // Now package this dependee package and also any other files in the dependent package
-      File packageWithPackagedDependency = new File(targetDir, packageFileName);
+      File packageWithPackagedDependency = new File(getPerTestTargetDir(this.getClass()), packageFileName);
       JavaArchive pkg = JavaArchiveFactory.create(packageWithPackagedDependency.getName());
       pkg.addResource("dependee-package.jar", dependeePackage);
       // package the other files

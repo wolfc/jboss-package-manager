@@ -95,6 +95,7 @@ public class DefaultPackageManagerImpl implements PackageManager
       this.environment = environment;
       this.installationServerHome = jbossHome;
       this.pkgMgrCtx = new DefaultPackageManagerContext(this);
+      
       this.pkgDatabaseManager = new DefaultDatabaseManager(this.pkgMgrCtx);
    }
 
@@ -181,7 +182,7 @@ public class DefaultPackageManagerImpl implements PackageManager
       }
       logger.debug("New package " + pkgContext + " being installed");
       // proceed with installation of the package
-      
+
       if (pkgContext.getInstallationFiles() == null)
       {
          throw new PackageManagerException("There are no files to install for package: " + pkgContext);
@@ -211,19 +212,21 @@ public class DefaultPackageManagerImpl implements PackageManager
    @Override
    public void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException
    {
-      this.removePackage(packageName, false);
-      logger.info("Uninstalled " + packageName);
-   }
-
-   
-   protected void removePackage(String packageName, boolean forceRemove) throws PackageNotInstalledException, PackageManagerException
-   {
       // get the installed package
       boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
       if (!isPackageInstalled)
       {
          throw new PackageNotInstalledException("Package " + packageName + " is not installed - so cannot be removed!");
       }
+      InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
+      this.removePackage(installedPackage, false);
+      
+   }
+
+   protected void removePackage(InstalledPackage installedPackage, boolean forceRemove)
+         throws PackageNotInstalledException, PackageManagerException
+   {
+      String packageName = installedPackage.getPackageName();
       if (!forceRemove)
       {
          // check if other packages are dependent on this package
@@ -235,7 +238,6 @@ public class DefaultPackageManagerImpl implements PackageManager
                   + " - cannot remove this package!");
          }
       }
-      InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
       // TODO : Revisit this installer creation
       Installer installer = new DefaultInstaller(this.pkgMgrCtx);
       // install files in this package
@@ -244,8 +246,9 @@ public class DefaultPackageManagerImpl implements PackageManager
          installer.uninstall(installedPackage, fileToUninstall);
       }
       this.pkgDatabaseManager.removePackage(installedPackage);
+      logger.info("Uninstalled " + packageName);
    }
-   
+
    /**
     * @see org.jboss.ejb3.packagemanager.PackageManager#updatePackage(java.lang.String)
     */
@@ -283,25 +286,21 @@ public class DefaultPackageManagerImpl implements PackageManager
 
    public void updatePackage(PackageContext pkgContext) throws PackageManagerException
    {
-      // TODO: Revisit
-//      // first remove
-//      this.removeIfExists(pkgContext.getPackageName());
-//      
+      String packageName = pkgContext.getPackageName();
+      boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
+      if (isPackageInstalled)
+      {
+         InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
+         logger.info("Removing existing package " + packageName + " version " + installedPackage.getPackageVersion()
+               + " for upgrading to " + pkgContext);
+         removePackage(installedPackage, true);
+      }
+
       // now install new version
       this.installPackage(pkgContext);
       
    }
 
-   private void removeIfExists(String packageName) throws PackageManagerException
-   {
-      // get the installed package
-      boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
-      if (!isPackageInstalled)
-      {
-         return;
-      }
-      this.removePackage(packageName);
-   }
    /**
     * Parses the {@code pkgPath} string and returns an appropriate URL.
     * 

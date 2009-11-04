@@ -29,24 +29,75 @@ import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 
 /**
  * PackageDatabaseManager
- *
+ * 
+ * Manages the database used by the Package manager for tracking the installed
+ * packages. 
+ * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
 public interface PackageDatabaseManager
 {
 
+   /**
+    * Store the information, in DB, about a package that was installed.
+    * 
+    * This method is called to record the result of a successful package
+    * installation
+    *  
+    * @param pkgCtx The package which was installed.
+    * @return Returns the {@link InstalledPackage} representing the newly
+    * installed package
+    */
    InstalledPackage installPackage(PackageContext pkgCtx);
    
-   InstalledPackage getInstalledPackage(String name);
+   /**
+    * Returns a package with the package name - <code>name</code>, which is already installed. 
+    * If such a package is not installed then {@link PackageNotInstalledException} is thrown.
+    * If the caller is not sure whether the package with a given name is installed, then
+    * use the {@link #isPackageInstalled(String)} method, before calling this method
+    *   
+    * @param name Name of the package
+    * @return
+    * @throws PackageNotInstalledException If the package with the name <code>name</code> is 
+    * not installed
+    */
+   InstalledPackage getInstalledPackage(String name) throws PackageNotInstalledException;
    
+   /**
+    * Returns true if the package with the given <code>name</code> is already installed.
+    * Else returns false.
+    * 
+    * @param name Name of the package
+    * @return
+    */
    boolean isPackageInstalled(String name);
    
-   Set<InstalledPackage> getDependentPackages(String name);
+   /**
+    * Returns a set of {@link InstalledPackage}s which depend on the package with the
+    * name <code>name</code>. If there are no such dependent packages then an empty
+    * set is returned.
+    * 
+    * @param name Name of the package which has to be checked for dependent packages
+    * @return
+    * @throws If the package with <code>name</code> is not installed, then {@link PackageNotInstalledException}
+    * is thrown
+    */
+   Set<InstalledPackage> getDependentPackages(String name) throws PackageNotInstalledException;
    
-   InstalledPackage upgradePackage(PackageContext pkgCtx);
-   
+   /**
+    * Removes the package from the DB records.
+    * 
+    * @param name The name of the package to remove
+    * @throws PackageNotInstalledException If the package with name <code>name</code> is
+    * not already installed
+    */
    void removePackage(String name) throws PackageNotInstalledException;
    
+   /**
+    * Removes the package from the DB records.
+    * 
+    * @param installedPackage The package which has been installed
+    */
    void removePackage(InstalledPackage installedPackage);
 }

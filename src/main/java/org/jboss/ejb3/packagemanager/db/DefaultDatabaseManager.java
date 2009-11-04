@@ -21,6 +21,7 @@
 */
 package org.jboss.ejb3.packagemanager.db;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -34,10 +35,12 @@ import javax.persistence.Query;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.entity.InstalledFile;
 import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
 import org.jboss.ejb3.packagemanager.entity.PackageDependency;
 import org.jboss.ejb3.packagemanager.entity.PackageManagerEntity;
+import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.logging.Logger;
@@ -74,11 +77,16 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
    public DefaultDatabaseManager(PackageManagerContext pkgMgrCtx)
    {
       this.packageManagerCtx = pkgMgrCtx;
-
-      // TODO: Set it in a better way
-      //      String jbossServerDataDir = pkgMgrCtx.getJBossServerHome() + "/server/default/data";
-      //      System.setProperty("derby.system.home", "/home/jpai/pm");
-      System.out.println("Derby system home is " + System.getProperty("derby.system.home"));
+      PackageManagerEnvironment environment = pkgMgrCtx.getPackageManagerEnvironment();
+      // we use derby (filesystem) based DB
+      File dbHome = new File(environment.getPackageManagerHome(), "data");
+      if (!dbHome.exists())
+      {
+         dbHome.mkdirs();
+      }
+      // set the Derby system home property to point to the package manager db
+      System.setProperty("derby.system.home", dbHome.getAbsolutePath());
+      logger.info("Package manager DB home set to " + System.getProperty("derby.system.home"));
       this.entityMgrFactory = Persistence.createEntityManagerFactory("default");
 
    }
@@ -120,7 +128,15 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
       tx.begin();
       PackageManagerEntity packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
 
-      InstalledPackage newlyInstalledPackage = this.createPackage(packageManager, pkgCtx);
+      InstalledPackage newlyInstalledPackage;
+      try
+      {
+         newlyInstalledPackage = this.createPackage(packageManager, pkgCtx);
+      }
+      catch (PackageManagerException pme)
+      {
+         throw new RuntimeException(pme);
+      }
 
       try
       {
@@ -143,7 +159,7 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
     * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#getInstalledPackage(java.lang.String)
     */
    @Override
-   public InstalledPackage getInstalledPackage(String name)
+   public InstalledPackage getInstalledPackage(String name) throws PackageNotInstalledException
    {
       EntityManager em = this.getEntityManager();
       PackageManagerEntity packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
@@ -175,12 +191,12 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
     * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#getDependentPackages(java.lang.String)
     */
    @Override
-   public Set<InstalledPackage> getDependentPackages(String name)
+   public Set<InstalledPackage> getDependentPackages(String name) throws PackageNotInstalledException
    {
       InstalledPackage installedPackage = this.getInstalledPackage(name);
       EntityManager em = this.getEntityManager();
       Query query = em.createQuery("select pd.dependentPackage from " + PackageDependency.class.getSimpleName()
-            + " pd " + "join pd.dependeePackage p " + " where p.id=" + installedPackage.getId());
+            + " pd " + "join pd.dependeePackage p " + " where p.name='" + installedPackage.getPackageName() + "'");
 
       List<InstalledPackage> result = query.getResultList();
       if (result == null || result.isEmpty())
@@ -196,8 +212,9 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
     * @param pkgMgrEntity
     * @param pkgCtx
     * @return
+    * @throws PackageManagerException 
     */
-   private InstalledPackage createPackage(PackageManagerEntity pkgMgrEntity, PackageContext pkgCtx)
+   private InstalledPackage createPackage(PackageManagerEntity pkgMgrEntity, PackageContext pkgCtx) throws PackageManagerException
    {
       InstalledPackage newPackage = new InstalledPackage(pkgMgrEntity, pkgCtx.getPackageName(), pkgCtx
             .getPackageVersion());
@@ -241,13 +258,51 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
    }
 
    /**
+    * @throws PackageNotInstalledException 
     * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#upgradePackage(org.jboss.ejb3.packagemanager.entity.InstalledPackage, org.jboss.ejb3.packagemanager.entity.InstalledPackage)
     */
-   @Override
-   public InstalledPackage upgradePackage(PackageContext packageToUpgrade)
+   public InstalledPackage upgradePackage(PackageContext packageToUpgrade) throws PackageNotInstalledException
    {
-      // get all packages which were dependent on the previous version of the package
-      return null;
+      // 1) get all packages which were dependent on the previous version of the package
+      // 2) remove the earlier version of this package being upgraded
+      // 3) save this new version
+      // 4) Update the dependent packages to refer this newer version
+      String packageName = packageToUpgrade.getPackageName();
+      InstalledPackage existingVersionOfPackage = this.getInstalledPackage(packageName);
+      
+      Set<InstalledPackage> dependentPackages = this.getDependentPackages(packageName);
+      EntityManager em = this.getEntityManager();
+      // break the link with the previous version of the package
+      if (dependentPackages != null && !dependentPackages.isEmpty())
+      {
+         for (InstalledPackage dependentPackage : dependentPackages)
+         {
+            dependentPackage.removeDependency(existingVersionOfPackage);
+            em.persist(dependentPackage);
+         }
+         
+      }
+      
+      // remove the package being upgraded
+      this.removePackage(existingVersionOfPackage);
+      
+      // install this newer version
+      InstalledPackage upgradedPackage = this.installPackage(packageToUpgrade);
+      if (dependentPackages != null && !dependentPackages.isEmpty())
+      {
+         // create a new link/dependency on the new version of the package
+         for (InstalledPackage dependentPackage : dependentPackages)
+         {
+               PackageDependency dependency = new PackageDependency();
+               dependency.setDependeePackage(upgradedPackage);
+               dependency.setDependentPackage(dependentPackage);
+               dependentPackage.addDependency(dependency);
+               em.persist(dependentPackage);
+         }
+         
+      }
+      // return the upgraded package
+      return upgradedPackage;
    }
 
    /**
@@ -304,7 +359,7 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
          installedPackage = em.merge(installedPackage);
          em.remove(installedPackage);
          tx.commit();
-         logger.info("Deleted installed package = " + installedPackage.getId());
+         logger.info("Deleted installed package = " + installedPackage.getPackageName());
       }
       catch (Exception e)
       {

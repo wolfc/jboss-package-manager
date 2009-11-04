@@ -51,7 +51,7 @@ public class InstalledFile
    private String fileType;
    
    @ManyToOne 
-   @JoinColumn(name="package_id")
+   @JoinColumn(name="package_name")
    private InstalledPackage pkg;
    
    private InstalledFile()

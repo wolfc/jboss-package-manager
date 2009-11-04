@@ -21,12 +21,11 @@
 */
 package org.jboss.ejb3.packagemanager.entity;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -45,14 +44,11 @@ public class InstalledPackage
 {
 
    @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-   private long id;
-
    private String name;
 
    private String version;
 
-   @OneToMany(mappedBy = "dependeePackage", cascade=CascadeType.ALL)
+   @OneToMany(mappedBy = "dependentPackage", cascade=CascadeType.ALL)
    private Set<PackageDependency> dependencies;
 
    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL)
@@ -74,12 +70,7 @@ public class InstalledPackage
       this.version = packageVersion;
    }
 
-   public InstalledPackage(long id)
-   {
-      this.id = id;
-   }
 
-   
    public String getPackageName()
    {
       return this.name;
@@ -88,16 +79,6 @@ public class InstalledPackage
    public String getPackageVersion()
    {
       return this.version;
-   }
-
-   public long getId()
-   {
-      return id;
-   }
-
-   public void setId(long id)
-   {
-      this.id = id;
    }
 
    public Set<InstalledFile> getInstallationFiles()
@@ -130,6 +111,52 @@ public class InstalledPackage
       this.dependencies = dependencies;
    }
    
+   public void addDependency(PackageDependency dependency)
+   {
+      if (this.dependencies == null)
+      {
+         this.dependencies = new HashSet<PackageDependency>();
+      }
+      this.dependencies.add(dependency);
+   }
+   
+   public void addDependencies(Set<PackageDependency> dependencies)
+   {
+      if (this.dependencies == null)
+      {
+         this.dependencies = new HashSet<PackageDependency>();
+      }
+      this.dependencies.addAll(dependencies);
+   }
+   
+   public void removeDependency(PackageDependency dependency)
+   {
+      if (this.dependencies == null)
+      {
+         return;
+      }
+      this.dependencies.remove(dependency);
+   }
+   
+   
+   public void removeDependency(InstalledPackage dependencyPackage)
+   {
+      if (this.dependencies == null)
+      {
+         return;
+      }
+      Set<PackageDependency> copyOfDependencies = new HashSet<PackageDependency>(this.dependencies);
+      for (PackageDependency dependency : copyOfDependencies)
+      {
+         if (dependency.getDependentPackage().equals(dependencyPackage))
+         {
+            this.dependencies.remove(dependency);
+         }
+      }
+      
+   }
+   
+   
    /**
     * @see java.lang.Object#equals(java.lang.Object)
     */
@@ -145,7 +172,7 @@ public class InstalledPackage
          return false;
       }
       InstalledPackage otherPackge = (InstalledPackage) obj;
-      return this.getId() == otherPackge.getId(); 
+      return this.name == otherPackge.name; 
       
    }
 
@@ -155,6 +182,6 @@ public class InstalledPackage
    @Override
    public int hashCode()
    {
-      return Long.valueOf(this.id).hashCode();
+      return this.name.hashCode();
    }
 }
