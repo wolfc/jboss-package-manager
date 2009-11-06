@@ -9,7 +9,8 @@
 <!ENTITY package SYSTEM "modules/package.xml">
 <!ENTITY package-manager SYSTEM "modules/package-manager.xml">
 <!ENTITY package-build-tool SYSTEM "modules/package-build-tool.xml">
-<!ENTITY package-manager-database SYSTEM "modules/package-manager-database.xml">        
+<!ENTITY package-manager-database SYSTEM "modules/package-manager-database.xml">
+<!ENTITY installation SYSTEM "modules/installing.xml">
 ]>
 <book lang="en">
   <bookinfo>
@@ -27,5 +28,6 @@
     &overview;
     &components;
     &ivyDepMgr;
+    &installation;
     &status;
 </book>

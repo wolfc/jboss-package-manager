@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<chapter id="installation">
+    <title>Package Manager Installation</title>
+    <para>
+        To use or build the package manager, you need Java 6.
+    </para>
+    <para>
+        The package manager can be currently built from
+        <ulink url="http://anonsvn.jboss.org/repos/jbossas/projects/ejb3/trunk/package-manager/">SVN</ulink>.
+        However at a later stage it will be made available to be downloaded from jboss.org download site. To build from SVN,
+        you need a Maven 2.0.9 or higher and JDK 6. The command to build the package manager is as follows:
+        <programlisting>
+<![CDATA[
+[jpai@jaikiran package-manager]$ mvn clean package
+     ]]>
+        </programlisting>
+        This command creates the package manager in .zip format as well as .tar.gz format. These files will be available
+        under package-manager/target folder. To install the package manager, extract the .zip (or .tar.gz) to a folder of
+        your choice and then run the setup script available in the bin folder. For more details about the setup script,
+        take a look at <xref linkend="package-manager-setup">this section</xref>
+    </para>
+</chapter>

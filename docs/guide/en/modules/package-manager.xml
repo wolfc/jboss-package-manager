@@ -26,7 +26,7 @@
         Now that we have seen what a package contains and how to create a package, let's now see some details
         around the JBoss Package Manager which processes these packages.
     </para>
-    <sect2>
+    <sect2 id="package-manager-setup">
         <title>Setting up the Package Manager</title>
         <para>
             The package manager needs to be setup once, before it can be used. The package manager installation contains
