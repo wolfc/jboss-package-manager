@@ -20,15 +20,18 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-<chapter id="packagemanager_components">
-    <title>JBoss Package Manager Components</title>
+<sect1>
+    <title>Package Build tool</title>
     <para>
-        So let's see what the JBoss Package Manager comprises of.
+        As we have seen so far, an package is nothing more than a .jar/.zip file. Expect for the presence of the
+        package.xml in the package, the JBoss Package Manager does not add any other requirements/restrictions on
+        the package format or contents. As such, i personally, don't see any need for an new build tool which allows
+        to create the packages. Already existing tools (there are lots) like Ant build script or anything else
+        can always be used to create these packages.
     </para>
-        &package;
-        &package-build-tool;
-        &package-manager;
-        &package-manager-database;
-
-</chapter>
-
+    <para>
+        But, if at some point of time, the requirement for such a build tool arises, then we will update this section
+        with the details.
+    </para>
+</sect1>
+    

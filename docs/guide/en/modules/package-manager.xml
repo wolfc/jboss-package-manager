@@ -1,0 +1,266 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<sect1>
+    <title>Package Manager</title>
+    <para>
+        Now that we have seen what a package contains and how to create a package, let's now see some details
+        around the JBoss Package Manager which processes these packages.
+    </para>
+    <sect2>
+        <title>Setting up the Package Manager</title>
+        <para>
+            The package manager needs to be setup once, before it can be used. The package manager installation contains
+            the setup.sh (setup.bat for Windows OS) in the bin folder. Run the setup.sh script as follows:
+           <programlisting>
+<![CDATA[
+[jpai@jaikiran packagemanager]$ cd bin
+[jpai@jaikiran bin]$ ./setup.sh -s /path/to/jboss -p /path/to/packagemanager_home
+
+        ]]>
+            </programlisting>
+            The setup.sh, through the -s option accepts the path to your JBoss server installation. It also
+        requires the path to where you want the package manager to be installed. You can pass the path through the -p option.
+            <note>
+                <para>
+                    TODO: Ideally, the setup.sh script should not require the JBOSS_HOME or the PACKAGE_MANAGER_HOME
+                    options to be passed to it, for the following reasons:
+                    <itemizedlist>
+                        <listitem>
+                            <para>
+                                The setup.sh is meant to setup the package manager and a single installation of package
+                                manager is capable of managing multiple JBoss server installations, so the JBOSS_HOME
+                                param for setup script, makes no sense
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                The PACKAGE_MANAGER_HOME param to the setup.sh too doesn't make sense, because it's no
+                                use specifying a different home, than the current directory which contains all the package
+                                manager required artifacts (like scripts, libraries etc...). The setup.sh should infer
+                                the parent folder of the "bin" folder as the package manager home.
+                            </para>
+                        </listitem>
+                        
+                    </itemizedlist>
+                </para>
+            </note>
+        </para>
+    </sect2>
+    <sect2>
+        <title>Running the Package Manager</title>
+        <para>
+            Once the package manager has been setup, you can use the run.sh (run.bat for Windows OS) script to run the
+            package manager. This script is available in the bin folder of the package manager installation
+            In it's current form, the JBoss Package Manager can handle the following options:
+            <informaltable frame="all">
+                <tgroup cols='2' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Option</entry>
+                            <entry>Description</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>-i</entry>
+                            <entry>The -i option can be used to install a package.
+                                When the -i option is used, it expects the path to the package to be specified too.
+                                See later section on what the valid values for path are.
+                            </entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>-u</entry>
+                            <entry>The -u option can be used to upgrade a package.
+                                When the -u option is used, it expects the path to the package to be specified too.
+                                See later section on what the valid values for path are.
+                            </entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>-r</entry>
+                            <entry>The -r option can be used to remove/uninstall a package.
+                                When the -r option is used, it expects the name of the already installed package to
+                                be specified.
+                            </entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>-p</entry>
+                            <entry>This option right now is mandatory and it points to
+                                the JBoss Package Manager home folder. The JBoss Package Manager folder can be
+                                any folder on the file system. The package manager will use this as it working
+                                environment and create, extract any of the files it needs to, while processing
+                                packages.
+                            </entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>-s</entry>
+                            <entry>
+                                This option is mandatory and it points to home folder of JBoss Application Server,
+                                to which this package manager is installing packages.
+                            </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </informaltable>
+            <note>
+                <para>
+                    None of these options have been finalized yet. This section will be updated appropriately when
+                    the final set of options is decided.
+                </para>
+            </note>
+        </para>
+
+    </sect2>
+    <sect2>
+        <title>Installing a Package</title>
+        <para>
+            To install a package you can pass the -i &lt;packagepath&gt; arguments to the package manager script.
+        </para>
+        <para>
+            The -i argument to the package manager is to let the package manager install a package. The -i argument
+            expects the path to the package. In it's current form, the JBoss Package Manager
+            can handle file:// protocol and http:// protocols. So the JBoss Package Manager, in it's current
+            form is able to work on package available either on the file system or through an HTTP URL.
+        </para>
+        <para>
+            If a package with the same package name is already installed in the system, then this new installation
+            will not be allowed. The package manager will throw an error indicating the presence of an already
+            installed package with the same name. In situations like this, you might want to consider using the
+            upgrade option of the package manager. The details of upgrading a package will be discussed in later
+            sections.
+        </para>
+        <sect3>
+            <title>Examples of installing a package</title>
+            <para>
+                The following example shows how to install a package available at /home/me/packages/simple-package.jar
+                into a JBoss installation available at /home/me/jboss/jboss-5.1.0.GA
+                <programlisting>
+ <![CDATA[
+ [jpai@jaikiran packagemanager]$ cd bin
+ [jpai@jaikiran bin]$ ./run.sh -s /home/me/jboss/jboss-5.1.0.GA -i /home/me/packages/simple-package.jar
+
+         ]]>
+                </programlisting>                
+            </para>
+            <para>
+                This next one shows how to install a package available as a HTTP resource at
+                http://snapshots.jboss.org/maven2/org/jboss/ejb3/tmp/simple-package.jar into the JBoss server available
+                at /home/me/jboss/jboss-5.1.0.GA
+                <programlisting>
+ <![CDATA[
+ [jpai@jaikiran packagemanager]$ cd bin
+ [jpai@jaikiran bin]$ ./run.sh -s /home/me/jboss/jboss-5.1.0.GA -i http://snapshots.jboss.org/maven2/org/jboss/ejb3/tmp/simple-package.jar
+
+         ]]>
+                </programlisting>
+                
+            </para>
+        </sect3>
+    </sect2>
+    <sect2>
+        <title>Removing a Package</title>
+        <para>
+            An already installed package can be removed by using the -r argument to the package manager. The -r option
+            should be followed by the name of the package which is already installed. The package manager will look
+            for the installed package by this name and if not found, will throw back an error. If the package with
+            this name is found to be installed, the package will be removed.
+        </para>
+        <para>
+            Removing a package from a system, includes the process of removing any files that were installed during
+            the installation of the package. Any pre/post uninstall scripts, corresponding to this package being removed,
+            will also be run.
+            <important>
+                <para>
+                    Uninstalling a package will NOT uninstall the dependencies. For example, if a package ABC was
+                    installed along with its dependency packages XYZ and PQR, then during the uninstallation of
+                    package ABC, neither XYZ nor PQR will be uninstalled.
+                </para>
+            </important>
+            <note>
+
+                <para>
+                    TODO: How and where do we keep the pre/post uninstall scripts? Because during uninstall, we will
+                    not have access to the original package contents.
+                </para>
+            </note>
+        </para>
+        <para>
+            Also note that, if there are other packages which are dependent on the package ABC being uninstalled,
+            then such package ABC will not be uninstalled.
+        </para>
+        <sect3>
+            <title>Examples of removing a package</title>
+            <para>
+                The following example shows how to remove a package named "ejb3-core", which has already been installed
+                in JBoss located at /home/me/jboss/jboss-5.1.0.GA.
+                <programlisting>
+ <![CDATA[
+ [jpai@jaikiran packagemanager]$ cd bin
+ [jpai@jaikiran bin]$ ./run.sh -s /home/me/jboss/jboss-5.1.0.GA -r ejb3-core
+
+         ]]>
+                </programlisting>
+
+            </para>
+        </sect3>
+    </sect2>
+    <sect2>
+        <title>Upgrading a Package</title>
+        <para>
+            Upgrading a package, internally is equivalent to uninstalling and then installing the new version of the package.
+            If the package was not already installed, then the uninstallation part is skipped. So the upgrade option can be
+            safely used for installing new packages too.
+        </para>
+        <para>
+            To upgrade a package you can pass the -u &lt;packagepath&gt; arguments to the package manager script.
+        </para>
+        <para>
+            The -u argument expects the path to package. The values for the -u options are the same as that for the -i option.
+        </para>
+        <sect3>
+            <title>Examples of updating a package</title>
+            <para>
+                The following example shows how to update a package available /home/me/packages/simple-package-new-version.jar
+                into a JBoss installation available at /home/me/jboss/jboss-5.1.0.GA. If the package was already installed,
+                then it is internally uninstalled and this new version is installed.
+                <programlisting>
+ <![CDATA[
+ [jpai@jaikiran packagemanager]$ cd bin
+ [jpai@jaikiran bin]$ ./run.sh -s /home/me/jboss/jboss-5.1.0.GA -u /home/me/packages/simple-package-new-version.jar
+
+         ]]>
+                </programlisting>
+
+            </para>
+        </sect3>
+    </sect2>
+</sect1>

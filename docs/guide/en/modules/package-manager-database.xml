@@ -20,51 +20,48 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-<chapter id="packagemanager_db">
-    <title>JBoss Package Manager Database</title>
+<sect1>
+    <title>Package Manager Database</title>
     <para>
         In order to keep track of the packages that have been installed in the system (i.e. JBoss Application Server), the
         package manager maintains a database.
     </para>
-    <sect1>
-        <title>Implementation Details</title>
+    <para>
+        This section provides a brief overview of the implementation details about the package manager database. Normal
+        users of the package manager may skip this section. But if you are interested in knowing some of the implementation
+        details, then read on!
+    </para>
+    <sect2>
+        <title>Database server</title>
         <para>
-            This section provides a brief overview of the implementation details about the package manager database. Normal
-            users of the package manager may skip this section. But if you are interested in knowing some of the implementation
-            details, then read on!
+            The default implementation of the package manager uses Derby Embedded database. Derby Embedded database allows
+            for the database to created and managed from within another Java application. One of the goals of the package manager
+            is to reduce the additional software installations, for using the package manager. Derby fits in, because it
+            does not require the DB server to be installed or started externally.
+            <note>
+                <para>
+                    At this point, there's no way to configure a different DB server to be used with the JBoss Package Manager.
+                    There are no immediate plans to allow this either. But if in future, this feature is required, then
+                    it should be easy enough to provide it.
+                </para>
+            </note>
         </para>
-        <sect2>
-            <title>Database server</title>
-            <para>
-                The default implementation of the package manager uses Derby Embedded database. Derby Embedded database allows
-                for the database to created and managed from within another Java application. One of the goals of the package manager
-                is to reduce the additional software installations, for using the package manager. Derby fits in, because it
-                does not require the DB server to be installed or started externally.
-                <note>
-                    <para>
-                        At this point, there's no way to configure a different DB server to be used with the JBoss Package Manager.
-                        There are no immediate plans to allow this either. But if in future, this feature is required, then
-                        it should be easy enough to provide it.
-                    </para>
-                </note>
-            </para>
-            <para>
-                Furthermore, the package manager implementation uses JPA (Java Persistence API) for it's interaction with the
-                database.
-            </para>
-            
-        </sect2>
+        <para>
+            Furthermore, the package manager implementation uses JPA (Java Persistence API) for it's interaction with the
+            database.
+        </para>
 
-        <sect2>
-            <title>Schema</title>
-            <para>
-                <note>
-                    <para>
-                        TODO: This section will be updated soon, with the schema diagram. 
-                    </para>
-                </note>
-            </para>
-        </sect2>
+    </sect2>
 
-    </sect1>
-</chapter>
+    <sect2>
+        <title>Schema</title>
+        <para>
+            <note>
+                <para>
+                    TODO: This section will be updated soon, with the schema diagram.
+                </para>
+            </note>
+        </para>
+    </sect2>
+
+</sect1>

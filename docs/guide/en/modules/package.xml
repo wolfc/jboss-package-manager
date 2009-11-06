@@ -1,0 +1,663 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+  ~ JBoss, Home of Professional Open Source
+  ~ Copyright 2005, JBoss Inc., and individual contributors as indicated
+  ~ by the @authors tag. See the copyright.txt in the distribution for a
+  ~ full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+<sect1>
+    <title>Package</title>
+    <para>
+        A "package" is nothing more than a .jar file (or a .zip file) which in-turn contains the set of files that
+        are required for a particular service to be made available within the JBoss Application Server. A package
+        is expected to contain a file named package.xml at the root of the package. The package.xml contains all the
+        necessary information about the package which it represents. A package can contain libraries (.jar files)
+        or configuration files (.xml files) or script files (.bat, .sh) or anything else. Expect for the presence of
+        the "package.xml" file, a package is not restricted to contain any other files that might be required in that
+        package.
+    </para>
+    <para>
+        As we mentioned in our earlier sections, installing a package is equivalent to adding a new service to the
+        application server. And since services are nothing more than a set of files, a package is expected to contain
+        those set of files to be installed. These files are listed in the package.xml through the &lt;file&gt;
+        element. In a later section, we will go into the details about this &lt;file&gt; element. A package can also
+        specify dependencies on other packages. These dependencies are externalized from the package.xml and are
+        listed in a separate file within the package. The name, structure and the location of the file listing these
+        dependencies isn't restricted - except that it should be located within the package. The package.xml will
+        then just point to this dependencies file through the &lt;dependencies&gt; element. This will looked in greater
+        detail, in a later section.
+    </para>
+    <para>
+        When the package manager installs/uninstalls a package, it allows the packages to do some pre-install, post-install,
+        pre-uninstall, post-uninstall activities. The package manager allows the package to run scripts during either
+        or all of these phases. The package.xml, through &lt;pre-install&gt;, &lt;post-install&gt;, &lt;pre-uninstall&gt; and
+        &lt;post-uninstall&gt;, elements allows the package to specify such scripts.
+    </para>
+    <para>
+        Apart from dependencies on other packages, a package might have some restriction on the systems where this
+        package can be installed. For example, a package XYZ, might only work against JBoss AS-5.1.0 version. Such
+        requirements can also be declared in a package.xml file through the use of &lt;system-requirements&gt; element.
+    </para>
+    <para>
+        Now let's see each of these elements in the package.xml in detail.
+        <note>
+            <para>
+                The xsd for package.xml is available at http://anonsvn.jboss.org/repos/jbossas/projects/ejb3/trunk/package-manager/src/main/resources/package.xsd
+            </para>
+        </note>
+    </para>
+    <sect2>
+        <title>&lt;file&gt; element in the package.xml</title>
+        <para>
+            A &lt;file&gt; element is the minimal content that's expected in a package.xml (other than the name of
+            the package and it's version). The file element declares the file within that package which has to be
+            installed into the server. The file element has the following attributes:
+            <informaltable frame="all">
+                <tgroup cols='4' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Attribute Name</entry>
+                            <entry>Mandatory/Optional</entry>
+                            <entry>Default Value</entry>
+                            <entry>Details</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>name</entry>
+                            <entry>Mandatory</entry>
+                            <entry></entry>
+                            <entry>This is the name of the file within the package</entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>src-path</entry>
+                            <entry>Optional</entry>
+                            <entry></entry>
+                            <entry>
+                                The value for this attribute, specifies the relative path of the file within this package.
+                                If the file is located at the root of this package, then the src-path need not be specified.
+                                If however, the file is located within a sub-folder (eg: lib) of the package, then
+                                the value for the src-path should be set to "lib".
+                            </entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>dest-path</entry>
+                            <entry>Mandatory</entry>
+                            <entry></entry>
+                            <entry>
+                                The value for this attribute, specifies the path relative to the JBoss Application Server
+                                Home directory. It mandatory to specify this value, because it's the package which
+                                knows where this file has to be installed within the application server. For example,
+                                if the file is= to be installed to JBOSS_HOME/common/lib folder, then the value of
+                                the dest-path should be set to "common/lib".
+                            </entry>
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>type</entry>
+                            <entry>Optional</entry>
+                            <entry></entry>
+                            <entry>
+                                The value of this attribute, specifies the type of this file. Allowed values are
+                                "config", "library" and "script". This attribute is optional and is only useful
+                                if the package manager is able to handle each of these file types differently.
+                                For example, for "config" type of files, if the package manager is able to support
+                                diff/merge support, then setting this attribute makes sense.
+                                <para>
+                                    In it's current form, the package manager treats all types of files in the same
+                                    way and the file type does not play an role.
+                                </para>
+                            </entry>
+                        </row>
+                    </tbody>
+
+                </tgroup>
+            </informaltable>
+
+        </para>
+        <para>
+            A single package can have multiple files to be installed and hence the package.xml allows multiple &lt;file&gt;
+            file elements. It however mandates that there be at-least one file to be installed.
+        </para>
+        <sect3>
+            <title>Example usage of &lt;file&gt;</title>
+            <para>
+                Here's an example on how you can use the file element in the package.xml:
+                <programlisting>
+<![CDATA[
+<package name="jboss-ejb3-nointerface" version="1.0.0-Alpha1">
+
+<!--  Package to install a dummy jar into JBOSS_AS/common/lib -->
+<file name="dummy.jar" dest-path="common/lib" />
+
+
+</package>
+]]>
+                </programlisting>
+            </para>
+            <para>
+                One more example on how you can use the file element in the package.xml:
+                <programlisting>
+<![CDATA[
+<package name="jboss-ejb3-nointerface" version="1.0.0-Alpha1">
+
+<!--  Package to install a dummy jar into JBOSS_AS/common/lib -->
+<file name="dummy.jar" dest-path="common/lib" />
+
+<!--  Package to install a another jar into JBOSS_AS/server/default/deployers -->
+<file name="mydeployer.jar" src-path="deployers" dest-path="server/default/deployers" />
+
+
+</package>
+]]>
+                </programlisting>
+            </para>
+        </sect3>
+    </sect2>
+
+    <sect2>
+        <title>&lt;pre-install&gt;, &lt;post-install&gt; and other similar scripts</title>
+        <para>
+            A package can contain scripts which could be configured to run during the pre-install, post-install,
+            pre-uninstall and/or post-uninstall phases of a package installation/un-installation. The package.xml
+            allows for &lt;pre-install&gt;, &lt;post-install&gt;, &lt;pre-uninstall&gt; and &lt;post-uninstall&gt;
+            elements. Each of these elements can contain one or more &lt;script&gt; elements.
+            A script file is an Ant build file containing some pre-defined targets. By default the name of the script
+            file is "package-script.xml" and is expected to be at the root of the package (i.e. at the same level
+            as package.xml).
+            <note>
+                <para>
+                    After discussion, it was intentionally decided to leave out support for other type of scripts.
+                    Support for only Ant scripts is provided to keep the packages, operating system independent.
+                    However, if you still need to run some platform dependent scripts (like .sh, .bat etc...) then
+                    you can trigger those scripts from within the Ant scripts.
+                </para>
+            </note>
+        </para>
+        <para>
+            The Ant build file is expected to contain certain pre-defined targets. The targets that are mandated in
+            the Ant build script file, depend on the context in which the script file is run. For example, if the
+            script has to be run during the pre-install phase of the installation of the package, then the file is
+            expected to contain a target named "pre-install". Here's the entire set of expected targets and the
+            context when they are expected:
+            <informaltable frame="all">
+                <tgroup cols='2' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Target Name</entry>
+                            <entry>Context</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>pre-install</entry>
+                            <entry>This target is expected to be present in the Ant script, if the
+                            script is configured to run during the pre-install phase of the package
+                            installation.
+                            </entry>
+
+                        </row>
+                    </tbody>
+
+                    <tbody>
+                        <row>
+                            <entry>post-install</entry>
+                            <entry>This target is expected to be present in the Ant script, if the
+                            script is configured to run during the post-install phase of the package
+                            installation.
+                            </entry>
+
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>pre-uninstall</entry>
+                            <entry>This target is expected to be present in the Ant script, if the
+                            script is configured to run during the pre-uninstall phase of the package
+                            installation.
+                            </entry>
+
+                        </row>
+                    </tbody>
+                    <tbody>
+                        <row>
+                            <entry>post-uninstall</entry>
+                            <entry>This target is expected to be present in the Ant script, if the
+                            script is configured to run during the post-uninstall phase of the package
+                            installation.
+                            </entry>
+
+                        </row>
+                    </tbody>
+                </tgroup>
+            </informaltable>
+        </para>
+        <para>
+            A single Ant script file can be used for the various package installation phases, provided it
+            has the required targets in that single Ant build file. Furthermore, the JBoss Package Manager
+            guarantees that the following two Ant properties will be set by the package manager so that they can
+            be referenced within the build scripts:
+            <itemizedlist mark="opencircle">
+                <listitem>
+                    <para>
+                        JBOSS_HOME - This property will point to the JBoss Application Server home folder against
+                        which this package manager is processing this package.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        PM_HOME - This property will point to the JBoss Package Manager home folder.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            The &lt;script&gt; element allows the following attributes:
+            <informaltable frame="all">
+                <tgroup cols='4' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Attribute Name</entry>
+                            <entry>Mandatory/Optional</entry>
+                            <entry>Default Value</entry>
+                            <entry>Details</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>file</entry>
+                            <entry>Optional</entry>
+                            <entry>package-script.xml</entry>
+                            <entry>The value of this attribute, is the relative path to the script file (including
+                            the name of the file), within the package. The path is relative to the location of
+                            package.xml. For example, if the script file is named build.xml and is located at the root
+                            of the package (i.e. at the same level as package.xml), then the value of this attribute
+                                should be set to "build.xml".
+                            </entry>
+                        </row>
+                    </tbody>
+
+                </tgroup>
+            </informaltable>
+
+        </para>
+
+        <sect3>
+            <title>Example usage of the &lt;pre-install&gt;, &lt;post-install&gt;</title>
+            <para>
+                Following is an example usage of the pre-install, post-install scripts:
+                <programlisting>
+<![CDATA[
+<package name="jboss-ejb3-nointerface" version="1.0.0-Alpha1">
+
+<!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->
+<file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
+
+<!-- A couple of pre-install files for this package -->
+<pre-install>
+<!-- The default package-script.xml will be used for this -->
+<script />
+<!-- The build.xml file located in the scripts folder, under the package root,
+  will be used.
+-->
+<script file="scripts/build.xml" />
+</pre-install>
+
+<!-- A post-install script -->
+<post-install>
+<!-- We use the same scripts/build.xml file that was used for pre-install,
+because that build.xml can contain both pre-install and post-install
+targets -->
+<script file="scripts/build.xml"/>
+</post-install>
+
+
+</package>
+]]>
+                </programlisting>
+
+
+            </para>
+        </sect3>
+    </sect2>
+
+    <sect2>
+        <title>&lt;system-requirements&gt; element</title>
+        <para>
+            The &lt;system-requirements&gt; element in the package.xml allows the package to specify it's requirements.
+            This element currently just a place-holder. We have to think more about this, specifically what
+            kind of requirements the package is allowed to specify and how is the package manager going to check
+            whether the system where the package is being installed, satisfies those requirements. At the minimal,
+            probably the version of the JBoss Application Server can act as the system requirement. But again, that
+            would require some kind of non-trivial interaction with the application server to check the requirements.
+            Overall, this needs a bit more thinking. This section will be updated appropriately once we have decided
+            upon something.
+        </para>
+    </sect2>
+
+    <sect2>
+        <title>&lt;dependencies&gt; element</title>
+        <para>
+            As we have already mentioned various times in the document, a package usually has dependencies on other
+            packages. The &lt;dependencies&gt; element in the package.xml allows the package to specify its dependencies.
+        </para>
+        <para>
+            There are 2 ways in which a package can specify it's dependencies.
+            <itemizedlist mark="opencircle">
+                <listitem>
+                    <para>
+                        Packaged Dependencies :  Packaged dependencies represent dependencies which are packaged
+                        within the dependent package. For example, if package ABC has a dependency on package XYZ, then
+                        ABC can package XYZ within itself. This allows for self-contained packages wherein the package
+                        can provide within itself all the necessary dependency packages.
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        UnProcessed Dependencies :  It's not always feasible or logical to package all the dependencies
+                        within a package. In such cases, the package manager allows the use of unprocessed dependencies.
+                        Such dependencies are listed in a separate file and are processed by a dependency manager.
+                        By default, the JBoss Package Manager expects such files to be Ivy dependency files and
+                        uses the org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager to resolve and
+                        retrieve the dependency packages. The default Ivy dependency manager will be discussed in
+                        more detail in a separate section.
+                    </para>
+                    <para>
+                        The JBoss Package Manager also allows, for using custom
+                        dependency managers for unprocessed dependencies. Custom dependency managers are expected to
+                        implement the org.jboss.ejb3.packagemanager.dependency.DependencyManager interface.
+                        See the table below for the details on how the &lt;unprocessed-dependencies&gt; element can
+                        be configured. Furthermore, the package manager does not add any restriction on the type and
+                        location of the file listing the dependencies as long as the custom dependency managers are
+                        able to process it.
+                        <note>
+                            <para>
+                                I am bad at naming things and this is one example. "UnProcessed Dependencies" probably
+                                doesn't give the right idea. This term and the corresponding xml element representing
+                                this might change in near future :-)
+                            </para>
+                        </note>
+                    </para>
+                </listitem>
+            </itemizedlist>
+            <important>
+                <para>
+                    Irrespective of how the dependencies are specified, for a package, ultimately all such dependency
+                    must be packages. A package cannot and should not depend on any non-packages.
+                </para>
+            </important>
+        </para>
+        <para>
+            A single package can have multiple packaged dependencies, but can only have one unprocessed dependency file.
+            Effectively, this means that for a given package, there will always be one dependency manager.
+        </para>
+        <para>
+            The &lt;dependencies&gt; element allows the following sub elements:
+            <informaltable frame="all">
+                <tgroup cols='4' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Element Name</entry>
+                            <entry>Min Occurs</entry>
+                            <entry>Max Occurs</entry>
+                            <entry>Details</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>packaged-dependency</entry>
+                            <entry>0</entry>
+                            <entry>unbounded</entry>
+                            <entry>
+                                This element is used to specify a "Packaged Dependency"
+                            </entry>
+                        </row>
+                    </tbody>
+
+                    <tbody>
+                        <row>
+                            <entry>unprocessed-dependencies</entry>
+                            <entry>0</entry>
+                            <entry>1</entry>
+                            <entry>
+                                This element is used to specify a "Unprocessed Dependencies"
+                            </entry>
+                        </row>
+                    </tbody>
+
+                </tgroup>
+            </informaltable>
+        </para>
+        <para>
+            The &lt;packaged-dependency&gt; allows the following attributes:
+
+            <informaltable frame="all">
+                <tgroup cols='4' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Attribute Name</entry>
+                            <entry>Mandatory/Optional</entry>
+                            <entry>Default Value</entry>
+                            <entry>Details</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>file</entry>
+                            <entry>Mandatory</entry>
+                            <entry></entry>
+                            <entry>
+                                The value of this attribute, is the relative path to the package file (including
+                            the name of the file), within this package. The path is relative to the location of
+                            package.xml. For example, if the packaged dependency is named dependee-package.jar and
+                            is located at the root of the package (i.e. at the same level as package.xml), then the
+                            value of this attribute should be set to "dependee-package.jar".
+                            </entry>
+                        </row>
+                    </tbody>
+
+                </tgroup>
+            </informaltable>
+
+        </para>
+        <para>
+            The &lt;unprocessed-dependencies&gt; allows the following attributes:
+
+            <informaltable frame="all">
+                <tgroup cols='4' colsep="1" rowsep="1">
+                    <colspec colwidth='0.5in'/>
+                    <thead>
+                        <row>
+                            <entry>Attribute Name</entry>
+                            <entry>Mandatory/Optional</entry>
+                            <entry>Default Value</entry>
+                            <entry>Details</entry>
+                        </row>
+                    </thead>
+
+                    <tbody>
+                        <row>
+                            <entry>file</entry>
+                            <entry>Mandatory</entry>
+                            <entry></entry>
+                            <entry>
+                                The value of this attribute, is the relative path to the file (including
+                            the name of the file), listing the dependencies of this package. The path is relative to
+                            the location of package.xml. For example, if the file is named ivy.xml and
+                            is located at the root of the package (i.e. at the same level as package.xml), then the
+                            value of this attribute should be set to "ivy.xml".
+                            </entry>
+                        </row>
+                    </tbody>
+
+                    <tbody>
+                        <row>
+                            <entry>manager</entry>
+                            <entry>Optional</entry>
+                            <entry>org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager</entry>
+                            <entry>
+                                The value of this attribute, is the fully qualified class name of the dependency
+                                manager class which implements the org.jboss.ejb3.packagemanager.dependency.DependencyManager
+                                interface. The implementation class is responsible for parsing, resolving and fetching
+                                the dependencies listed in the dependency file. By default, JBoss Package Manager
+                                uses org.jboss.ejb3.packagemanager.dependency.impl.IvyDependencyManager class and
+                                is capable of managing Ivy dependency files.
+                            </entry>
+                        </row>
+                    </tbody>
+
+                </tgroup>
+            </informaltable>
+
+        </para>
+        <note>
+            <para>
+                TODO: There's a basic implementation added for dependency management, using the Ivy dependency manager.
+                But this needs more thinking and PoC. The section will be updated soon.
+            </para>
+
+        </note>
+
+        <sect3>
+            <title>Example usage of the &lt;dependencies&gt;</title>
+            <para>
+                Following are examples on using the dependencies element:
+                <para>
+                    First let's see just the packaged-dependency:
+                    <programlisting>
+<![CDATA[
+<package name="somepackage" version="1.0.0-Alpha1">
+
+<!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->
+<file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
+
+<!--
+Just a single packaged dependency.
+The dependency package is named "dependee-pacakge.jar" and is made
+available at the root of this "somepackage" package
+-->
+<dependencies>
+    <packaged-dependency file="dependee-package.jar"/>
+</dependencies>
+
+</package>
+]]>
+                    </programlisting>
+
+                </para>
+                <para>
+                    Second, let's see just the unprocessed-dependencies:
+                    <programlisting>
+<![CDATA[
+<package name="somepackage" version="1.0.0-Alpha1">
+
+<!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->
+<file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
+
+<!--
+    This points to a ivy.xml file which is at the root of this package
+     and contains the list of dependencies for this package
+     -->
+<dependencies>
+    <unprocessed-dependencies file="ivy.xml"/>
+</dependencies>
+
+</package>
+]]>
+                    </programlisting>
+                Let's see the ivy.xml contents:
+                       <programlisting>
+<![CDATA[
+<ivy-module version="2.0">
+<info organisation="org.jboss.ejb3.packagemanager" module="simple-dependency-test"/>
+<!--
+This lists the depdencies in Ivy format.
+Here, it's specifying a dependency on a package named simple-package of version
+1.0.0.Alpha1
+-->
+<dependencies>
+    <dependency org="org.jboss.ejb3.tmp" name="simple-package" rev="1.0.0.Alpha1"/>
+</dependencies>
+</ivy-module>
+]]>
+                    </programlisting>
+                </para>
+
+                <para>
+                    Finally let's see a combination of both packaged-dependency and unprocessed-dependencies:
+                    <programlisting>
+<![CDATA[
+<package name="somepackage" version="1.0.0-Alpha1">
+
+<!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->
+<file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
+
+<!--
+Here we have 2 packaged dependencies and one unprocessed-dependency (remember,
+you cannot have more than one unprocessed-dependency)
+-->
+<dependencies>
+
+    <packaged-dependency file="dependee-package.jar"/>
+    <packaged-dependency file="some-sub-folder/deep-nested-folder/another-dependee-package.jar"/>
+
+    <!-- Notice that the ivy file can be named anything and placed
+    anywhere within the package -->
+    <unprocessed-dependencies file="some-sub-folder/dependencies.xml"/>
+</dependencies>
+
+</package>
+]]>
+                    </programlisting>
+                     Let's see the dependencies.xml contents:
+                       <programlisting>
+<![CDATA[
+<ivy-module version="2.0">
+<info organisation="org.jboss.ejb3.packagemanager" module="simple-dependency-test"/>
+<!--
+This lists the depdencies in Ivy format.
+Here, it specifies a couple of dependencies
+-->
+<dependencies>
+    <dependency org="org.jboss.ejb3.tmp" name="simple-package" rev="1.0.0.Alpha1"/>
+    <dependency org="org.jboss.ejb3.tmp" name="another-package" rev="1.0.0.Beta1"/>
+</dependencies>
+</ivy-module>
+]]>
+                    </programlisting>
+                </para>
+            </para>
+        </sect3>
+    </sect2>
+</sect1>
+    
