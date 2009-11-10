@@ -28,9 +28,8 @@ import java.util.List;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
-import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
+import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
-import org.jboss.ejb3.packagemanager.test.uninstall.unit.UnInstallTestCase;
 import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchiveFactory;
@@ -78,7 +77,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       pkgMgrHome = setupPackageManagerHome(DependencyInstallTestCase.class);
       jbossHome = setupDummyJBoss(DependencyInstallTestCase.class);
       PackageManagerEnvironment env = new PackageManagerEnvironment(pkgMgrHome.getAbsolutePath());
-      pkgMgr = new DefaultPackageManagerImpl(env, jbossHome.getAbsolutePath());
+      pkgMgr = PackageManagerFactory.getDefaultPackageManager(env, jbossHome.getAbsolutePath());
    }
 
    /**

@@ -22,6 +22,8 @@
 
 package org.jboss.ejb3.packagemanager;
 
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
+
 
 /**
  * Author: Jaikiran Pai
@@ -41,5 +43,15 @@ public interface PackageManagerContext
       * @return
      */
     String getJBossServerHome();
+    
+    /**
+     * Returns the location (relative to the package manager home) where the script files
+     * of the package corresponding to the <code>pkgContext</code> is persisted. 
+     * Persistent script files can be used during uninstallation of packages.
+     * 
+     * @param pkgContext Package context, whose script location is required 
+     * @return
+     */
+    String getScriptStoreLocation(PackageContext pkgContext);
     
 }

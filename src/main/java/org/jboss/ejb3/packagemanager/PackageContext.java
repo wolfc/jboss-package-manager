@@ -29,6 +29,10 @@ import java.util.Set;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
+import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
 
 /**
  * PackageContext
@@ -53,8 +57,16 @@ public interface PackageContext
     */
    File getPackageRoot();
 
+   /**
+    * Returns the name of the package
+    * @return
+    */
    String getPackageName();
 
+   /**
+    * Returns the version of the package
+    * @return
+    */
    String getPackageVersion();
 
    /**
@@ -63,11 +75,40 @@ public interface PackageContext
     */
    Set<PackageContext> getDependencyPackages();
 
+   /**
+    * Returns the system requirements of this package 
+    * @return
+    */
    SystemRequirementsType getSystemRequirements();
 
-   List<ScriptType> getPostInstallScripts();
+   /**
+    * Returns the post-install scripts
+    * @return
+    */
+   List<PostInstallScript> getPostInstallScripts();
 
-   List<ScriptType> getPreInstallScripts();
+   /**
+    * Returns the pre-install scripts
+    * @return
+    */
+   List<PreInstallScript> getPreInstallScripts();
 
+   /**
+    * Returns the files to be installed by this package
+    * @return
+    */
    List<InstallFileType> getInstallationFiles();
+   
+   /**
+    * Returns the pre-uninstall scripts
+    * @return
+    */
+   List<PreUninstallScript> getPreUnInstallScripts();
+   
+   /**
+    * Returns the post-uninstall scripts
+    * @return
+    */
+   List<PostUnInstallScript> getPostUnInstallScripts();
+  
 }

@@ -21,10 +21,12 @@
 */
 package org.jboss.ejb3.packagemanager.script;
 
+import java.io.File;
+
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
-import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * ScriptProcessor
@@ -35,5 +37,11 @@ import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 public interface ScriptProcessor
 {
 
-   void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, ScriptType script) throws ScriptProcessingException;
+   void processPreInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script) throws ScriptProcessingException;
+   
+   void processPostInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script) throws ScriptProcessingException;
+   
+   void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script) throws ScriptProcessingException;
+   
+   void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script) throws ScriptProcessingException;
 }

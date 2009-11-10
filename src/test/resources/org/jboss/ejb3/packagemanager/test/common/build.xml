@@ -34,4 +34,32 @@
 		<echo file="${JBOSS_HOME}/bin/test.txt" message="This proves that the pre-install script was run"/>
 		<echo level="debug" message="Test property value is = ${test}"/>
 	</target>
+	
+	<target name="post-install">
+			<echo level="info">***************************************************************</echo>
+			<echo level="info">This is the post-install target in the dummy package!</echo>
+			<echo level="info">Package manager home is = ${PM_HOME}</echo>
+			<echo level="info">JBoss AS home is = ${JBOSS_HOME}</echo>
+			<echo level="info">***************************************************************</echo>
+			<echo file="${JBOSS_HOME}/bin/post-install.txt" message="This proves that the post-install script was run"/>
+	</target>
+	
+	<target name="pre-uninstall">
+			<echo level="info">***************************************************************</echo>
+			<echo level="info">This is the pre-uninstall target in the dummy package!</echo>
+			<echo level="info">Package manager home is = ${PM_HOME}</echo>
+			<echo level="info">JBoss AS home is = ${JBOSS_HOME}</echo>
+			<echo level="info">***************************************************************</echo>
+			<echo file="${JBOSS_HOME}/bin/pre-uninstall.txt" message="This proves that the pre-uninstall script was run"/>
+	</target>
+
+	<target name="post-uninstall">
+			<echo level="info">***************************************************************</echo>
+			<echo level="info">This is the post-uninstall target in the dummy package!</echo>
+			<echo level="info">Package manager home is = ${PM_HOME}</echo>
+			<echo level="info">JBoss AS home is = ${JBOSS_HOME}</echo>
+			<echo level="info">***************************************************************</echo>
+			<echo file="${JBOSS_HOME}/bin/post-uninstall.txt" message="This proves that the post-uninstall script was run"/>
+	</target>
+
 </project>

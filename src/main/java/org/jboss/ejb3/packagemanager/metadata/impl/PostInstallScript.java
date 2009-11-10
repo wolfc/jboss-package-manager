@@ -69,5 +69,15 @@ public class PostInstallScript extends ScriptImpl
    {
       return this.postInstallMeta;
    }
+   
+   /**
+    * Post install scripts are not persistent
+    * @see org.jboss.ejb3.packagemanager.metadata.impl.ScriptImpl#isPersistent()
+    */
+   @Override
+   public boolean isPersistent()
+   {
+      return false;
+   }
 
 }

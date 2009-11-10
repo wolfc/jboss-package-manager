@@ -29,9 +29,9 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.transaction.Synchronization;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
@@ -40,9 +40,12 @@ import org.jboss.ejb3.packagemanager.entity.InstalledFile;
 import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
 import org.jboss.ejb3.packagemanager.entity.PackageDependency;
 import org.jboss.ejb3.packagemanager.entity.PackageManagerEntity;
+import org.jboss.ejb3.packagemanager.entity.PreUnInstallScript;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
+import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
 import org.jboss.logging.Logger;
 
 /**
@@ -51,7 +54,7 @@ import org.jboss.logging.Logger;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class DefaultDatabaseManager implements PackageDatabaseManager
+public class DefaultDatabaseManager implements PackageDatabaseManager, Synchronization
 {
    /**
     * Logger 
@@ -79,13 +82,14 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
       this.packageManagerCtx = pkgMgrCtx;
       PackageManagerEnvironment environment = pkgMgrCtx.getPackageManagerEnvironment();
       // we use derby (filesystem) based DB
-      File dbHome = new File(environment.getPackageManagerHome(), "data");
+      File dbHome = environment.getDataDir();
       if (!dbHome.exists())
       {
          dbHome.mkdirs();
       }
       // set the Derby system home property to point to the package manager db
       System.setProperty("derby.system.home", dbHome.getAbsolutePath());
+
       logger.info("Package manager DB home set to " + System.getProperty("derby.system.home"));
       this.entityMgrFactory = Persistence.createEntityManagerFactory("default");
 
@@ -100,10 +104,8 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
       if (packageManagers == null || packageManagers.isEmpty())
       {
          PackageManagerEntity pm = new PackageManagerEntity(pkgMgrCtx);
-         EntityTransaction tx = em.getTransaction();
-         tx.begin();
          em.persist(pm);
-         tx.commit();
+
          return pm;
       }
       else if (packageManagers.size() > 1)
@@ -124,8 +126,8 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
    public InstalledPackage installPackage(PackageContext pkgCtx)
    {
       EntityManager em = this.getEntityManager();
-      EntityTransaction tx = em.getTransaction();
-      tx.begin();
+      //      EntityTransaction tx = em.getTransaction();
+      //      tx.begin();
       PackageManagerEntity packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
 
       InstalledPackage newlyInstalledPackage;
@@ -138,21 +140,9 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
          throw new RuntimeException(pme);
       }
 
-      try
-      {
-         em.persist(newlyInstalledPackage);
-         tx.commit();
-         logger.info("Recorded installation of package " + pkgCtx + " to database");
-         return newlyInstalledPackage;
-
-      }
-      catch (Exception e)
-      {
-         tx.rollback();
-         this.removeEntityManager(em);
-         throw new RuntimeException(e);
-      }
-
+      em.persist(newlyInstalledPackage);
+      logger.info("Recorded installation of package " + pkgCtx + " to database");
+      return newlyInstalledPackage;
    }
 
    /**
@@ -214,7 +204,8 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
     * @return
     * @throws PackageManagerException 
     */
-   private InstalledPackage createPackage(PackageManagerEntity pkgMgrEntity, PackageContext pkgCtx) throws PackageManagerException
+   private InstalledPackage createPackage(PackageManagerEntity pkgMgrEntity, PackageContext pkgCtx)
+         throws PackageManagerException
    {
       InstalledPackage newPackage = new InstalledPackage(pkgMgrEntity, pkgCtx.getPackageName(), pkgCtx
             .getPackageVersion());
@@ -222,18 +213,40 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
       List<InstallFileType> files = pkgCtx.getInstallationFiles();
       if (files != null)
       {
-         Set<InstalledFile> installationFilesForNewPackage = new HashSet<InstalledFile>(files.size());
-         newPackage.setInstallationFiles(installationFilesForNewPackage);
-
          for (InstallFileType file : files)
          {
             InstalledFile installationFile = new InstalledFile(file.getName(), file.getDestPath());
-            installationFile.setPkg(newPackage);
             if (file.getType() != null)
             {
                installationFile.setFileType(file.getType().toString());
             }
-            installationFilesForNewPackage.add(installationFile);
+            newPackage.addInstallationFile(installationFile);
+            installationFile.setPkg(newPackage);
+
+         }
+      }
+      String relativePathToScriptStore = this.packageManagerCtx.getScriptStoreLocation(pkgCtx);
+      List<PreUninstallScript> preUnInstallScripts = pkgCtx.getPreUnInstallScripts();
+      if (preUnInstallScripts != null)
+      {
+         for (PreUninstallScript script : preUnInstallScripts)
+         {
+            String scriptName = script.getName();
+            PreUnInstallScript preUnInstallScript = new PreUnInstallScript(newPackage, scriptName,
+                  relativePathToScriptStore);
+            newPackage.addPreUnInstallScript(preUnInstallScript);
+         }
+      }
+
+      List<PostUnInstallScript> postUnInstallScripts = pkgCtx.getPostUnInstallScripts();
+      if (postUnInstallScripts != null)
+      {
+         for (PostUnInstallScript script : postUnInstallScripts)
+         {
+            String scriptName = script.getName();
+            org.jboss.ejb3.packagemanager.entity.PostUnInstallScript postUnInstallScript = new org.jboss.ejb3.packagemanager.entity.PostUnInstallScript(
+                  newPackage, scriptName, relativePathToScriptStore);
+            newPackage.addPostUnInstallScript(postUnInstallScript);
          }
       }
 
@@ -255,54 +268,6 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
          }
       }
       return newPackage;
-   }
-
-   /**
-    * @throws PackageNotInstalledException 
-    * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#upgradePackage(org.jboss.ejb3.packagemanager.entity.InstalledPackage, org.jboss.ejb3.packagemanager.entity.InstalledPackage)
-    */
-   public InstalledPackage upgradePackage(PackageContext packageToUpgrade) throws PackageNotInstalledException
-   {
-      // 1) get all packages which were dependent on the previous version of the package
-      // 2) remove the earlier version of this package being upgraded
-      // 3) save this new version
-      // 4) Update the dependent packages to refer this newer version
-      String packageName = packageToUpgrade.getPackageName();
-      InstalledPackage existingVersionOfPackage = this.getInstalledPackage(packageName);
-      
-      Set<InstalledPackage> dependentPackages = this.getDependentPackages(packageName);
-      EntityManager em = this.getEntityManager();
-      // break the link with the previous version of the package
-      if (dependentPackages != null && !dependentPackages.isEmpty())
-      {
-         for (InstalledPackage dependentPackage : dependentPackages)
-         {
-            dependentPackage.removeDependency(existingVersionOfPackage);
-            em.persist(dependentPackage);
-         }
-         
-      }
-      
-      // remove the package being upgraded
-      this.removePackage(existingVersionOfPackage);
-      
-      // install this newer version
-      InstalledPackage upgradedPackage = this.installPackage(packageToUpgrade);
-      if (dependentPackages != null && !dependentPackages.isEmpty())
-      {
-         // create a new link/dependency on the new version of the package
-         for (InstalledPackage dependentPackage : dependentPackages)
-         {
-               PackageDependency dependency = new PackageDependency();
-               dependency.setDependeePackage(upgradedPackage);
-               dependency.setDependentPackage(dependentPackage);
-               dependentPackage.addDependency(dependency);
-               em.persist(dependentPackage);
-         }
-         
-      }
-      // return the upgraded package
-      return upgradedPackage;
    }
 
    /**
@@ -332,17 +297,8 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
          em = this.entityMgrFactory.createEntityManager();
          currentEntityManager.set(em);
       }
-      return em;
-   }
 
-   /**
-    * TODO: Revisit this
-    * @param em
-    */
-   private void removeEntityManager(EntityManager em)
-   {
-      em.close();
-      currentEntityManager.set(null);
+      return em;
    }
 
    /**
@@ -352,21 +308,31 @@ public class DefaultDatabaseManager implements PackageDatabaseManager
    public void removePackage(InstalledPackage installedPackage)
    {
       EntityManager em = this.getEntityManager();
-      EntityTransaction tx = em.getTransaction();
-      tx.begin();
-      try
-      {
-         installedPackage = em.merge(installedPackage);
-         em.remove(installedPackage);
-         tx.commit();
-         logger.info("Deleted installed package = " + installedPackage.getPackageName());
-      }
-      catch (Exception e)
-      {
-         // tx.rollback();
-         this.removeEntityManager(em);
-         throw new RuntimeException(e);
-      }
+      //EntityTransaction tx = em.getTransaction();
+      //tx.begin();
+      installedPackage = em.merge(installedPackage);
+      em.remove(installedPackage);
+      //  tx.commit();
+      logger.info("Deleted installed package = " + installedPackage.getPackageName());
+
+   }
+
+   /**
+    * @see javax.transaction.Synchronization#afterCompletion(int)
+    */
+   @Override
+   public void afterCompletion(int status)
+   {
+      currentEntityManager.set(null);
+   }
+
+   /**
+    * @see javax.transaction.Synchronization#beforeCompletion()
+    */
+   @Override
+   public void beforeCompletion()
+   {
+      // TODO Auto-generated method stub
 
    }
 

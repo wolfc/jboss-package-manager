@@ -100,4 +100,6 @@ public interface PackageDatabaseManager
     * @param installedPackage The package which has been installed
     */
    void removePackage(InstalledPackage installedPackage);
+   
+   
 }

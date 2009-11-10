@@ -25,7 +25,7 @@ package org.jboss.ejb3.packagemanager.metadata;
  * PackageInstallationPhase
  * 
  * Represents a phase during package installation.
- * Possible phases are pre-install and post-install
+ * 
  *
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -33,5 +33,7 @@ package org.jboss.ejb3.packagemanager.metadata;
 public enum PackageInstallationPhase 
 {
    PRE_INSTALL,
-   POST_INSTALL
+   POST_INSTALL,
+   PRE_UNINSTALL,
+   POST_UNINSTALL
 }

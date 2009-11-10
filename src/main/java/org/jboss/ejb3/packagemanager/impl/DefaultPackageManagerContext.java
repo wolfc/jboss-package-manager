@@ -21,9 +21,13 @@
 */
 package org.jboss.ejb3.packagemanager.impl;
 
+import java.io.File;
+
+import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * DefaultPackageManagerContext
@@ -66,5 +70,17 @@ public class DefaultPackageManagerContext implements PackageManagerContext
    {
       return this.pkgMgr.getPackageManagerEnvironment();
    }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManagerContext#getScriptStoreLocation(org.jboss.ejb3.packagemanager.PackageContext)
+    */
+   @Override
+   public String getScriptStoreLocation(PackageContext pkgContext)
+   {
+      String packageName = pkgContext.getPackageName();
+      return "data/scripts/" + packageName;
+   }
+
+   
 
 }

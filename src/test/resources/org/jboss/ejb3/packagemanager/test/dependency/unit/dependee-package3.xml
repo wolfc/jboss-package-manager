@@ -5,11 +5,11 @@ xmlns:sh="http://www.jboss.org/schema">
   <file name="dummy3.jar" dest-path="server/default/deployers" type="library"/>
   
   <pre-install>
-    <script file="build.xml"/>
+    <script name="build.xml"/>
   </pre-install>
 
   <post-install>
-    <script file="build.xml"/>
+    <script name="build.xml"/>
   </post-install>
   
 </sh:package>

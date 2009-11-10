@@ -22,15 +22,21 @@
 package org.jboss.ejb3.packagemanager.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Set;
 
+import javax.transaction.Synchronization;
+import javax.transaction.TransactionManager;
+
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.annotation.TransactionAttribute;
+import org.jboss.ejb3.packagemanager.annotation.TransactionAttributeType;
 import org.jboss.ejb3.packagemanager.db.DefaultDatabaseManager;
 import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
 import org.jboss.ejb3.packagemanager.entity.InstalledFile;
@@ -45,8 +51,14 @@ import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
+import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor;
+import org.jboss.ejb3.packagemanager.tx.TransactionManagerImpl;
+import org.jboss.ejb3.packagemanager.util.IOUtil;
 import org.jboss.logging.Logger;
 
 /**
@@ -55,7 +67,7 @@ import org.jboss.logging.Logger;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class DefaultPackageManagerImpl implements PackageManager
+public class DefaultPackageManagerImpl implements PackageManager, Synchronization
 {
 
    /**
@@ -85,6 +97,11 @@ public class DefaultPackageManagerImpl implements PackageManager
    private PackageDatabaseManager pkgDatabaseManager;
 
    /**
+    * Transaction manager
+    */
+   private TransactionManager transactionManager;
+
+   /**
     * Creates the default package manager for a server 
     * 
     * @param environment The package manager environment
@@ -95,7 +112,7 @@ public class DefaultPackageManagerImpl implements PackageManager
       this.environment = environment;
       this.installationServerHome = jbossHome;
       this.pkgMgrCtx = new DefaultPackageManagerContext(this);
-      
+      this.transactionManager = TransactionManagerImpl.getInstance();
       this.pkgDatabaseManager = new DefaultDatabaseManager(this.pkgMgrCtx);
    }
 
@@ -123,6 +140,7 @@ public class DefaultPackageManagerImpl implements PackageManager
     * @see org.jboss.ejb3.packagemanager.PackageManager#installPackage(java.lang.String)
     */
    @Override
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void installPackage(String pkgPath) throws PackageManagerException
    {
       if (pkgPath == null)
@@ -150,6 +168,7 @@ public class DefaultPackageManagerImpl implements PackageManager
     * 
     */
    @Override
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void installPackage(URL packageURL) throws PackageManagerException
    {
       if (packageURL == null)
@@ -168,12 +187,14 @@ public class DefaultPackageManagerImpl implements PackageManager
     * @param pkgContext
     * @throws PackageManagerException
     */
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void installPackage(PackageContext pkgContext) throws PackageManagerException
    {
       if (pkgContext == null)
       {
          throw new PackageManagerException("Package context is null");
       }
+
       // check if package is already installed
       boolean packageAlreadyInstalled = this.pkgDatabaseManager.isPackageInstalled(pkgContext.getPackageName());
       if (packageAlreadyInstalled)
@@ -202,6 +223,10 @@ public class DefaultPackageManagerImpl implements PackageManager
       }
       // post-installation step
       this.postInstallPackage(pkgContext);
+      // store the pre/post uninstall scripts (if any) at a particular location
+      // so that they can be used during uninstallation of this package
+      this.storeScripts(pkgContext);
+      // now record the installation into DB
       this.pkgDatabaseManager.installPackage(pkgContext);
       logger.info("Installed " + pkgContext);
    }
@@ -210,6 +235,7 @@ public class DefaultPackageManagerImpl implements PackageManager
     * @see org.jboss.ejb3.packagemanager.PackageManager#removePackage(java.lang.String)
     */
    @Override
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException
    {
       // get the installed package
@@ -219,8 +245,9 @@ public class DefaultPackageManagerImpl implements PackageManager
          throw new PackageNotInstalledException("Package " + packageName + " is not installed - so cannot be removed!");
       }
       InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
+
       this.removePackage(installedPackage, false);
-      
+
    }
 
    protected void removePackage(InstalledPackage installedPackage, boolean forceRemove)
@@ -238,6 +265,8 @@ public class DefaultPackageManagerImpl implements PackageManager
                   + " - cannot remove this package!");
          }
       }
+      // pre-uninstall step
+      this.preUnInstallPackage(installedPackage);
       // TODO : Revisit this installer creation
       Installer installer = new DefaultInstaller(this.pkgMgrCtx);
       // install files in this package
@@ -245,6 +274,8 @@ public class DefaultPackageManagerImpl implements PackageManager
       {
          installer.uninstall(installedPackage, fileToUninstall);
       }
+      // post-uninstall step
+      this.postUnInstallPackage(installedPackage);
       this.pkgDatabaseManager.removePackage(installedPackage);
       logger.info("Uninstalled " + packageName);
    }
@@ -253,6 +284,7 @@ public class DefaultPackageManagerImpl implements PackageManager
     * @see org.jboss.ejb3.packagemanager.PackageManager#updatePackage(java.lang.String)
     */
    @Override
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void updatePackage(String packageFilePath) throws PackageManagerException
    {
       if (packageFilePath == null)
@@ -272,6 +304,7 @@ public class DefaultPackageManagerImpl implements PackageManager
    }
 
    @Override
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void updatePackage(URL packageURL) throws PackageManagerException
    {
       if (packageURL == null)
@@ -284,6 +317,7 @@ public class DefaultPackageManagerImpl implements PackageManager
       this.updatePackage(pkgCtx);
    }
 
+   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void updatePackage(PackageContext pkgContext) throws PackageManagerException
    {
       String packageName = pkgContext.getPackageName();
@@ -295,10 +329,18 @@ public class DefaultPackageManagerImpl implements PackageManager
                + " for upgrading to " + pkgContext);
          removePackage(installedPackage, true);
       }
-
       // now install new version
       this.installPackage(pkgContext);
-      
+
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#getTransactionManager()
+    */
+   @Override
+   public TransactionManager getTransactionManager()
+   {
+      return this.transactionManager;
    }
 
    /**
@@ -344,6 +386,82 @@ public class DefaultPackageManagerImpl implements PackageManager
    }
 
    /**
+    * Stores the scripts available in a package to a local store so 
+    * that they are available during uninstallation of the package.
+    * Currently, only post-uninstall and pre-uinstall scripts are 
+    * stored because the rest of the scripts are not required 
+    * after installation of a package.
+    * 
+    * @param pkgCtx Package whose scripts are to be stored
+    */
+   private void storeScripts(PackageContext pkgCtx) throws PackageManagerException
+   {
+      String relativePathToScriptStoreDir = this.pkgMgrCtx.getScriptStoreLocation(pkgCtx);
+      File scriptStoreDir = new File(this.getPackageManagerEnvironment().getPackageManagerHome(),
+            relativePathToScriptStoreDir);
+      if (!scriptStoreDir.exists())
+      {
+         scriptStoreDir.mkdirs();
+      }
+      logger.debug("Scripts for " + pkgCtx + " will be stored in " + scriptStoreDir);
+      // we store only uninstall scripts.
+
+      // post-uninstall
+      List<PostUnInstallScript> postUnInstallScripts = pkgCtx.getPostUnInstallScripts();
+      if (postUnInstallScripts != null)
+      {
+         for (PostUnInstallScript script : postUnInstallScripts)
+         {
+            storeScript(pkgCtx, script, scriptStoreDir);
+
+         }
+      }
+      // pre-uninstall
+      List<PreUninstallScript> preUnInstallScripts = pkgCtx.getPreUnInstallScripts();
+      if (preUnInstallScripts != null)
+      {
+         for (PreUninstallScript script : preUnInstallScripts)
+         {
+            storeScript(pkgCtx, script, scriptStoreDir);
+         }
+      }
+   }
+
+   /**
+    * Stores the script to the <code>destDir</code>
+    * 
+    * @param pkgCtx Package to which this script belongs
+    * @param script Script to be stored
+    * @param destDir The destination directory where the script has to be stored
+    * @throws PackageManagerException
+    */
+   private void storeScript(PackageContext pkgCtx, ScriptType script, File destDir) throws PackageManagerException
+   {
+      String scriptFileName = script.getName();
+      File root = pkgCtx.getPackageRoot();
+      File path = root;
+      if (script.getPath() != null)
+      {
+         path = new File(root, script.getPath());
+      }
+      File scriptFile = new File(path, scriptFileName);
+      if (!scriptFile.exists())
+      {
+         throw new PackageManagerException("Script file " + scriptFile + " for " + pkgCtx + " does not exist!");
+      }
+      try
+      {
+         File destFile = new File(destDir, scriptFile.getName());
+         IOUtil.copy(scriptFile, destFile);
+         logger.debug("Stored script file " + scriptFile + " at " + destDir);
+      }
+      catch (IOException e)
+      {
+         throw new PackageManagerException("Could not store script due to exception ", e);
+      }
+   }
+
+   /**
     * The pre-installation step for packages. Each package can have multiple 
     * pre-install scripts to be run. This method runs those pre-install scripts
     * 
@@ -354,18 +472,64 @@ public class DefaultPackageManagerImpl implements PackageManager
    protected void preInstallPackage(PackageContext pkgCtx) throws PackageManagerException
    {
       // find any pre-install scripts
-      List<ScriptType> preInstallScripts = pkgCtx.getPreInstallScripts();
+      List<PreInstallScript> preInstallScripts = pkgCtx.getPreInstallScripts();
       if (preInstallScripts == null || preInstallScripts.isEmpty())
       {
-         logger.debug("There are no pre-install scripts for " + pkgCtx);
+         logger.trace("There are no pre-install scripts for " + pkgCtx);
          return;
       }
-      for (ScriptType script : preInstallScripts)
+      for (PreInstallScript script : preInstallScripts)
       {
          // TODO: Can we just have one instance of the script processor to process
          // all scripts? Stateful/stateless?
          ScriptProcessor scriptProcessor = new AntScriptProcessor();
-         scriptProcessor.processScript(this.pkgMgrCtx, pkgCtx, script);
+         String scriptFileName = script.getName();
+         File root = pkgCtx.getPackageRoot();
+         File path = root;
+         if (script.getPath() != null)
+         {
+            path = new File(root, script.getPath());
+         }
+         File scriptFile = new File(path, scriptFileName);
+         if (!scriptFile.exists())
+         {
+            throw new PackageManagerException("Script file " + scriptFile + " for " + pkgCtx + " does not exist!");
+         }
+         scriptProcessor.processPreInstallScript(this.pkgMgrCtx, pkgCtx, scriptFile);
+      }
+
+   }
+
+   /**
+    * The pre-uninstallation step for packages. Each package can have multiple 
+    * pre-uninstall scripts to be run. This method runs those pre-uninstall scripts
+    * 
+    * @param installedPackage The installed package
+    * @throws PackageManagerException If any exception occurs during pre-uninstallation of the 
+    * package
+    */
+   protected void preUnInstallPackage(InstalledPackage installedPackage) throws PackageManagerException
+   {
+      // find any pre-uninstall scripts
+      Set<org.jboss.ejb3.packagemanager.entity.PreUnInstallScript> preUnInstallScripts = installedPackage
+            .getPreUnInstallScripts();
+      if (preUnInstallScripts == null || preUnInstallScripts.isEmpty())
+      {
+         logger.trace("There are no pre-uninstall scripts for package " + installedPackage.getPackageName());
+         return;
+      }
+      for (org.jboss.ejb3.packagemanager.entity.PreUnInstallScript script : preUnInstallScripts)
+      {
+         ScriptProcessor scriptProcessor = new AntScriptProcessor();
+         File packageManagerHome = this.pkgMgrCtx.getPackageManagerEnvironment().getPackageManagerHome();
+         File scriptFileLocation = new File(packageManagerHome, script.getPath());
+         File scriptFile = new File(scriptFileLocation, script.getName());
+         if (!scriptFile.exists())
+         {
+            throw new PackageManagerException("Script file " + scriptFile + " for package "
+                  + installedPackage.getPackageName() + " does not exist!");
+         }
+         scriptProcessor.processPreUnInstallScript(this.pkgMgrCtx, installedPackage, scriptFile);
       }
 
    }
@@ -381,19 +545,64 @@ public class DefaultPackageManagerImpl implements PackageManager
    protected void postInstallPackage(PackageContext pkgCtx) throws PackageManagerException
    {
       // find any post-install scripts
-      List<ScriptType> postInstallScripts = pkgCtx.getPostInstallScripts();
+      List<PostInstallScript> postInstallScripts = pkgCtx.getPostInstallScripts();
       if (postInstallScripts == null || postInstallScripts.isEmpty())
       {
-         logger.debug("There are no post-install scripts for " + pkgCtx);
+         logger.trace("There are no post-install scripts for " + pkgCtx);
          return;
       }
-      for (ScriptType script : postInstallScripts)
+      for (PostInstallScript script : postInstallScripts)
       {
          ScriptProcessor scriptProcessor = new AntScriptProcessor();
          // TODO: Can we just have one instance of the script processor to process
          // all scripts? Stateful/stateless?
-         scriptProcessor.processScript(this.pkgMgrCtx, pkgCtx, script);
+         String scriptFileName = script.getName();
+         File root = pkgCtx.getPackageRoot();
+         File path = root;
+         if (script.getPath() != null)
+         {
+            path = new File(root, script.getPath());
+         }
+         File scriptFile = new File(path, scriptFileName);
+         if (!scriptFile.exists())
+         {
+            throw new PackageManagerException("Script file " + scriptFile + " for " + pkgCtx + " does not exist!");
+         }
+         scriptProcessor.processPostInstallScript(this.pkgMgrCtx, pkgCtx, scriptFile);
 
+      }
+   }
+
+   /**
+    * The post-uninstallation step for packages. Each package can have multiple 
+    * post-uninstall scripts to be run. This method runs those post-uninstall scripts
+    * 
+    * @param installedPackage The installed package
+    * @throws PackageManagerException If any exception occurs during post-uninstallation of the 
+    * package
+    */
+   protected void postUnInstallPackage(InstalledPackage installedPackage) throws PackageManagerException
+   {
+      // find any post-uninstall scripts
+      Set<org.jboss.ejb3.packagemanager.entity.PostUnInstallScript> postUnInstallScripts = installedPackage
+            .getPostUnInstallScripts();
+      if (postUnInstallScripts == null || postUnInstallScripts.isEmpty())
+      {
+         logger.trace("There are no post-uninstall scripts for package " + installedPackage.getPackageName());
+         return;
+      }
+      for (org.jboss.ejb3.packagemanager.entity.PostUnInstallScript script : postUnInstallScripts)
+      {
+         ScriptProcessor scriptProcessor = new AntScriptProcessor();
+         File packageManagerHome = this.pkgMgrCtx.getPackageManagerEnvironment().getPackageManagerHome();
+         File scriptFileLocation = new File(packageManagerHome, script.getPath());
+         File scriptFile = new File(scriptFileLocation, script.getName());
+         if (!scriptFile.exists())
+         {
+            throw new PackageManagerException("Script file " + scriptFile + " for package "
+                  + installedPackage.getPackageName() + " does not exist!");
+         }
+         scriptProcessor.processPostUnInstallScript(this.pkgMgrCtx, installedPackage, scriptFile);
       }
    }
 
@@ -416,6 +625,34 @@ public class DefaultPackageManagerImpl implements PackageManager
          logger.info("Installing dependency package : " + dependencyPackage + " for dependent package: " + pkgContext);
          this.updatePackage(dependencyPackage);
       }
+   }
+
+   /**
+    * @see javax.transaction.Synchronization#afterCompletion(int)
+    */
+   @Override
+   public void afterCompletion(int status)
+   {
+      if (this.pkgDatabaseManager instanceof Synchronization)
+      {
+         Synchronization dbManager = (Synchronization) this.pkgDatabaseManager;
+         dbManager.afterCompletion(status);
+      }
+
+   }
+
+   /**
+    * @see javax.transaction.Synchronization#beforeCompletion()
+    */
+   @Override
+   public void beforeCompletion()
+   {
+      if (this.pkgDatabaseManager instanceof Synchronization)
+      {
+         Synchronization dbManager = (Synchronization) this.pkgDatabaseManager;
+         dbManager.beforeCompletion();
+      }
+
    }
 
 }

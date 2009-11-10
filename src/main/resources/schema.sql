@@ -30,6 +30,18 @@ CREATE TABLE installation_file (
 
 );
 
+-- Script file
+-- DROP TABLE installation_file;
+CREATE TABLE script (
+	id bigint not null GENERATED ALWAYS AS IDENTITY	CONSTRAINT SCRIPT_PK PRIMARY KEY,
+	package_name varchar(255) not null,
+	name varchar(255) not null,
+	path varchar(255) not null,
+	scriptType varchar(255) not null,
+	foreign key (package_name) references package (name) 
+
+);
+
 -- Package dependencies
 -- DROP TABLE package_dependency;
 CREATE TABLE package_dependency (

@@ -144,4 +144,29 @@ public interface PackageType
     * @param postInstall Post-install 
     */
    void setPostInstall(PostInstallType postInstall);
+   
+   /**
+    * Returns any pre-uninstall metadata related to this package
+    * @return
+    */
+   PreUnInstallType getPreUninstall();
+   
+   /**
+    * Sets the pre-uninstall metadata for this package
+    * @param preUninstall
+    */
+   void setPreUnInstall(PreUnInstallType preUninstall);
+   
+   /**
+    * Returns any post-uninstall metadata related to this package
+    * @return
+    */
+   PostUnInstallType getPostUninstall();
+   
+   /**
+    * Sets the post-uninstall metadata for this package
+    * @param preUninstall
+    */
+   void setPostUnInstall(PostUnInstallType postUninstall);
+
 }

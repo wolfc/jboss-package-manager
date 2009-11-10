@@ -21,6 +21,9 @@
 */
 package org.jboss.ejb3.packagemanager.metadata;
 
+import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
+import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
+
 
 /**
  * ScriptMetadata
@@ -35,35 +38,31 @@ public interface ScriptType
 {
 
    /**
-    * Returns the file path (including the file name) relative to 
-    * the location of the package.xml in the package 
+    * Returns the name of the file
     * @return
     */
-   String getFile();
+   String getName();
    
    /**
-    * Sets the file path (including the name of the file)
+    * Sets the name of the file
     * 
-    * @param scriptFile Path relative to the location of package.xml in the package 
+    * @param name Name of the script file 
     */
-   void setFile(String scriptFile);
+   void setName(String name);
    
-//   /**
-//    * Returns the fully qualified name of the class which implements
-//    * {@link ScriptProcessor} and is responsible for processing the 
-//    * {@link #getFile()} script file
-//    * @return
-//    */
-//   String getProcessor();
-//   
-//   /**
-//    * Sets the script processor which is responsible for processing the
-//    * {@link #getFile()} script file
-//    * 
-//    * @param scriptProcessor Fully qualified name of the class which implements
-//    *   {@link ScriptProcessor} 
-//    */
-//   void setProcessor(String scriptProcessor);
+   /**
+    * Sets the path of this script file.
+    * @param path
+    */
+   void setPath(String path);
+   
+   /**
+    * Returns the path of this script file. Path is relative to
+    * the location of package.xml of the package to which this
+    * script belongs
+    * @return
+    */
+   String getPath();
    
    /**
     * Returns the package installation phase, during which this script
@@ -72,4 +71,14 @@ public interface ScriptType
     * @return
     */
    PackageInstallationPhase getScriptExecutionPhase();
+   
+   /**
+    * Returns true, if the script has to be stored, during installation, to some
+    * location (usually within the package manager home), so that
+    * the script is available for use during uninstallation of the package.
+    * 
+    * Uninstall scripts (pre-uninstall and post-uninstall) are by default persisted
+    * @return
+    */
+   boolean isPersistent();
 }

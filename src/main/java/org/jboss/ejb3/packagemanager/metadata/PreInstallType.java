@@ -23,6 +23,8 @@ package org.jboss.ejb3.packagemanager.metadata;
 
 import java.util.List;
 
+import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallScript;
+
 /**
  * PreInstallMetadata
  * 
@@ -42,21 +44,21 @@ public interface PreInstallType
     * 
     * @return
     */
-   List<ScriptType> getScripts();
+   List<PreInstallScript> getScripts();
    
    /**
     * Sets the list of pre-install scripts for a package
     * 
     * @param scripts The pre-install scripts
     */ 
-   void setScripts(List<ScriptType> scripts);
+   void setScripts(List<PreInstallScript> scripts);
    
    /**
     * Adds a pre-install script to the list of pre-install scripts 
     * for this package
     * @param script
     */
-   void addScript(ScriptType script);
+   void addScript(PreInstallScript script);
    
    /**
     * Returns the package to which this pre-install step

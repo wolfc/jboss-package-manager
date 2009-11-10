@@ -26,6 +26,7 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.main.Main;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
@@ -73,7 +74,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
       pkgMgrHome = setupPackageManagerHome(BasicInstallTestCase.class);
       jbossHome = setupDummyJBoss(BasicInstallTestCase.class);
       PackageManagerEnvironment env = new PackageManagerEnvironment(pkgMgrHome.getAbsolutePath());
-      pkgMgr = new DefaultPackageManagerImpl(env, jbossHome.getAbsolutePath());
+      pkgMgr = PackageManagerFactory.getDefaultPackageManager(env, jbossHome.getAbsolutePath());
    }
 
    /**

@@ -22,6 +22,10 @@
 package org.jboss.ejb3.packagemanager.script.impl;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildListener;
@@ -29,9 +33,9 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
+import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.entity.PackageManagerEntity;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
-import org.jboss.ejb3.packagemanager.metadata.PackageInstallationPhase;
-import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.logging.Logger;
 
@@ -50,68 +54,130 @@ public class AntScriptProcessor implements ScriptProcessor
    private static Logger logger = Logger.getLogger(AntScriptProcessor.class);
 
    /**
-    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processScript(PackageManagerContext, PackageContext, ScriptType)
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPostInstallScript(org.jboss.ejb3.packagemanager.PackageManagerContext, org.jboss.ejb3.packagemanager.PackageContext, java.io.File)
     */
    @Override
-   public void processScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, ScriptType script)
+   public void processPostInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script)
          throws ScriptProcessingException
    {
-      File root = pkgCtx.getPackageRoot();
-      File antBuildFile = new File(root, script.getFile());
-      if (!antBuildFile.exists())
+      // Set the properties JBOSS_HOME and PM_HOME for the 
+      // build scripts to use (if they find it necessary)
+      Map<String, String> props = new HashMap<String, String>();
+      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
+      Project antProject = this.buildProject(script, pkgCtx.getPackageRoot(), props);
+      this.runTarget(antProject, "post-install");
+      
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPostUnInstallScript(PackageManagerContext, InstalledPackage, File)
+    */
+   @Override
+   public void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script)
+         throws ScriptProcessingException
+   {
+      // Set the properties JBOSS_HOME and PM_HOME for the 
+      // build scripts to use (if they find it necessary)
+      Map<String, String> props = new HashMap<String, String>();
+      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
+      
+      // TODO: What should basedir point to? Let's right now point it to the folder containing the
+      // script file
+      Project antProject = this.buildProject(script, script.getParentFile(), props);
+      this.runTarget(antProject, "post-uninstall");
+
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPreInstallScript(org.jboss.ejb3.packagemanager.PackageManagerContext, org.jboss.ejb3.packagemanager.PackageContext, java.io.File)
+    */
+   @Override
+   public void processPreInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script)
+         throws ScriptProcessingException
+   {
+      // Set the properties JBOSS_HOME and PM_HOME for the 
+      // build scripts to use (if they find it necessary)
+      Map<String, String> props = new HashMap<String, String>();
+      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
+      Project antProject = this.buildProject(script, pkgCtx.getPackageRoot(), props);
+      this.runTarget(antProject, "pre-install");
+
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPreUnInstallScript(PackageManagerContext, InstalledPackage, File)
+    */
+   @Override
+   public void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script)
+         throws ScriptProcessingException
+   {
+      // Set the properties JBOSS_HOME and PM_HOME for the 
+      // build scripts to use (if they find it necessary)
+      Map<String, String> props = new HashMap<String, String>();
+      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
+      
+      // TODO: What should basedir point to? Let's right now point it to the folder containing the
+      // script file
+      Project antProject = this.buildProject(script, script.getParentFile(), props);
+      this.runTarget(antProject, "pre-uninstall");
+
+
+   }
+
+   private Project buildProject(File scriptFile, File baseDir, Map<String, String> antProperties) throws ScriptProcessingException
+   {
+      if (!scriptFile.exists())
       {
-         throw new ScriptProcessingException("Ant script " + script.getFile() + " does not exist in " + pkgCtx);
+         throw new ScriptProcessingException("Ant script file " + scriptFile + " does not exist");
       }
       Project antProject = new Project();
       // add our build listener to capture ant logging and other stuff
       antProject.addBuildListener(new AntBuildListener());
-      // Set the basedir for the ant project to point to the 
-      // root of the package.xml file of the package being installed 
-      antProject.setBaseDir(pkgCtx.getPackageRoot());
-      // Also set the properties JBOSS_HOME and PM_HOME for the 
-      // build scripts to use (if they find it necessary)
-      antProject.setProperty("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
-      antProject.setProperty("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome()
-            .getAbsolutePath());
+      // Set the basedir for the ant project  
+      antProject.setBaseDir(baseDir);
+      
+      if (antProperties != null)
+      {
+         Set<Entry<String, String>> entries = antProperties.entrySet();
+         for (Entry<String, String> entry : entries)
+         {
+            String propName = entry.getKey();
+            String propVal = entry.getValue();
+            antProject.setProperty(propName, propVal);
+         }
+
+      }
+      //      antProject.setProperty("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      //      antProject.setProperty("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome()
+      //            .getAbsolutePath());
       // init the project
       antProject.init();
 
       ProjectHelper antProjHelper = ProjectHelper.getProjectHelper();
       // parse the project from the build file
-      antProjHelper.parse(antProject, antBuildFile);
+      antProjHelper.parse(antProject, scriptFile);
 
-      // now run the appropriate target
-      String targetName = null;
-      PackageInstallationPhase phase = script.getScriptExecutionPhase();
-      if (phase == PackageInstallationPhase.PRE_INSTALL)
-      {
-         targetName = "pre-install";
-      }
-      else if (phase == PackageInstallationPhase.POST_INSTALL)
-      {
-         targetName = "post-install";
-      }
-      else
-      {
-         throw new ScriptProcessingException(
-               "Ant script processor is only capable of running pre-install or post-install scripts. It cannot handle "
-                     + phase + " for script " + script);
-      }
+      return antProject;
+   }
+
+   private void runTarget(Project antProject, String targetName) throws ScriptProcessingException
+   {
       // check whether the target exists in the build file
       if (!antProject.getTargets().containsKey(targetName))
       {
-         throw new ScriptProcessingException("Target " + targetName + " not present in Ant script " + antBuildFile
-               + " for " + pkgCtx);
+         throw new ScriptProcessingException("Target " + targetName + " not present in Ant script file");
       }
-      logger.info("Running script " + antBuildFile + " ,target= " + targetName + " for " + pkgCtx);
       try
       {
          antProject.executeTarget(targetName);
       }
       catch (Exception e)
       {
-         throw new ScriptProcessingException("Exception while running target " + targetName + " in script "
-               + antBuildFile + " for " + pkgCtx);
+         throw new ScriptProcessingException("Exception while running target " + targetName + " in Ant script");
       }
 
    }

@@ -34,33 +34,64 @@ public abstract class ScriptImpl implements ScriptType
 {
 
    /**
-    * The script file (default is package-script.xml)
+    * The script file name (default is package-script.xml)
     */
-   private String scriptFile = "package-script.xml";
+   private String scriptFileName = "package-script.xml";
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#getFile()
+    * Path to the script file. Path is relative to the location
+    * of package.xml of the package. A null value means this 
+    * script is at the same location as the package.xml
     */
-   public String getFile()
+   private String path;
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#getName()
+    */
+   public String getName()
    {
-      return this.scriptFile;
+      return this.scriptFileName;
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#setFile(java.lang.String)
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#setName(String)
     */
-   public void setFile(String scriptFile)
+   public void setName(String name)
    {
-      if (scriptFile == null)
+      if (name == null)
       {
-         throw new IllegalArgumentException("Script file value cannot be null");
+         throw new IllegalArgumentException("Script file name cannot be null");
       }
-      this.scriptFile = scriptFile;
+      this.scriptFileName = name;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#getPath()
+    */
+   @Override
+   public String getPath()
+   {
+      return this.path;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#setPath(java.lang.String)
+    */
+   @Override
+   public void setPath(String path)
+   {
+      this.path = path;
+
    }
 
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#getScriptExecutionPhase()
     */
    public abstract PackageInstallationPhase getScriptExecutionPhase();
+   
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.ScriptType#isPersistent()
+    */
+   public abstract boolean isPersistent();
 
 }

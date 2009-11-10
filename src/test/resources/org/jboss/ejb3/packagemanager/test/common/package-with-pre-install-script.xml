@@ -5,7 +5,7 @@ xmlns:sh="http://www.jboss.org/schema">
   <file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
   
   <pre-install>
-    <script file="build.xml"/>
+    <script name="build.xml"/>
   </pre-install>
   
 </sh:package>

@@ -25,6 +25,7 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
@@ -72,7 +73,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
       pkgMgrHome = setupPackageManagerHome(UnInstallTestCase.class);
       jbossHome = setupDummyJBoss(UnInstallTestCase.class);
       PackageManagerEnvironment env = new PackageManagerEnvironment(pkgMgrHome.getAbsolutePath());
-      pkgMgr = new DefaultPackageManagerImpl(env, jbossHome.getAbsolutePath());
+      pkgMgr = PackageManagerFactory.getDefaultPackageManager(env, jbossHome.getAbsolutePath());
    }
 
    
@@ -159,6 +160,35 @@ public class UnInstallTestCase extends PackageManagerTestCase
       // because removing the dependent package should not remove dependency packages
       this.assertFileExistenceUnderJBossHome(jbossHome, "common/lib/dummy.jar");
 
+   }
+   
+   /**
+    * Tests that the post-uninstall script runs during the uninstall process  
+    * 
+    * @throws Exception
+    */
+   @Test
+   public void testPostUnInstallScriptExecution() throws Exception
+   {
+      File postUnInstallScriptPackage = this.createPackageWithPostUnInstallScript("post-uninstall-test-package.jar");
+      
+      // As a sanity check, ensure that the file supposed to be created by our post-uninstall 
+      // step is not already present
+      this.assertFileAbsenceUnderJBossHome(jbossHome, "bin/post-uninstall.txt");
+      
+      // first install
+      pkgMgr.installPackage(postUnInstallScriptPackage.getAbsolutePath());
+      
+      // simple check to ensure installation was successful
+      this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
+      
+      // now uninstall
+      pkgMgr.removePackage("common-package-with-post-uninstall");
+      // make sure uninstall was successful
+      this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
+      // check that post-uninstall script was run
+      this.assertFileExistenceUnderJBossHome(jbossHome, "bin/post-uninstall.txt");
+      
    }
 
 }

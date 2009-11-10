@@ -39,6 +39,13 @@ import org.apache.commons.io.IOUtils;
  */
 public class IOUtil
 {
+   /**
+    * Copies a file from one location to other
+    * 
+    * @param src The source file (should not be a directory)
+    * @param dest The destination file (should not be a directory)
+    * @throws IOException
+    */
    public static void copy(File src, File dest) throws IOException
    {
       FileInputStream fis = new FileInputStream(src);

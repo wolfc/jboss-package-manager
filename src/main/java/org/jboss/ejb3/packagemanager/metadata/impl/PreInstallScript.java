@@ -68,5 +68,15 @@ public class PreInstallScript extends ScriptImpl
    {
       return this.preInstallMeta;
    }
+   
+   /**
+    * Pre install scripts are not persistent
+    * @see org.jboss.ejb3.packagemanager.metadata.impl.ScriptImpl#isPersistent()
+    */
+   @Override
+   public boolean isPersistent()
+   {
+      return false;
+   }
 
 }

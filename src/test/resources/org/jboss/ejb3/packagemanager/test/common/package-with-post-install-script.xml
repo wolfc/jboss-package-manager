@@ -1,0 +1,11 @@
+<sh:package name="common-package-with-post-install" version="1.0.0-Alpha1"
+xmlns:sh="http://www.jboss.org/schema">
+
+    <!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->  
+  <file name="dummy.jar" dest-path="server/default/deploy" type="library"/>
+  
+  <post-install>
+    <script name="build.xml"/>
+  </post-install>
+  
+</sh:package>

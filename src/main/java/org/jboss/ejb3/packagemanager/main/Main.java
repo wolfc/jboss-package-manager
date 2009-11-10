@@ -31,6 +31,7 @@ import java.sql.SQLException;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.util.DBUtil;
@@ -108,7 +109,7 @@ public class Main
       logger.info("Using Package Manager Home: " + packageManagerHome);
       logger.info("Using JBoss Home: " + jbossHome);
       PackageManagerEnvironment env = new PackageManagerEnvironment(packageManagerHome);
-      PackageManager pm = new DefaultPackageManagerImpl(env, jbossHome);
+      PackageManager pm = PackageManagerFactory.getDefaultPackageManager(env, jbossHome);
 
       String schemaSetupScript = (String) cmdLineParser.getOptionValue(setupCmdOption);
       if (schemaSetupScript != null)
@@ -175,7 +176,7 @@ public class Main
          // out you go!
          pm.removePackage(packageToRemove);
       }
-
+      
    }
 
    

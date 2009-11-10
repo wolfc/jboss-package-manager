@@ -97,6 +97,12 @@ public abstract class PackageManagerTestCase
    private static void setupDatabase(File dbHome) throws IOException, SQLException
    {
       System.setProperty("derby.system.home", dbHome.getAbsolutePath());
+//      System.setProperty("derby.stream.error.logSeverityLevel", "20000");
+//      System.setProperty("derby.language.logStatementText", "true");
+//      //System.setProperty("derby.locks.escalationThreshold", "50000");
+//      
+//      System.setProperty("derby.locks.monitor", "true");
+//      System.setProperty("derby.locks.deadlockTrace", "true");
       InputStream sql = Thread.currentThread().getContextClassLoader().getResourceAsStream(PACKAGE_MANAGER_DB_SCHEMA_FILE_NAME);
 
       if (sql == null)
@@ -105,7 +111,17 @@ public abstract class PackageManagerTestCase
                "Could not find package-manager-sql-scripts.sql in classpath - Cannot setup database");
       }
       Connection conn = DriverManager.getConnection("jdbc:derby:pmdb;create=true");
-      DBUtil.runSql(conn, sql);
+      try
+      {
+         DBUtil.runSql(conn, sql);
+      }
+      finally
+      {
+         if (conn != null)
+         {
+            conn.close();
+         }
+      }
       logger.info("Successfully setup package manager database at " + dbHome);
 
    }
@@ -336,25 +352,149 @@ public abstract class PackageManagerTestCase
     */
    protected File createPackageWithPreInstallScript(String packageFileName) throws IOException
    {
-      File dummyJar = this.createDummyJar();
-
-      // Now let's package the dummy.jar, package.xml and build.xml into a package
-      File packageWithPreInstallScript = new File(getPerTestTargetDir(this.getClass()), packageFileName);
-      JavaArchive pkg = JavaArchiveFactory.create(packageWithPreInstallScript.getName());
-      pkg.addResource("dummy.jar", dummyJar);
+      
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-pre-install-script.xml");
       File packageXmlFile = new File(packageXmlURL.getFile());
-      pkg.addResource("package.xml", packageXmlFile);
       URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
       File buildFile = new File(buildXmlURL.getFile());
-      pkg.addResource("build.xml", buildFile);
+      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+   }
+   
+   
+   
+   /**
+    * Creates a package containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the pre-install script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "pre-uninstall.txt" under JBOSS_HOME/bin folder, when the script is run.
+    *   
+    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
+    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPreUnInstallScript(String packageFileName) throws IOException
+   {
+      
+      URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-pre-uninstall-script.xml");
+      File packageXmlFile = new File(packageXmlURL.getFile());
+      URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
+      File buildFile = new File(buildXmlURL.getFile());
+      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+   }
+   
+   /**
+    * Creates a package containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the pre-install script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "post-install.txt" under JBOSS_HOME/bin folder, when the script is run.
+    *   
+    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
+    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPostInstallScript(String packageFileName) throws IOException
+   {
+      
+      URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-post-install-script.xml");
+      File packageXmlFile = new File(packageXmlURL.getFile());
+      URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
+      File buildFile = new File(buildXmlURL.getFile());
+      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+   }
+   
+   /**
+    * Creates a package containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the post-uninstall script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "post-uninstall.txt" from JBOSS_HOME/bin folder
+    *   
+    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
+    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPostUnInstallScript(String packageFileName) throws IOException
+   {
+      
+      URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-post-uninstall-script.xml");
+      File packageXmlFile = new File(packageXmlURL.getFile());
+      URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
+      File buildFile = new File(buildXmlURL.getFile());
+      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+   }
+   
+   
 
+   /**
+    * Utility method to create a package with a script file.
+    * 
+    * The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- [script-file]
+    *   
+    * @param packageFileName Package file name
+    * @param scriptFile Script file
+    * @param packageXmlFile package.xml
+    * @return Returns the created package
+    * @throws IOException
+    */
+   private File createPackageWithScript(String packageFileName, File scriptFile, File packageXmlFile) throws IOException
+   {
+      File dummyJar = this.createDummyJar();
+      File packageWithScript = new File(getPerTestTargetDir(this.getClass()), packageFileName);
+      JavaArchive pkg = JavaArchiveFactory.create(packageWithScript.getName());
+      pkg.addResource("dummy.jar", dummyJar);
+      pkg.addResource("package.xml", packageXmlFile);
+      pkg.addResource(scriptFile.getName(), scriptFile);
+      
       // now write out the package to disk
       logger.debug("Writing out the created package " + pkg.toString(true));
-      this.exportZip(pkg, packageWithPreInstallScript);
-      return packageWithPreInstallScript;
+      this.exportZip(pkg, packageWithScript);
+      return packageWithScript;
    }
-
+   
    /**
     * Creates a package  containing a file to install and a packaged-dependency. The package
     * will look as follows:

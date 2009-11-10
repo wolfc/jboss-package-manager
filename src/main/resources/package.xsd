@@ -170,14 +170,15 @@
         <xs:annotation>
             <xs:documentation>
                 A script element points to a Ant build script file.
-                The file attribute of this element contains the path of the script, relative to the location of
+                The name attribute of the this elements contains the name of the script file. By default 
+                this is "package-script.xml"
+                The path attribute of this element contains the path of the script, relative to the location of
                 package.xml in the package.
-                By default the file attribute value is "package-script.xml"
-
             </xs:documentation>
 
         </xs:annotation>
-        <xs:attribute name="file" type="xs:string" use="optional" default="package-script.xml"/>
+        <xs:attribute name="name" type="xs:string" use="optional" default="package-script.xml"/>
+        <xs:attribute name="path" type="xs:string" use="optional"/>
         <!--<xs:attribute name="processor" type="xs:string" use="optional"
                       default="org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor"/> -->
     </xs:complexType>

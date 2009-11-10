@@ -32,6 +32,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.ForceDiscriminator;
+
 /**
  * Package
  *
@@ -48,13 +50,19 @@ public class InstalledPackage
 
    private String version;
 
-   @OneToMany(mappedBy = "dependentPackage", cascade=CascadeType.ALL)
+   @OneToMany(mappedBy = "dependentPackage", cascade = CascadeType.ALL)
    private Set<PackageDependency> dependencies;
 
    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL)
    private Set<InstalledFile> installationFiles;
 
-   @ManyToOne 
+   @OneToMany(mappedBy = "installedPkg", cascade = CascadeType.ALL)
+   private Set<PreUnInstallScript> preUnInstallScripts;
+
+   @OneToMany(mappedBy = "installedPkg", cascade = CascadeType.ALL)
+   private Set<PostUnInstallScript> postUnInstallScripts;
+
+   @ManyToOne
    @JoinColumn(name = "package_manager_id")
    private PackageManagerEntity packageManager;
 
@@ -69,7 +77,6 @@ public class InstalledPackage
       this.name = packageName;
       this.version = packageVersion;
    }
-
 
    public String getPackageName()
    {
@@ -89,6 +96,54 @@ public class InstalledPackage
    public void setInstallationFiles(Set<InstalledFile> installationFiles)
    {
       this.installationFiles = installationFiles;
+   }
+   
+   public void addInstallationFile(InstalledFile file)
+   {
+      if (this.installationFiles == null)
+      {
+         this.installationFiles = new HashSet<InstalledFile>();
+      }
+      this.installationFiles.add(file);
+   }
+
+   public Set<PreUnInstallScript> getPreUnInstallScripts()
+   {
+      return this.preUnInstallScripts;
+   }
+
+   public void setPreUnInstallScript(Set<PreUnInstallScript> preUnInstallScripts)
+   {
+      this.preUnInstallScripts = preUnInstallScripts;
+   }
+
+   public void addPreUnInstallScript(PreUnInstallScript preUnInstallScrtipt)
+   {
+      if (this.preUnInstallScripts == null)
+      {
+         this.preUnInstallScripts = new HashSet<PreUnInstallScript>();
+      }
+      this.preUnInstallScripts.add(preUnInstallScrtipt);
+   }
+
+   public Set<PostUnInstallScript> getPostUnInstallScripts()
+   {
+      return this.postUnInstallScripts;
+   }
+
+   public void setPostUnInstallScript(Set<PostUnInstallScript> postUnInstallScripts)
+   {
+      this.postUnInstallScripts = postUnInstallScripts;
+   }
+
+   public void addPostUnInstallScript(PostUnInstallScript postUnInstallScript)
+   {
+      if (this.postUnInstallScripts == null)
+      {
+         this.postUnInstallScripts = new HashSet<PostUnInstallScript>();
+      }
+      this.postUnInstallScripts.add(postUnInstallScript);
+
    }
 
    public PackageManagerEntity getPackageManager()
@@ -110,7 +165,7 @@ public class InstalledPackage
    {
       this.dependencies = dependencies;
    }
-   
+
    public void addDependency(PackageDependency dependency)
    {
       if (this.dependencies == null)
@@ -119,7 +174,7 @@ public class InstalledPackage
       }
       this.dependencies.add(dependency);
    }
-   
+
    public void addDependencies(Set<PackageDependency> dependencies)
    {
       if (this.dependencies == null)
@@ -128,7 +183,7 @@ public class InstalledPackage
       }
       this.dependencies.addAll(dependencies);
    }
-   
+
    public void removeDependency(PackageDependency dependency)
    {
       if (this.dependencies == null)
@@ -137,8 +192,7 @@ public class InstalledPackage
       }
       this.dependencies.remove(dependency);
    }
-   
-   
+
    public void removeDependency(InstalledPackage dependencyPackage)
    {
       if (this.dependencies == null)
@@ -153,10 +207,9 @@ public class InstalledPackage
             this.dependencies.remove(dependency);
          }
       }
-      
+
    }
-   
-   
+
    /**
     * @see java.lang.Object#equals(java.lang.Object)
     */
@@ -172,8 +225,8 @@ public class InstalledPackage
          return false;
       }
       InstalledPackage otherPackge = (InstalledPackage) obj;
-      return this.name == otherPackge.name; 
-      
+      return this.name == otherPackge.name;
+
    }
 
    /**

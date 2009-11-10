@@ -28,7 +28,9 @@ import org.jboss.ejb3.packagemanager.metadata.DependenciesType;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
+import org.jboss.ejb3.packagemanager.metadata.PostUnInstallType;
 import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
+import org.jboss.ejb3.packagemanager.metadata.PreUnInstallType;
 import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
 
 public class PackageImpl implements PackageType
@@ -53,6 +55,16 @@ public class PackageImpl implements PackageType
     * Pre-install for this package
     */
    protected PreInstallType preInstall;
+
+   /**
+    * Post-UnInstall
+    */
+   protected PostUnInstallType postUnInstall;
+
+   /**
+    * Pre-Uninstall
+    */
+   protected PreUnInstallType preUnInstall;
 
    public PackageImpl()
    {
@@ -161,6 +173,44 @@ public class PackageImpl implements PackageType
    public void setPreInstall(PreInstallType preInstall)
    {
       this.preInstall = preInstall;
+
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#getPostUninstall()
+    */
+   @Override
+   public PostUnInstallType getPostUninstall()
+   {
+      return this.postUnInstall;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#getPreUninstall()
+    */
+   @Override
+   public PreUnInstallType getPreUninstall()
+   {
+      return this.preUnInstall;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#setPostUnInstall(org.jboss.ejb3.packagemanager.metadata.PostUnInstallType)
+    */
+   @Override
+   public void setPostUnInstall(PostUnInstallType postUninstall)
+   {
+      this.postUnInstall = postUninstall;
+
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.metadata.PackageType#setPreUnInstall(org.jboss.ejb3.packagemanager.metadata.PreUnInstallType)
+    */
+   @Override
+   public void setPreUnInstall(PreUnInstallType preUninstall)
+   {
+      this.preUnInstall = preUninstall;
 
    }
 

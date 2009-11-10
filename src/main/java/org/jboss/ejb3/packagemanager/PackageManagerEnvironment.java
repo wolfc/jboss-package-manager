@@ -40,6 +40,10 @@ public class PackageManagerEnvironment
    private File packageManagerBuildDir;
 
    private File packageManagerTmpDir;
+   
+   private File packageManagerScriptStoreDir;
+   
+   private File packageManagerDataDir;
 
    private Map<String, String> properties = new HashMap<String, String>();
 
@@ -76,7 +80,16 @@ public class PackageManagerEnvironment
       {
          this.packageManagerTmpDir.mkdirs();
       }
-
+      this.packageManagerDataDir = new File(packageManagerHome, "data");
+      if (!this.packageManagerDataDir.exists())
+      {
+         this.packageManagerDataDir.mkdirs();
+      }
+      this.packageManagerScriptStoreDir = new File(packageManagerDataDir, "scripts");
+      if (!this.packageManagerScriptStoreDir.exists())
+      {
+         this.packageManagerScriptStoreDir.mkdirs();
+      }
    }
 
    public File getPackageManagerHome()
@@ -92,6 +105,16 @@ public class PackageManagerEnvironment
    public File getPackageManagerTmpDir()
    {
       return this.packageManagerTmpDir;
+   }
+   
+   public File getDataDir()
+   {
+      return this.packageManagerDataDir;
+   }
+   
+   public File getScriptStoreDir()
+   {
+      return this.packageManagerScriptStoreDir;
    }
 
    public String getProperty(String propertyName)

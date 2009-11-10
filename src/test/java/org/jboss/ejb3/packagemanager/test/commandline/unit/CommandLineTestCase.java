@@ -25,8 +25,8 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
-import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.main.Main;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
 import org.jboss.logging.Logger;
@@ -45,11 +45,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
 
    private static Logger logger = Logger.getLogger(CommandLineTestCase.class);
 
-   /**
-    * Package manager
-    */
-   private static PackageManager pkgMgr;
-
+  
    /**
     * The JBoss Home used in each test
     */
@@ -69,8 +65,8 @@ public class CommandLineTestCase extends PackageManagerTestCase
    {
       pkgMgrHome = setupPackageManagerHome(CommandLineTestCase.class);
       jbossHome = setupDummyJBoss(CommandLineTestCase.class);
-      PackageManagerEnvironment env = new PackageManagerEnvironment(pkgMgrHome.getAbsolutePath());
-      pkgMgr = new DefaultPackageManagerImpl(env, jbossHome.getAbsolutePath());
+     
+     
    }
 
    /**

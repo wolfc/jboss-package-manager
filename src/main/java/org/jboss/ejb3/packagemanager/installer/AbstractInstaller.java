@@ -58,6 +58,7 @@ public abstract class AbstractInstaller implements Installer
       String jbossHome = pkg.getPackageManager().getJbossHome();
       File relativePathToFile = new File(jbossHome, installedFile.getInstalledPath());
       File fileToUninstall = new File(relativePathToFile, installedFile.getFileName());
+      
       if (!fileToUninstall.exists())
       {
          throw new PackageManagerException("Installed file missing: " + fileToUninstall.getAbsolutePath()

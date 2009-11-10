@@ -23,6 +23,8 @@ package org.jboss.ejb3.packagemanager;
 
 import java.net.URL;
 
+import javax.transaction.TransactionManager;
+
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 
@@ -88,4 +90,8 @@ public interface PackageManager
     * @return Returns the JBoss Server Home
     */
    String getServerHome();
+   
+   TransactionManager getTransactionManager();
+   
+   
 }
