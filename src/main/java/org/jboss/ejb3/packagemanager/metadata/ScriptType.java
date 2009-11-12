@@ -21,8 +21,6 @@
 */
 package org.jboss.ejb3.packagemanager.metadata;
 
-import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
 
 
 /**

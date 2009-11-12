@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * PreInstallMetadataImpl
@@ -44,7 +45,7 @@ public class PreInstallImpl implements PreInstallType
    /**
     * pre-install scripts
     */
-   private List<PreInstallScript> scripts;
+   private List<ScriptType> scripts;
 
    /**
     * Constructor
@@ -58,7 +59,7 @@ public class PreInstallImpl implements PreInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#addScript(PreInstallScript)
     */
-   public void addScript(PreInstallScript script)
+   public void addScript(ScriptType script)
    {
       if (script == null)
       {
@@ -66,7 +67,7 @@ public class PreInstallImpl implements PreInstallType
       }
       if (this.scripts == null)
       {
-         this.scripts = new ArrayList<PreInstallScript>();
+         this.scripts = new ArrayList<ScriptType>();
       }
       this.scripts.add(script);
    }
@@ -82,7 +83,7 @@ public class PreInstallImpl implements PreInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#getScripts()
     */
-   public List<PreInstallScript> getScripts()
+   public List<ScriptType> getScripts()
    {
       return this.scripts;
    }
@@ -90,7 +91,7 @@ public class PreInstallImpl implements PreInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PreInstallType#setScripts(java.util.List)
     */
-   public void setScripts(List<PreInstallScript> scripts)
+   public void setScripts(List<ScriptType> scripts)
    {
       if (scripts == null)
       {

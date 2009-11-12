@@ -25,7 +25,7 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
 
 /**
@@ -41,7 +41,7 @@ public interface ScriptProcessor
    
    void processPostInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script) throws ScriptProcessingException;
    
-   void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script) throws ScriptProcessingException;
+   void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, PersistentPackage installedPackage, File script) throws ScriptProcessingException;
    
-   void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script) throws ScriptProcessingException;
+   void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, PersistentPackage installedPackage, File script) throws ScriptProcessingException;
 }

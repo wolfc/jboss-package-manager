@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * PostInstallMetadataImpl
@@ -44,7 +45,7 @@ public class PostInstallImpl implements PostInstallType
    /**
     * post-install scripts
     */
-   private List<PostInstallScript> scripts;
+   private List<ScriptType> scripts;
 
    /**
     * Constructor
@@ -58,7 +59,7 @@ public class PostInstallImpl implements PostInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#addScript(PostInstallScript)
     */
-   public void addScript(PostInstallScript script)
+   public void addScript(ScriptType script)
    {
       if (script == null)
       {
@@ -66,7 +67,7 @@ public class PostInstallImpl implements PostInstallType
       }
       if (this.scripts == null)
       {
-         this.scripts = new ArrayList<PostInstallScript>();
+         this.scripts = new ArrayList<ScriptType>();
       }
       this.scripts.add(script);
 
@@ -83,7 +84,7 @@ public class PostInstallImpl implements PostInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#getScripts()
     */
-   public List<PostInstallScript> getScripts()
+   public List<ScriptType> getScripts()
    {
       return this.scripts;
    }
@@ -91,7 +92,7 @@ public class PostInstallImpl implements PostInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PostInstallType#setScripts(java.util.List)
     */
-   public void setScripts(List<PostInstallScript> scripts)
+   public void setScripts(List<ScriptType> scripts)
    {
       if (scripts == null)
       {

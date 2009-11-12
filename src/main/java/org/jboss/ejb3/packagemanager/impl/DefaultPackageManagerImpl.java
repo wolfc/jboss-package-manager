@@ -39,8 +39,8 @@ import org.jboss.ejb3.packagemanager.annotation.TransactionAttribute;
 import org.jboss.ejb3.packagemanager.annotation.TransactionAttributeType;
 import org.jboss.ejb3.packagemanager.db.DefaultDatabaseManager;
 import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
-import org.jboss.ejb3.packagemanager.entity.InstalledFile;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentFile;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.installer.DefaultInstaller;
@@ -51,10 +51,6 @@ import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
-import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor;
 import org.jboss.ejb3.packagemanager.tx.TransactionManagerImpl;
@@ -244,13 +240,13 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       {
          throw new PackageNotInstalledException("Package " + packageName + " is not installed - so cannot be removed!");
       }
-      InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
+      PersistentPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
 
       this.removePackage(installedPackage, false);
 
    }
 
-   protected void removePackage(InstalledPackage installedPackage, boolean forceRemove)
+   protected void removePackage(PersistentPackage installedPackage, boolean forceRemove)
          throws PackageNotInstalledException, PackageManagerException
    {
       String packageName = installedPackage.getPackageName();
@@ -258,7 +254,7 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       {
          // check if other packages are dependent on this package
          // If yes, then do NOT remove this package. Else remove this package
-         Set<InstalledPackage> dependentPackages = this.pkgDatabaseManager.getDependentPackages(packageName);
+         Set<PersistentPackage> dependentPackages = this.pkgDatabaseManager.getDependentPackages(packageName);
          if (dependentPackages != null && !dependentPackages.isEmpty())
          {
             throw new PackageManagerException("Other packages are dependent on package " + packageName
@@ -270,7 +266,7 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       // TODO : Revisit this installer creation
       Installer installer = new DefaultInstaller(this.pkgMgrCtx);
       // install files in this package
-      for (InstalledFile fileToUninstall : installedPackage.getInstallationFiles())
+      for (PersistentFile fileToUninstall : installedPackage.getInstallationFiles())
       {
          installer.uninstall(installedPackage, fileToUninstall);
       }
@@ -324,7 +320,7 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
       if (isPackageInstalled)
       {
-         InstalledPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
+         PersistentPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
          logger.info("Removing existing package " + packageName + " version " + installedPackage.getPackageVersion()
                + " for upgrading to " + pkgContext);
          removePackage(installedPackage, true);
@@ -407,20 +403,20 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       // we store only uninstall scripts.
 
       // post-uninstall
-      List<PostUnInstallScript> postUnInstallScripts = pkgCtx.getPostUnInstallScripts();
+      List<ScriptType> postUnInstallScripts = pkgCtx.getPostUnInstallScripts();
       if (postUnInstallScripts != null)
       {
-         for (PostUnInstallScript script : postUnInstallScripts)
+         for (ScriptType script : postUnInstallScripts)
          {
             storeScript(pkgCtx, script, scriptStoreDir);
 
          }
       }
       // pre-uninstall
-      List<PreUninstallScript> preUnInstallScripts = pkgCtx.getPreUnInstallScripts();
+      List<ScriptType> preUnInstallScripts = pkgCtx.getPreUnInstallScripts();
       if (preUnInstallScripts != null)
       {
-         for (PreUninstallScript script : preUnInstallScripts)
+         for (ScriptType script : preUnInstallScripts)
          {
             storeScript(pkgCtx, script, scriptStoreDir);
          }
@@ -472,13 +468,13 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
    protected void preInstallPackage(PackageContext pkgCtx) throws PackageManagerException
    {
       // find any pre-install scripts
-      List<PreInstallScript> preInstallScripts = pkgCtx.getPreInstallScripts();
+      List<ScriptType> preInstallScripts = pkgCtx.getPreInstallScripts();
       if (preInstallScripts == null || preInstallScripts.isEmpty())
       {
          logger.trace("There are no pre-install scripts for " + pkgCtx);
          return;
       }
-      for (PreInstallScript script : preInstallScripts)
+      for (ScriptType script : preInstallScripts)
       {
          // TODO: Can we just have one instance of the script processor to process
          // all scripts? Stateful/stateless?
@@ -508,17 +504,17 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
     * @throws PackageManagerException If any exception occurs during pre-uninstallation of the 
     * package
     */
-   protected void preUnInstallPackage(InstalledPackage installedPackage) throws PackageManagerException
+   protected void preUnInstallPackage(PersistentPackage installedPackage) throws PackageManagerException
    {
       // find any pre-uninstall scripts
-      Set<org.jboss.ejb3.packagemanager.entity.PreUnInstallScript> preUnInstallScripts = installedPackage
+      Set<org.jboss.ejb3.packagemanager.entity.PersistentPreUnInstallScript> preUnInstallScripts = installedPackage
             .getPreUnInstallScripts();
       if (preUnInstallScripts == null || preUnInstallScripts.isEmpty())
       {
          logger.trace("There are no pre-uninstall scripts for package " + installedPackage.getPackageName());
          return;
       }
-      for (org.jboss.ejb3.packagemanager.entity.PreUnInstallScript script : preUnInstallScripts)
+      for (org.jboss.ejb3.packagemanager.entity.PersistentPreUnInstallScript script : preUnInstallScripts)
       {
          ScriptProcessor scriptProcessor = new AntScriptProcessor();
          File packageManagerHome = this.pkgMgrCtx.getPackageManagerEnvironment().getPackageManagerHome();
@@ -545,13 +541,13 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
    protected void postInstallPackage(PackageContext pkgCtx) throws PackageManagerException
    {
       // find any post-install scripts
-      List<PostInstallScript> postInstallScripts = pkgCtx.getPostInstallScripts();
+      List<ScriptType> postInstallScripts = pkgCtx.getPostInstallScripts();
       if (postInstallScripts == null || postInstallScripts.isEmpty())
       {
          logger.trace("There are no post-install scripts for " + pkgCtx);
          return;
       }
-      for (PostInstallScript script : postInstallScripts)
+      for (ScriptType script : postInstallScripts)
       {
          ScriptProcessor scriptProcessor = new AntScriptProcessor();
          // TODO: Can we just have one instance of the script processor to process
@@ -581,17 +577,17 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
     * @throws PackageManagerException If any exception occurs during post-uninstallation of the 
     * package
     */
-   protected void postUnInstallPackage(InstalledPackage installedPackage) throws PackageManagerException
+   protected void postUnInstallPackage(PersistentPackage installedPackage) throws PackageManagerException
    {
       // find any post-uninstall scripts
-      Set<org.jboss.ejb3.packagemanager.entity.PostUnInstallScript> postUnInstallScripts = installedPackage
+      Set<org.jboss.ejb3.packagemanager.entity.PersistentPostUnInstallScript> postUnInstallScripts = installedPackage
             .getPostUnInstallScripts();
       if (postUnInstallScripts == null || postUnInstallScripts.isEmpty())
       {
          logger.trace("There are no post-uninstall scripts for package " + installedPackage.getPackageName());
          return;
       }
-      for (org.jboss.ejb3.packagemanager.entity.PostUnInstallScript script : postUnInstallScripts)
+      for (org.jboss.ejb3.packagemanager.entity.PersistentPostUnInstallScript script : postUnInstallScripts)
       {
          ScriptProcessor scriptProcessor = new AntScriptProcessor();
          File packageManagerHome = this.pkgMgrCtx.getPackageManagerEnvironment().getPackageManagerHome();

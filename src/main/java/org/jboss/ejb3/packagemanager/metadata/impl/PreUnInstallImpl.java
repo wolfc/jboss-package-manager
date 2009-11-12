@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PreUnInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * PreUnInstallImpl
@@ -43,7 +44,7 @@ public class PreUnInstallImpl implements PreUnInstallType
    /**
     * pre-install scripts
     */
-   private List<PreUninstallScript> scripts;
+   private List<ScriptType> scripts;
 
    /**
     * Constructor
@@ -57,7 +58,7 @@ public class PreUnInstallImpl implements PreUnInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PreUnInstallType#addScript(PreUninstallScript)
     */
-   public void addScript(PreUninstallScript script)
+   public void addScript(ScriptType script)
    {
       if (script == null)
       {
@@ -65,7 +66,7 @@ public class PreUnInstallImpl implements PreUnInstallType
       }
       if (this.scripts == null)
       {
-         this.scripts = new ArrayList<PreUninstallScript>();
+         this.scripts = new ArrayList<ScriptType>();
       }
       this.scripts.add(script);
    }
@@ -81,7 +82,7 @@ public class PreUnInstallImpl implements PreUnInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PreUnInstallType#getScripts()
     */
-   public List<PreUninstallScript> getScripts()
+   public List<ScriptType> getScripts()
    {
       return this.scripts;
    }
@@ -89,7 +90,7 @@ public class PreUnInstallImpl implements PreUnInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PreUnInstallType#setScripts(List)
     */
-   public void setScripts(List<PreUninstallScript> scripts)
+   public void setScripts(List<ScriptType> scripts)
    {
       if (scripts == null)
       {

@@ -36,16 +36,15 @@ import javax.transaction.Synchronization;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
-import org.jboss.ejb3.packagemanager.entity.InstalledFile;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
-import org.jboss.ejb3.packagemanager.entity.PackageDependency;
-import org.jboss.ejb3.packagemanager.entity.PackageManagerEntity;
-import org.jboss.ejb3.packagemanager.entity.PreUnInstallScript;
+import org.jboss.ejb3.packagemanager.entity.PersistentFile;
+import org.jboss.ejb3.packagemanager.entity.PersistentDependency;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackageManager;
+import org.jboss.ejb3.packagemanager.entity.PersistentPreUnInstallScript;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
-import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.logging.Logger;
 
 /**
@@ -95,15 +94,15 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
 
    }
 
-   private PackageManagerEntity getOrCreatePackageManagerEntity(PackageManagerContext pkgMgrCtx)
+   private PersistentPackageManager getOrCreatePackageManagerEntity(PackageManagerContext pkgMgrCtx)
    {
       EntityManager em = this.getEntityManager();
-      Query query = em.createQuery("from PackageManagerEntity pm where pm.jbossHome='" + pkgMgrCtx.getJBossServerHome()
-            + "'");
-      List<PackageManagerEntity> packageManagers = query.getResultList();
+      Query query = em.createQuery("from " + PersistentPackageManager.class.getSimpleName()
+            + " pm where pm.jbossHome='" + pkgMgrCtx.getJBossServerHome() + "'");
+      List<PersistentPackageManager> packageManagers = query.getResultList();
       if (packageManagers == null || packageManagers.isEmpty())
       {
-         PackageManagerEntity pm = new PackageManagerEntity(pkgMgrCtx);
+         PersistentPackageManager pm = new PersistentPackageManager(pkgMgrCtx);
          em.persist(pm);
 
          return pm;
@@ -123,14 +122,14 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
     * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#installPackage(PackageContext)
     */
    @Override
-   public InstalledPackage installPackage(PackageContext pkgCtx)
+   public PersistentPackage installPackage(PackageContext pkgCtx)
    {
       EntityManager em = this.getEntityManager();
       //      EntityTransaction tx = em.getTransaction();
       //      tx.begin();
-      PackageManagerEntity packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
+      PersistentPackageManager packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
 
-      InstalledPackage newlyInstalledPackage;
+      PersistentPackage newlyInstalledPackage;
       try
       {
          newlyInstalledPackage = this.createPackage(packageManager, pkgCtx);
@@ -149,13 +148,13 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
     * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#getInstalledPackage(java.lang.String)
     */
    @Override
-   public InstalledPackage getInstalledPackage(String name) throws PackageNotInstalledException
+   public PersistentPackage getInstalledPackage(String name) throws PackageNotInstalledException
    {
       EntityManager em = this.getEntityManager();
-      PackageManagerEntity packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
-      Query query = em.createQuery("from " + InstalledPackage.class.getSimpleName() + " p where p.name='" + name
+      PersistentPackageManager packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
+      Query query = em.createQuery("from " + PersistentPackage.class.getSimpleName() + " p where p.name='" + name
             + "' and p.packageManager.id=" + packageManager.getId());
-      return (InstalledPackage) query.getSingleResult();
+      return (PersistentPackage) query.getSingleResult();
    }
 
    /**
@@ -165,8 +164,8 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
    public boolean isPackageInstalled(String name)
    {
       EntityManager em = this.getEntityManager();
-      PackageManagerEntity packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
-      Query query = em.createQuery("from " + InstalledPackage.class.getSimpleName() + " p where p.name='" + name
+      PersistentPackageManager packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
+      Query query = em.createQuery("from " + PersistentPackage.class.getSimpleName() + " p where p.name='" + name
             + "' and p.packageManager.id=" + packageManager.getId());
       List<Object> result = query.getResultList();
 
@@ -181,19 +180,19 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
     * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#getDependentPackages(java.lang.String)
     */
    @Override
-   public Set<InstalledPackage> getDependentPackages(String name) throws PackageNotInstalledException
+   public Set<PersistentPackage> getDependentPackages(String name) throws PackageNotInstalledException
    {
-      InstalledPackage installedPackage = this.getInstalledPackage(name);
+      PersistentPackage installedPackage = this.getInstalledPackage(name);
       EntityManager em = this.getEntityManager();
-      Query query = em.createQuery("select pd.dependentPackage from " + PackageDependency.class.getSimpleName()
+      Query query = em.createQuery("select pd.dependentPackage from " + PersistentDependency.class.getSimpleName()
             + " pd " + "join pd.dependeePackage p " + " where p.name='" + installedPackage.getPackageName() + "'");
 
-      List<InstalledPackage> result = query.getResultList();
+      List<PersistentPackage> result = query.getResultList();
       if (result == null || result.isEmpty())
       {
          return Collections.EMPTY_SET;
       }
-      Set<InstalledPackage> dependentPackages = new HashSet<InstalledPackage>(result);
+      Set<PersistentPackage> dependentPackages = new HashSet<PersistentPackage>(result);
       return dependentPackages;
    }
 
@@ -204,10 +203,10 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
     * @return
     * @throws PackageManagerException 
     */
-   private InstalledPackage createPackage(PackageManagerEntity pkgMgrEntity, PackageContext pkgCtx)
+   private PersistentPackage createPackage(PersistentPackageManager pkgMgrEntity, PackageContext pkgCtx)
          throws PackageManagerException
    {
-      InstalledPackage newPackage = new InstalledPackage(pkgMgrEntity, pkgCtx.getPackageName(), pkgCtx
+      PersistentPackage newPackage = new PersistentPackage(pkgMgrEntity, pkgCtx.getPackageName(), pkgCtx
             .getPackageVersion());
 
       List<InstallFileType> files = pkgCtx.getInstallationFiles();
@@ -215,7 +214,7 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
       {
          for (InstallFileType file : files)
          {
-            InstalledFile installationFile = new InstalledFile(file.getName(), file.getDestPath());
+            PersistentFile installationFile = new PersistentFile(file.getName(), file.getDestPath());
             if (file.getType() != null)
             {
                installationFile.setFileType(file.getType().toString());
@@ -226,25 +225,25 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
          }
       }
       String relativePathToScriptStore = this.packageManagerCtx.getScriptStoreLocation(pkgCtx);
-      List<PreUninstallScript> preUnInstallScripts = pkgCtx.getPreUnInstallScripts();
+      List<ScriptType> preUnInstallScripts = pkgCtx.getPreUnInstallScripts();
       if (preUnInstallScripts != null)
       {
-         for (PreUninstallScript script : preUnInstallScripts)
+         for (ScriptType script : preUnInstallScripts)
          {
             String scriptName = script.getName();
-            PreUnInstallScript preUnInstallScript = new PreUnInstallScript(newPackage, scriptName,
+            PersistentPreUnInstallScript preUnInstallScript = new PersistentPreUnInstallScript(newPackage, scriptName,
                   relativePathToScriptStore);
             newPackage.addPreUnInstallScript(preUnInstallScript);
          }
       }
 
-      List<PostUnInstallScript> postUnInstallScripts = pkgCtx.getPostUnInstallScripts();
+      List<ScriptType> postUnInstallScripts = pkgCtx.getPostUnInstallScripts();
       if (postUnInstallScripts != null)
       {
-         for (PostUnInstallScript script : postUnInstallScripts)
+         for (ScriptType script : postUnInstallScripts)
          {
             String scriptName = script.getName();
-            org.jboss.ejb3.packagemanager.entity.PostUnInstallScript postUnInstallScript = new org.jboss.ejb3.packagemanager.entity.PostUnInstallScript(
+            org.jboss.ejb3.packagemanager.entity.PersistentPostUnInstallScript postUnInstallScript = new org.jboss.ejb3.packagemanager.entity.PersistentPostUnInstallScript(
                   newPackage, scriptName, relativePathToScriptStore);
             newPackage.addPostUnInstallScript(postUnInstallScript);
          }
@@ -253,15 +252,15 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
       Set<PackageContext> dependencyPackages = pkgCtx.getDependencyPackages();
       if (dependencyPackages != null)
       {
-         Set<PackageDependency> dependencyPackagesForNewPackage = new HashSet<PackageDependency>(dependencyPackages
+         Set<PersistentDependency> dependencyPackagesForNewPackage = new HashSet<PersistentDependency>(dependencyPackages
                .size());
          newPackage.setDependencies(dependencyPackagesForNewPackage);
 
          for (PackageContext dependencyPkgCtx : dependencyPackages)
          {
-            PackageDependency dependency = new PackageDependency();
+            PersistentDependency dependency = new PersistentDependency();
             dependency.setDependentPackage(newPackage);
-            InstalledPackage dependencyPackage = this.getInstalledPackage(dependencyPkgCtx.getPackageName());
+            PersistentPackage dependencyPackage = this.getInstalledPackage(dependencyPkgCtx.getPackageName());
             dependency.setDependeePackage(dependencyPackage);
 
             dependencyPackagesForNewPackage.add(dependency);
@@ -280,7 +279,7 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
       {
          throw new PackageNotInstalledException(name);
       }
-      InstalledPackage installedPackage = this.getInstalledPackage(name);
+      PersistentPackage installedPackage = this.getInstalledPackage(name);
       this.removePackage(installedPackage);
 
    }
@@ -302,10 +301,10 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#removePackage(org.jboss.ejb3.packagemanager.entity.InstalledPackage)
+    * @see org.jboss.ejb3.packagemanager.db.PackageDatabaseManager#removePackage(org.jboss.ejb3.packagemanager.entity.PersistentPackage)
     */
    @Override
-   public void removePackage(InstalledPackage installedPackage)
+   public void removePackage(PersistentPackage installedPackage)
    {
       EntityManager em = this.getEntityManager();
       //EntityTransaction tx = em.getTransaction();

@@ -27,14 +27,14 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 /**
- * PostUnInstallScript
+ * PreUnInstallScript
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
 @Entity
-@DiscriminatorValue(value="post-uninstall")
-public class PostUnInstallScript extends Script
+@DiscriminatorValue(value = "pre-uninstall")
+public class PersistentPreUnInstallScript extends PersistentScript
 {
 
    // Bad! Hibernate wants this here, instead of on the super class.
@@ -44,36 +44,36 @@ public class PostUnInstallScript extends Script
    // Caused by: org.hibernate.AnnotationException: mappedBy reference an unknown target entity property: 
    // org.jboss.ejb3.packagemanager.entity.PostUnInstallScript.installedPkg 
    // in org.jboss.ejb3.packagemanager.entity.InstalledPackage.postUnInstallScripts
-   @ManyToOne 
-   @JoinColumn(name="package_name")
-   protected InstalledPackage installedPkg;
-   
-   private PostUnInstallScript()
+   @ManyToOne
+   @JoinColumn(name = "package_name")
+   protected PersistentPackage installedPkg;
+
+   private PersistentPreUnInstallScript()
    {
-      //for jpa
+      // for jpa
    }
-   
-   public PostUnInstallScript(String fileName, String path)
+
+   public PersistentPreUnInstallScript(String fileName, String path)
    {
       super(fileName, path);
    }
-   
+
    /**
     * @param pkg
     * @param scriptFile
     */
-   public PostUnInstallScript(InstalledPackage pkg, String fileName, String path)
+   public PersistentPreUnInstallScript(PersistentPackage pkg, String fileName, String path)
    {
       super(fileName, path);
       this.installedPkg = pkg;
    }
 
-   public InstalledPackage getInstalledPkg()
+   public PersistentPackage getInstalledPkg()
    {
       return installedPkg;
    }
 
-   public void setInstalledPkg(InstalledPackage installedPkg)
+   public void setInstalledPkg(PersistentPackage installedPkg)
    {
       this.installedPkg = installedPkg;
    }

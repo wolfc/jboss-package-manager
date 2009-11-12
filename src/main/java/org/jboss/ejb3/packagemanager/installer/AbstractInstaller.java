@@ -25,8 +25,8 @@ import java.io.File;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
-import org.jboss.ejb3.packagemanager.entity.InstalledFile;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentFile;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.logging.Logger;
@@ -53,7 +53,7 @@ public abstract class AbstractInstaller implements Installer
     * @see org.jboss.ejb3.packagemanager.installer.Installer#uninstall(org.jboss.ejb3.packagemanager.PackageManagerContext, org.jboss.ejb3.packagemanager.PackageContext)
     */
    @Override
-   public void uninstall(InstalledPackage pkg, InstalledFile installedFile) throws PackageManagerException
+   public void uninstall(PersistentPackage pkg, PersistentFile installedFile) throws PackageManagerException
    {
       String jbossHome = pkg.getPackageManager().getJbossHome();
       File relativePathToFile = new File(jbossHome, installedFile.getInstalledPath());

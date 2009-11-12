@@ -38,21 +38,21 @@ public interface PreUnInstallType
     * 
     * @return
     */
-   List<PreUninstallScript> getScripts();
+   List<ScriptType> getScripts();
 
    /**
     * Sets the list of pre-uninstall scripts for a package
     * 
     * @param scripts The pre-uninstall scripts
     */
-   void setScripts(List<PreUninstallScript> scripts);
+   void setScripts(List<ScriptType> scripts);
 
    /**
     * Adds a pre-uninstall script to the list of pre-uninstall scripts 
     * for this package
     * @param script
     */
-   void addScript(PreUninstallScript script);
+   void addScript(ScriptType script);
 
    /**
     * Returns the package to which this pre-uninstall step

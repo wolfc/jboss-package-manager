@@ -46,12 +46,9 @@ import org.jboss.ejb3.packagemanager.metadata.PostInstallType;
 import org.jboss.ejb3.packagemanager.metadata.PostUnInstallType;
 import org.jboss.ejb3.packagemanager.metadata.PreInstallType;
 import org.jboss.ejb3.packagemanager.metadata.PreUnInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
 import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
-import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PostUnInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PreInstallScript;
-import org.jboss.ejb3.packagemanager.metadata.impl.PreUninstallScript;
 import org.jboss.ejb3.packagemanager.retriever.PackageRetriever;
 import org.jboss.ejb3.packagemanager.retriever.impl.PackageRetrievalFactory;
 import org.jboss.ejb3.packagemanager.util.IOUtil;
@@ -178,14 +175,14 @@ public class DefaultPackageContext implements PackageContext
     * @see org.jboss.ejb3.packagemanager.PackageContext#getPostInstallScripts()
     */
    @Override
-   public List<PostInstallScript> getPostInstallScripts()
+   public List<ScriptType> getPostInstallScripts()
    {
       PostInstallType postInstall = this.pkg.getPostInstall();
       if (postInstall == null)
       {
          return Collections.EMPTY_LIST;
       }
-      List<PostInstallScript> postInstallScripts = postInstall.getScripts();
+      List<ScriptType> postInstallScripts = postInstall.getScripts();
       if (postInstallScripts == null)
       {
          return Collections.EMPTY_LIST;
@@ -198,14 +195,14 @@ public class DefaultPackageContext implements PackageContext
     * @see org.jboss.ejb3.packagemanager.PackageContext#getPreInstallScripts()
     */
    @Override
-   public List<PreInstallScript> getPreInstallScripts()
+   public List<ScriptType> getPreInstallScripts()
    {
       PreInstallType preInstall = this.pkg.getPreInstall();
       if (preInstall == null)
       {
          return Collections.EMPTY_LIST;
       }
-      List<PreInstallScript> preInstallScripts = preInstall.getScripts();
+      List<ScriptType> preInstallScripts = preInstall.getScripts();
       if (preInstallScripts == null)
       {
          return Collections.EMPTY_LIST;
@@ -217,14 +214,14 @@ public class DefaultPackageContext implements PackageContext
     * @see org.jboss.ejb3.packagemanager.PackageContext#getPostUnInstallScripts()
     */
    @Override
-   public List<PostUnInstallScript> getPostUnInstallScripts()
+   public List<ScriptType> getPostUnInstallScripts()
    {
       PostUnInstallType postUnInstall = this.pkg.getPostUninstall();
       if (postUnInstall == null)
       {
          return Collections.EMPTY_LIST;
       }
-      List<PostUnInstallScript> postUnInstallScripts = postUnInstall.getScripts();
+      List<ScriptType> postUnInstallScripts = postUnInstall.getScripts();
       if (postUnInstallScripts == null)
       {
          return Collections.EMPTY_LIST;
@@ -236,14 +233,14 @@ public class DefaultPackageContext implements PackageContext
     * @see org.jboss.ejb3.packagemanager.PackageContext#getPreUnInstallScripts()
     */
    @Override
-   public List<PreUninstallScript> getPreUnInstallScripts()
+   public List<ScriptType> getPreUnInstallScripts()
    {
       PreUnInstallType preUnInstall = this.pkg.getPreUninstall();
       if (preUnInstall == null)
       {
          return Collections.EMPTY_LIST;
       }
-      List<PreUninstallScript> preUnInstallScripts = preUnInstall.getScripts();
+      List<ScriptType> preUnInstallScripts = preUnInstall.getScripts();
       if (preUnInstallScripts == null)
       {
          return Collections.EMPTY_LIST;

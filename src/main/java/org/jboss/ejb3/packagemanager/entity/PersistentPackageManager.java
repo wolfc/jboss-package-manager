@@ -37,7 +37,7 @@ import org.jboss.ejb3.packagemanager.PackageManagerContext;
  */
 @Entity
 @Table(name = "package_manager")
-public class PackageManagerEntity
+public class PersistentPackageManager
 {
 
    @Id
@@ -46,17 +46,17 @@ public class PackageManagerEntity
 
    private String jbossHome;
 
-   private PackageManagerEntity()
+   private PersistentPackageManager()
    {
       // for jpa
    }
 
-   public PackageManagerEntity(String jbossHome)
+   public PersistentPackageManager(String jbossHome)
    {
       this.jbossHome = jbossHome;
    }
 
-   public PackageManagerEntity(PackageManagerContext pkgMgrCtx)
+   public PersistentPackageManager(PackageManagerContext pkgMgrCtx)
    {
       this.jbossHome = pkgMgrCtx.getJBossServerHome();
    }

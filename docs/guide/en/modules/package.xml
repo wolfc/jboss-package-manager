@@ -291,7 +291,7 @@
 
                     <tbody>
                         <row>
-                            <entry>file</entry>
+                            <entry>name</entry>
                             <entry>Optional</entry>
                             <entry>package-script.xml</entry>
                             <entry>The value of this attribute, is the relative path to the script file (including
@@ -299,6 +299,21 @@
                             package.xml. For example, if the script file is named build.xml and is located at the root
                             of the package (i.e. at the same level as package.xml), then the value of this attribute
                                 should be set to "build.xml".
+                            </entry>
+                        </row>
+                    </tbody>
+
+                    <tbody>
+                        <row>
+                            <entry>path</entry>
+                            <entry>Optional</entry>
+                            <entry></entry>
+                            <entry>The value of this attribute, is the relative path to the script file within the package.
+                                The path is relative to the location of package.xml. For example, if the script file is
+                                named build.xml and is located in the "scripts" folder of the package, then the value of
+                                this attribute will be "scripts" and the value of the name attribute will be "build.xml".
+                                If this value is not specified then the build file is expected to be at the root of the
+                                package (i.e. same level as the package.xml)
                             </entry>
                         </row>
                     </tbody>
@@ -321,12 +336,12 @@
 
 <!-- A couple of pre-install files for this package -->
 <pre-install>
-<!-- The default package-script.xml will be used for this -->
+<!-- The default package-script.xml located at the root, will be used for this -->
 <script />
 <!-- The build.xml file located in the scripts folder, under the package root,
   will be used.
 -->
-<script file="scripts/build.xml" />
+<script name="build.xml" path="scripts"/>
 </pre-install>
 
 <!-- A post-install script -->
@@ -334,7 +349,7 @@
 <!-- We use the same scripts/build.xml file that was used for pre-install,
 because that build.xml can contain both pre-install and post-install
 targets -->
-<script file="scripts/build.xml"/>
+<script name="build.xml" path="scripts"/>
 </post-install>
 
 

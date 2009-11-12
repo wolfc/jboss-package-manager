@@ -27,13 +27,9 @@ import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
-import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
 import org.jboss.logging.Logger;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -188,6 +184,35 @@ public class UnInstallTestCase extends PackageManagerTestCase
       this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
       // check that post-uninstall script was run
       this.assertFileExistenceUnderJBossHome(jbossHome, "bin/post-uninstall.txt");
+      
+   }
+   
+   /**
+    * Tests that the pre-uninstall script runs during the uninstall process  
+    * 
+    * @throws Exception
+    */
+   @Test
+   public void testPreUnInstallScriptExecution() throws Exception
+   {
+      File preUnInstallScriptPackage = this.createPackageWithPreUnInstallScript("pre-uninstall-test-package.jar");
+      
+      // As a sanity check, ensure that the file supposed to be created by our pre-uninstall 
+      // step is not already present
+      this.assertFileAbsenceUnderJBossHome(jbossHome, "bin/pre-uninstall.txt");
+      
+      // first install
+      pkgMgr.installPackage(preUnInstallScriptPackage.getAbsolutePath());
+      
+      // simple check to ensure installation was successful
+      this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
+      
+      // now uninstall
+      pkgMgr.removePackage("common-package-with-pre-uninstall");
+      // make sure uninstall was successful
+      this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
+      // check that pre-uninstall script was run
+      this.assertFileExistenceUnderJBossHome(jbossHome, "bin/pre-uninstall.txt");
       
    }
 

@@ -44,21 +44,21 @@ public interface PreInstallType
     * 
     * @return
     */
-   List<PreInstallScript> getScripts();
+   List<ScriptType> getScripts();
    
    /**
     * Sets the list of pre-install scripts for a package
     * 
     * @param scripts The pre-install scripts
     */ 
-   void setScripts(List<PreInstallScript> scripts);
+   void setScripts(List<ScriptType> scripts);
    
    /**
     * Adds a pre-install script to the list of pre-install scripts 
     * for this package
     * @param script
     */
-   void addScript(PreInstallScript script);
+   void addScript(ScriptType script);
    
    /**
     * Returns the package to which this pre-install step

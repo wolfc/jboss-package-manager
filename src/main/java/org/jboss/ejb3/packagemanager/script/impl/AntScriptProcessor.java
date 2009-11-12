@@ -33,8 +33,8 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
-import org.jboss.ejb3.packagemanager.entity.PackageManagerEntity;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackageManager;
 import org.jboss.ejb3.packagemanager.exception.ScriptProcessingException;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.logging.Logger;
@@ -71,10 +71,10 @@ public class AntScriptProcessor implements ScriptProcessor
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPostUnInstallScript(PackageManagerContext, InstalledPackage, File)
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPostUnInstallScript(PackageManagerContext, PersistentPackage, File)
     */
    @Override
-   public void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script)
+   public void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, PersistentPackage installedPackage, File script)
          throws ScriptProcessingException
    {
       // Set the properties JBOSS_HOME and PM_HOME for the 
@@ -108,10 +108,10 @@ public class AntScriptProcessor implements ScriptProcessor
    }
 
    /**
-    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPreUnInstallScript(PackageManagerContext, InstalledPackage, File)
+    * @see org.jboss.ejb3.packagemanager.script.ScriptProcessor#processPreUnInstallScript(PackageManagerContext, PersistentPackage, File)
     */
    @Override
-   public void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, InstalledPackage installedPackage, File script)
+   public void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, PersistentPackage installedPackage, File script)
          throws ScriptProcessingException
    {
       // Set the properties JBOSS_HOME and PM_HOME for the 

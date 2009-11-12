@@ -26,6 +26,7 @@ import java.util.List;
 
 import org.jboss.ejb3.packagemanager.metadata.PackageType;
 import org.jboss.ejb3.packagemanager.metadata.PostUnInstallType;
+import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
  * PostUnInstallImpl
@@ -43,7 +44,7 @@ public class PostUnInstallImpl implements PostUnInstallType
    /**
     * post-install scripts
     */
-   private List<PostUnInstallScript> scripts;
+   private List<ScriptType> scripts;
 
    /**
     * Constructor
@@ -57,7 +58,7 @@ public class PostUnInstallImpl implements PostUnInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PostUnInstallType#addScript(PostUnInstallScript)
     */
-   public void addScript(PostUnInstallScript script)
+   public void addScript(ScriptType script)
    {
       if (script == null)
       {
@@ -65,7 +66,7 @@ public class PostUnInstallImpl implements PostUnInstallType
       }
       if (this.scripts == null)
       {
-         this.scripts = new ArrayList<PostUnInstallScript>();
+         this.scripts = new ArrayList<ScriptType>();
       }
       this.scripts.add(script);
 
@@ -82,7 +83,7 @@ public class PostUnInstallImpl implements PostUnInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PostUnInstallType#getScripts()
     */
-   public List<PostUnInstallScript> getScripts()
+   public List<ScriptType> getScripts()
    {
       return this.scripts;
    }
@@ -90,7 +91,7 @@ public class PostUnInstallImpl implements PostUnInstallType
    /**
     * @see org.jboss.ejb3.packagemanager.metadata.PostUnInstallType#setScripts(List)
     */
-   public void setScripts(List<PostUnInstallScript> scripts)
+   public void setScripts(List<ScriptType> scripts)
    {
       if (scripts == null)
       {

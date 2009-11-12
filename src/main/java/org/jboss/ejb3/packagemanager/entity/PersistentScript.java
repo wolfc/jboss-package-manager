@@ -21,56 +21,60 @@
 */
 package org.jboss.ejb3.packagemanager.entity;
 
+import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.ForceDiscriminator;
+
 /**
- * InstallationFile
+ * Script
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
 @Entity
-@Table(name="installation_file")
-public class InstalledFile
+@Table (name="script")
+@Inheritance (strategy=InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn (name="scriptType")
+// Hibernate specific issue - Without the "ForcedDiscriminator" annotation
+// it fetches both pre-uninstall/post-uninstall scripts in the set maintained in InstalledPackage
+// OneToMany association. (i.e. if ForceDiscriminator is not used, 
+// thenHibernate does not use the discriminator column in the where clause which fetching the set, 
+// it just uses the join column). See https://forum.hibernate.org/viewtopic.php?t=961213
+@ForceDiscriminator
+public abstract class PersistentScript
 {
 
    @Id
-   @GeneratedValue (strategy = GenerationType.IDENTITY)
-   private long id;
+   @GeneratedValue(strategy = GenerationType.IDENTITY)
+   protected long id;
+
+   protected String name;
    
-   private String fileName;
+   protected String path;
    
-   private String installedPath;
    
-   private String fileType;
-   
-   @ManyToOne 
-   @JoinColumn(name="package_name")
-   private InstalledPackage pkg;
-   
-   private InstalledFile()
+
+   protected PersistentScript()
    {
       // for jpa
    }
    
-   /**
-    * Constructor
-    * 
-    * @param fileName The name of the file
-    * @param pathWhereInstalled The path, relative to JBOSS_HOME where this file is installed
-    */
-   public InstalledFile(String fileName, String pathWhereInstalled)
+   protected PersistentScript(String fileName, String path)
    {
-      this.fileName = fileName;
-      this.installedPath = pathWhereInstalled;
+      this.name = fileName;
+      this.path = path;
    }
-
+   
+   
    public long getId()
    {
       return id;
@@ -81,45 +85,38 @@ public class InstalledFile
       this.id = id;
    }
 
-   public String getFileName()
+   public String getScriptFile()
    {
-      return fileName;
+      return name;
    }
 
-   public void setFileName(String fileName)
+   public void setScriptFile(String scriptFile)
    {
-      this.fileName = fileName;
+      this.name = scriptFile;
    }
 
-   public String getInstalledPath()
+   
+
+   public String getName()
    {
-      return installedPath;
+      return name;
    }
 
-   public void setInstalledPath(String installedPath)
+   public void setName(String name)
    {
-      this.installedPath = installedPath;
+      this.name = name;
    }
 
-   public String getFileType()
+   public String getPath()
    {
-      return fileType;
+      return path;
    }
 
-   public void setFileType(String fileType)
+   public void setPath(String path)
    {
-      this.fileType = fileType;
+      this.path = path;
    }
 
-   public InstalledPackage getPkg()
-   {
-      return pkg;
-   }
-
-   public void setPkg(InstalledPackage pkg)
-   {
-      this.pkg = pkg;
-   }
    
    
    

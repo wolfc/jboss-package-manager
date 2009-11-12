@@ -39,21 +39,21 @@ public interface PostUnInstallType
     * 
     * @return
     */
-   List<PostUnInstallScript> getScripts();
+   List<ScriptType> getScripts();
 
    /**
     * Sets the list of post-uninstall scripts for a package
     * 
     * @param scripts The post-uninstall scripts
     */
-   void setScripts(List<PostUnInstallScript> scripts);
+   void setScripts(List<ScriptType> scripts);
 
    /**
     * Adds a post-uninstall script to the list of post-uninstall scripts 
     * for this package
     * @param script
     */
-   void addScript(PostUnInstallScript script);
+   void addScript(ScriptType script);
 
    /**
     * Returns the package to which this post-uninstall step

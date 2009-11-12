@@ -11,6 +11,7 @@
 <!ENTITY package-build-tool SYSTEM "modules/package-build-tool.xml">
 <!ENTITY package-manager-database SYSTEM "modules/package-manager-database.xml">
 <!ENTITY installation SYSTEM "modules/installing.xml">
+<!ENTITY transaction SYSTEM "modules/transaction.xml">
 ]>
 <book lang="en">
   <bookinfo>
@@ -28,6 +29,7 @@
     &overview;
     &components;
     &ivyDepMgr;
+    &transaction;
     &installation;
     &status;
 </book>

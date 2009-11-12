@@ -23,8 +23,6 @@ package org.jboss.ejb3.packagemanager.metadata;
 
 import java.util.List;
 
-import org.jboss.ejb3.packagemanager.metadata.impl.PostInstallScript;
-
 /**
  * PostInstallMetadata
  *
@@ -42,21 +40,21 @@ public interface PostInstallType
     * 
     * @return
     */
-   List<PostInstallScript> getScripts();
+   List<ScriptType> getScripts();
 
    /**
     * Sets the list of post-install scripts for a package
     * 
     * @param scripts The post-install scripts
     */
-   void setScripts(List<PostInstallScript> scripts);
+   void setScripts(List<ScriptType> scripts);
 
    /**
     * Adds a post-install script to the list of post-install scripts 
     * for this package
     * @param script
     */
-   void addScript(PostInstallScript script);
+   void addScript(ScriptType script);
 
    /**
     * Returns the package to which this post-install step

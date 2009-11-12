@@ -38,7 +38,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "package_dependency")
-public class PackageDependency
+public class PersistentDependency
 {
 
    @Id
@@ -47,11 +47,11 @@ public class PackageDependency
 
    @ManyToOne(cascade = CascadeType.REFRESH)
    @JoinColumn(name = "dependent_package")
-   private InstalledPackage dependentPackage;
+   private PersistentPackage dependentPackage;
 
    @ManyToOne(cascade = CascadeType.REFRESH)
    @JoinColumn(name = "dependee_package")
-   private InstalledPackage dependeePackage;
+   private PersistentPackage dependeePackage;
 
    public long getId()
    {
@@ -63,22 +63,22 @@ public class PackageDependency
       this.id = id;
    }
 
-   public InstalledPackage getDependentPackage()
+   public PersistentPackage getDependentPackage()
    {
       return dependentPackage;
    }
 
-   public void setDependentPackage(InstalledPackage dependentPackage)
+   public void setDependentPackage(PersistentPackage dependentPackage)
    {
       this.dependentPackage = dependentPackage;
    }
 
-   public InstalledPackage getDependeePackage()
+   public PersistentPackage getDependeePackage()
    {
       return dependeePackage;
    }
 
-   public void setDependeePackage(InstalledPackage dependeePackage)
+   public void setDependeePackage(PersistentPackage dependeePackage)
    {
       this.dependeePackage = dependeePackage;
    }
@@ -93,11 +93,11 @@ public class PackageDependency
       {
          return false;
       }
-      if (!(obj instanceof PackageDependency))
+      if (!(obj instanceof PersistentDependency))
       {
          return false;
       }
-      PackageDependency other = (PackageDependency) obj;
+      PersistentDependency other = (PersistentDependency) obj;
       if (this.dependeePackage != null && this.dependentPackage != null)
       {
          return this.dependeePackage.equals(other.getDependeePackage()) && this.dependentPackage.equals(other.getDependentPackage());

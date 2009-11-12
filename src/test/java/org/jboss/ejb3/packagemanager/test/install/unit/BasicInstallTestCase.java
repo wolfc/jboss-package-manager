@@ -27,12 +27,8 @@ import java.io.File;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.PackageManagerFactory;
-import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
-import org.jboss.ejb3.packagemanager.main.Main;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
-import org.jboss.ejb3.packagemanager.test.uninstall.unit.UnInstallTestCase;
 import org.jboss.logging.Logger;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -121,6 +117,30 @@ public class BasicInstallTestCase extends PackageManagerTestCase
       // also installed (at JBOSS_HOME/server/default/deploy folder)
       this.assertFileExistenceUnderJBossHome(this.jbossHome, "server/default/deploy/dummy.jar");
 
+   }
+
+   /**
+    * Tests that the post-install script runs during the install process  
+    * 
+    * @throws Exception
+    */
+   @Test
+   public void testPostInstallScriptExecution() throws Exception
+   {
+      File postInstallScriptPackage = this.createPackageWithPostInstallScript("post-install-test-package.jar");
+
+      // As a sanity check, ensure that the file supposed to be created by our post-install 
+      // step is not already present
+      this.assertFileAbsenceUnderJBossHome(jbossHome, "bin/post-install.txt");
+
+      // first install
+      pkgMgr.installPackage(postInstallScriptPackage.getAbsolutePath());
+
+      // simple check to ensure installation was successful
+      this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
+
+      // check that post-install script was run
+      this.assertFileExistenceUnderJBossHome(jbossHome, "bin/post-install.txt");
    }
 
    /**

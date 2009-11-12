@@ -42,7 +42,7 @@ import org.hibernate.annotations.ForceDiscriminator;
  */
 @Entity
 @Table(name = "package")
-public class InstalledPackage
+public class PersistentPackage
 {
 
    @Id
@@ -51,27 +51,27 @@ public class InstalledPackage
    private String version;
 
    @OneToMany(mappedBy = "dependentPackage", cascade = CascadeType.ALL)
-   private Set<PackageDependency> dependencies;
+   private Set<PersistentDependency> dependencies;
 
    @OneToMany(mappedBy = "pkg", cascade = CascadeType.ALL)
-   private Set<InstalledFile> installationFiles;
+   private Set<PersistentFile> installationFiles;
 
    @OneToMany(mappedBy = "installedPkg", cascade = CascadeType.ALL)
-   private Set<PreUnInstallScript> preUnInstallScripts;
+   private Set<PersistentPreUnInstallScript> preUnInstallScripts;
 
    @OneToMany(mappedBy = "installedPkg", cascade = CascadeType.ALL)
-   private Set<PostUnInstallScript> postUnInstallScripts;
+   private Set<PersistentPostUnInstallScript> postUnInstallScripts;
 
    @ManyToOne
    @JoinColumn(name = "package_manager_id")
-   private PackageManagerEntity packageManager;
+   private PersistentPackageManager packageManager;
 
-   private InstalledPackage()
+   private PersistentPackage()
    {
       // for JPA
    }
 
-   public InstalledPackage(PackageManagerEntity pkgMgr, String packageName, String packageVersion)
+   public PersistentPackage(PersistentPackageManager pkgMgr, String packageName, String packageVersion)
    {
       this.packageManager = pkgMgr;
       this.name = packageName;
@@ -88,103 +88,103 @@ public class InstalledPackage
       return this.version;
    }
 
-   public Set<InstalledFile> getInstallationFiles()
+   public Set<PersistentFile> getInstallationFiles()
    {
       return installationFiles;
    }
 
-   public void setInstallationFiles(Set<InstalledFile> installationFiles)
+   public void setInstallationFiles(Set<PersistentFile> installationFiles)
    {
       this.installationFiles = installationFiles;
    }
    
-   public void addInstallationFile(InstalledFile file)
+   public void addInstallationFile(PersistentFile file)
    {
       if (this.installationFiles == null)
       {
-         this.installationFiles = new HashSet<InstalledFile>();
+         this.installationFiles = new HashSet<PersistentFile>();
       }
       this.installationFiles.add(file);
    }
 
-   public Set<PreUnInstallScript> getPreUnInstallScripts()
+   public Set<PersistentPreUnInstallScript> getPreUnInstallScripts()
    {
       return this.preUnInstallScripts;
    }
 
-   public void setPreUnInstallScript(Set<PreUnInstallScript> preUnInstallScripts)
+   public void setPreUnInstallScript(Set<PersistentPreUnInstallScript> preUnInstallScripts)
    {
       this.preUnInstallScripts = preUnInstallScripts;
    }
 
-   public void addPreUnInstallScript(PreUnInstallScript preUnInstallScrtipt)
+   public void addPreUnInstallScript(PersistentPreUnInstallScript preUnInstallScrtipt)
    {
       if (this.preUnInstallScripts == null)
       {
-         this.preUnInstallScripts = new HashSet<PreUnInstallScript>();
+         this.preUnInstallScripts = new HashSet<PersistentPreUnInstallScript>();
       }
       this.preUnInstallScripts.add(preUnInstallScrtipt);
    }
 
-   public Set<PostUnInstallScript> getPostUnInstallScripts()
+   public Set<PersistentPostUnInstallScript> getPostUnInstallScripts()
    {
       return this.postUnInstallScripts;
    }
 
-   public void setPostUnInstallScript(Set<PostUnInstallScript> postUnInstallScripts)
+   public void setPostUnInstallScript(Set<PersistentPostUnInstallScript> postUnInstallScripts)
    {
       this.postUnInstallScripts = postUnInstallScripts;
    }
 
-   public void addPostUnInstallScript(PostUnInstallScript postUnInstallScript)
+   public void addPostUnInstallScript(PersistentPostUnInstallScript postUnInstallScript)
    {
       if (this.postUnInstallScripts == null)
       {
-         this.postUnInstallScripts = new HashSet<PostUnInstallScript>();
+         this.postUnInstallScripts = new HashSet<PersistentPostUnInstallScript>();
       }
       this.postUnInstallScripts.add(postUnInstallScript);
 
    }
 
-   public PackageManagerEntity getPackageManager()
+   public PersistentPackageManager getPackageManager()
    {
       return packageManager;
    }
 
-   public void setPackageManager(PackageManagerEntity packageManager)
+   public void setPackageManager(PersistentPackageManager packageManager)
    {
       this.packageManager = packageManager;
    }
 
-   public Set<PackageDependency> getDependencies()
+   public Set<PersistentDependency> getDependencies()
    {
       return dependencies;
    }
 
-   public void setDependencies(Set<PackageDependency> dependencies)
+   public void setDependencies(Set<PersistentDependency> dependencies)
    {
       this.dependencies = dependencies;
    }
 
-   public void addDependency(PackageDependency dependency)
+   public void addDependency(PersistentDependency dependency)
    {
       if (this.dependencies == null)
       {
-         this.dependencies = new HashSet<PackageDependency>();
+         this.dependencies = new HashSet<PersistentDependency>();
       }
       this.dependencies.add(dependency);
    }
 
-   public void addDependencies(Set<PackageDependency> dependencies)
+   public void addDependencies(Set<PersistentDependency> dependencies)
    {
       if (this.dependencies == null)
       {
-         this.dependencies = new HashSet<PackageDependency>();
+         this.dependencies = new HashSet<PersistentDependency>();
       }
       this.dependencies.addAll(dependencies);
    }
 
-   public void removeDependency(PackageDependency dependency)
+   public void removeDependency(PersistentDependency dependency)
    {
       if (this.dependencies == null)
       {
@@ -193,14 +193,14 @@ public class InstalledPackage
       this.dependencies.remove(dependency);
    }
 
-   public void removeDependency(InstalledPackage dependencyPackage)
+   public void removeDependency(PersistentPackage dependencyPackage)
    {
       if (this.dependencies == null)
       {
          return;
       }
-      Set<PackageDependency> copyOfDependencies = new HashSet<PackageDependency>(this.dependencies);
-      for (PackageDependency dependency : copyOfDependencies)
+      Set<PersistentDependency> copyOfDependencies = new HashSet<PersistentDependency>(this.dependencies);
+      for (PersistentDependency dependency : copyOfDependencies)
       {
          if (dependency.getDependentPackage().equals(dependencyPackage))
          {
@@ -220,11 +220,11 @@ public class InstalledPackage
       {
          return false;
       }
-      if (!(obj instanceof InstalledPackage))
+      if (!(obj instanceof PersistentPackage))
       {
          return false;
       }
-      InstalledPackage otherPackge = (InstalledPackage) obj;
+      PersistentPackage otherPackge = (PersistentPackage) obj;
       return this.name == otherPackge.name;
 
    }

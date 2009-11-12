@@ -24,7 +24,7 @@ package org.jboss.ejb3.packagemanager.db;
 import java.util.Set;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 
 /**
@@ -46,10 +46,10 @@ public interface PackageDatabaseManager
     * installation
     *  
     * @param pkgCtx The package which was installed.
-    * @return Returns the {@link InstalledPackage} representing the newly
+    * @return Returns the {@link PersistentPackage} representing the newly
     * installed package
     */
-   InstalledPackage installPackage(PackageContext pkgCtx);
+   PersistentPackage installPackage(PackageContext pkgCtx);
    
    /**
     * Returns a package with the package name - <code>name</code>, which is already installed. 
@@ -62,7 +62,7 @@ public interface PackageDatabaseManager
     * @throws PackageNotInstalledException If the package with the name <code>name</code> is 
     * not installed
     */
-   InstalledPackage getInstalledPackage(String name) throws PackageNotInstalledException;
+   PersistentPackage getInstalledPackage(String name) throws PackageNotInstalledException;
    
    /**
     * Returns true if the package with the given <code>name</code> is already installed.
@@ -74,7 +74,7 @@ public interface PackageDatabaseManager
    boolean isPackageInstalled(String name);
    
    /**
-    * Returns a set of {@link InstalledPackage}s which depend on the package with the
+    * Returns a set of {@link PersistentPackage}s which depend on the package with the
     * name <code>name</code>. If there are no such dependent packages then an empty
     * set is returned.
     * 
@@ -83,7 +83,7 @@ public interface PackageDatabaseManager
     * @throws If the package with <code>name</code> is not installed, then {@link PackageNotInstalledException}
     * is thrown
     */
-   Set<InstalledPackage> getDependentPackages(String name) throws PackageNotInstalledException;
+   Set<PersistentPackage> getDependentPackages(String name) throws PackageNotInstalledException;
    
    /**
     * Removes the package from the DB records.
@@ -99,7 +99,7 @@ public interface PackageDatabaseManager
     * 
     * @param installedPackage The package which has been installed
     */
-   void removePackage(InstalledPackage installedPackage);
+   void removePackage(PersistentPackage installedPackage);
    
    
 }

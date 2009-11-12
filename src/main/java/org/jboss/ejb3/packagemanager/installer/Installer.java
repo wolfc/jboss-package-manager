@@ -22,8 +22,8 @@
 package org.jboss.ejb3.packagemanager.installer;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
-import org.jboss.ejb3.packagemanager.entity.InstalledFile;
-import org.jboss.ejb3.packagemanager.entity.InstalledPackage;
+import org.jboss.ejb3.packagemanager.entity.PersistentFile;
+import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 
@@ -38,5 +38,5 @@ public interface Installer
 
    void install(PackageContext pkgCtx, InstallFileType fileToInstall) throws PackageManagerException;
    
-   void uninstall(InstalledPackage installedPackage, InstalledFile fileToUnInstall) throws PackageManagerException;
+   void uninstall(PersistentPackage installedPackage, PersistentFile fileToUnInstall) throws PackageManagerException;
 }
