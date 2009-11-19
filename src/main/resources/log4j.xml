@@ -65,9 +65,17 @@
   <!-- Setup the Root category -->
   <!-- ======================= -->
  <category name="org.hibernate">
-    <priority value="ALL"/>
+    <priority value="WARN"/>
   </category>
+  <category name="org.jboss">
+    <priority value="WARN"/>
+  </category>
+  <category name="org.jboss.ejb3.packagemanager">
+    <priority value="INFO"/>
+  </category>
+  
   <root>
+    <priority value="WARN"/>
     <appender-ref ref="CONSOLE"/>
     <appender-ref ref="FILE"/>
   </root>

@@ -23,9 +23,6 @@ package org.jboss.ejb3.packagemanager.test.commandline.unit;
 
 import java.io.File;
 
-import org.jboss.ejb3.packagemanager.PackageManager;
-import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
-import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 import org.jboss.ejb3.packagemanager.main.Main;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
@@ -45,7 +42,6 @@ public class CommandLineTestCase extends PackageManagerTestCase
 
    private static Logger logger = Logger.getLogger(CommandLineTestCase.class);
 
-  
    /**
     * The JBoss Home used in each test
     */
@@ -65,8 +61,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
    {
       pkgMgrHome = setupPackageManagerHome(CommandLineTestCase.class);
       jbossHome = setupDummyJBoss(CommandLineTestCase.class);
-     
-     
+
    }
 
    /**
@@ -80,7 +75,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
    @Test
    public void testInstall() throws Exception
    {
-      File commandLineTestPackage = this.createSimplePackage("command-line-test-package.jar");
+      File commandLineTestPackage = this.createSimplePackage("command-line-test-package");
 
       String commandLineArgs[] = new String[]
       {"-i", commandLineTestPackage.getAbsolutePath(), "-p", this.pkgMgrHome.getAbsolutePath(), "-s",
@@ -109,7 +104,6 @@ public class CommandLineTestCase extends PackageManagerTestCase
 
       String commandLineArgs[] = new String[]
       {"-r", "blahblahblah", "-p", this.pkgMgrHome.getAbsolutePath(), "-s", this.jbossHome.getAbsolutePath()};
-      File commandLineTestPackage = this.createSimplePackage("command-line-test-package.jar");
 
       // run the package manager
       try
@@ -137,7 +131,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
    public void testUnInstall() throws Exception
    {
       // first install and then uninstall
-      File packageWithScripts = this.createPackageWithPreInstallScript("commandline-uninstall-test-package.jar");
+      File packageWithScripts = this.createPackageWithPreInstallScript("commandline-uninstall-test-package");
       // test that non-existent package uninstallation is not allowed
 
       String commandLineArgs[] = new String[]
@@ -152,7 +146,7 @@ public class CommandLineTestCase extends PackageManagerTestCase
 
       // now uninstall
       commandLineArgs = new String[]
-      {"-r", "common-package-with-pre-install", "-p", this.pkgMgrHome.getAbsolutePath(), "-s",
+      {"-r", "commandline-uninstall-test-package", "-p", this.pkgMgrHome.getAbsolutePath(), "-s",
             this.jbossHome.getAbsolutePath()};
 
       // run the package manager
@@ -168,5 +162,20 @@ public class CommandLineTestCase extends PackageManagerTestCase
       // (unless ofcourse, the post/pre uninstall scripts take care of these files)
       this.assertFileExistenceUnderJBossHome(jbossHome, "bin/test.txt");
 
+   }
+
+   /**
+    * Tests the "query" (-q option) feature of the package manager, which returns the names
+    * of all installed packages
+    * @throws Exception
+    */
+   @Test
+   public void testQueryPackages() throws Exception
+   {
+      String commandLineArgs[] = new String[]
+      {"-q", "-p", this.pkgMgrHome.getAbsolutePath(), "-s", this.jbossHome.getAbsolutePath()};
+
+      // run the package manager
+      Main.main(commandLineArgs);
    }
 }

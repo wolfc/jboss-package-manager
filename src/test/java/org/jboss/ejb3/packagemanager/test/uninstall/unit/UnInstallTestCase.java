@@ -91,7 +91,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
    @Test
    public void testSimpleUninstall() throws Exception
    {
-      File simplePackage = this.createSimplePackage("simple-uninstall-test-package.jar");
+      File simplePackage = this.createSimplePackage("simple-uninstall-test-package");
 
       // first install
       this.pkgMgr.installPackage(simplePackage.getAbsolutePath());
@@ -102,7 +102,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
       this.assertFileExistenceUnderJBossHome(jbossHome, "common/lib/dummy.jar");
 
       // now uninstall
-      this.pkgMgr.removePackage("common-package-with-just-install-file");
+      this.pkgMgr.removePackage("simple-uninstall-test-package");
 
       this.assertFileAbsenceUnderJBossHome(jbossHome, "common/lib/dummy.jar");
    }
@@ -110,7 +110,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
    @Test
    public void testUninstallationOfPackageContainingScripts() throws Exception
    {
-      File packageWithScripts = this.createPackageWithPreInstallScript("package-with-script-uninstall-test.jar");
+      File packageWithScripts = this.createPackageWithPreInstallScript("package-with-script-uninstall-test");
       // first install
       this.pkgMgr.installPackage(packageWithScripts.getAbsolutePath());
 
@@ -120,7 +120,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
       this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
 
       // now uninstall
-      this.pkgMgr.removePackage("common-package-with-pre-install");
+      this.pkgMgr.removePackage("package-with-script-uninstall-test");
 
       this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
 
@@ -136,7 +136,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
    public void testUnInstallationOfPackageWithDependencies() throws Exception
    {
       File packageWithDependencies = this
-            .createPackageWithSimplePackagedDependency("uninstall-package-with-packaged-dependency.jar");
+            .createPackageWithSimplePackagedDependency("uninstall-package-with-packaged-dependency");
       // first install
       this.pkgMgr.installPackage(packageWithDependencies.getAbsolutePath());
 
@@ -147,7 +147,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
       this.assertFileExistenceUnderJBossHome(jbossHome, "common/lib/dummy.jar");
 
       // uninstall
-      this.pkgMgr.removePackage("common-package-with-packaged-dependency");
+      this.pkgMgr.removePackage("uninstall-package-with-packaged-dependency");
 
       // the file installed by the main package (the package which was uninstalled)
       // should no longer be present
@@ -166,7 +166,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
    @Test
    public void testPostUnInstallScriptExecution() throws Exception
    {
-      File postUnInstallScriptPackage = this.createPackageWithPostUnInstallScript("post-uninstall-test-package.jar");
+      File postUnInstallScriptPackage = this.createPackageWithPostUnInstallScript("post-uninstall-test-package");
       
       // As a sanity check, ensure that the file supposed to be created by our post-uninstall 
       // step is not already present
@@ -179,7 +179,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
       this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
       
       // now uninstall
-      pkgMgr.removePackage("common-package-with-post-uninstall");
+      pkgMgr.removePackage("post-uninstall-test-package");
       // make sure uninstall was successful
       this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
       // check that post-uninstall script was run
@@ -195,7 +195,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
    @Test
    public void testPreUnInstallScriptExecution() throws Exception
    {
-      File preUnInstallScriptPackage = this.createPackageWithPreUnInstallScript("pre-uninstall-test-package.jar");
+      File preUnInstallScriptPackage = this.createPackageWithPreUnInstallScript("pre-uninstall-test-package");
       
       // As a sanity check, ensure that the file supposed to be created by our pre-uninstall 
       // step is not already present
@@ -208,7 +208,7 @@ public class UnInstallTestCase extends PackageManagerTestCase
       this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
       
       // now uninstall
-      pkgMgr.removePackage("common-package-with-pre-uninstall");
+      pkgMgr.removePackage("pre-uninstall-test-package");
       // make sure uninstall was successful
       this.assertFileAbsenceUnderJBossHome(jbossHome, "server/default/deploy/dummy.jar");
       // check that pre-uninstall script was run

@@ -22,7 +22,9 @@
 
 package org.jboss.ejb3.packagemanager;
 
-import org.jboss.ejb3.packagemanager.metadata.ScriptType;
+import javax.transaction.TransactionManager;
+
+import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
 
 
 /**
@@ -53,5 +55,9 @@ public interface PackageManagerContext
      * @return
      */
     String getScriptStoreLocation(PackageContext pkgContext);
+    
+    TransactionManager getTransactionManager();
+    
+    PackageDatabaseManager getDatabaseManager();
     
 }

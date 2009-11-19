@@ -36,8 +36,8 @@ import javax.transaction.Synchronization;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
-import org.jboss.ejb3.packagemanager.entity.PersistentFile;
 import org.jboss.ejb3.packagemanager.entity.PersistentDependency;
+import org.jboss.ejb3.packagemanager.entity.PersistentFile;
 import org.jboss.ejb3.packagemanager.entity.PersistentPackage;
 import org.jboss.ejb3.packagemanager.entity.PersistentPackageManager;
 import org.jboss.ejb3.packagemanager.entity.PersistentPreUnInstallScript;
@@ -252,8 +252,8 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
       Set<PackageContext> dependencyPackages = pkgCtx.getDependencyPackages();
       if (dependencyPackages != null)
       {
-         Set<PersistentDependency> dependencyPackagesForNewPackage = new HashSet<PersistentDependency>(dependencyPackages
-               .size());
+         Set<PersistentDependency> dependencyPackagesForNewPackage = new HashSet<PersistentDependency>(
+               dependencyPackages.size());
          newPackage.setDependencies(dependencyPackagesForNewPackage);
 
          for (PackageContext dependencyPkgCtx : dependencyPackages)
@@ -332,6 +332,26 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
    public void beforeCompletion()
    {
       // TODO Auto-generated method stub
+
+   }
+
+   /**
+    * {@inheritDoc}
+    */
+   @Override
+   public Set<String> getAllInstalledPackages()
+   {
+      Set<String> installedPackageNames = new HashSet<String>();
+      EntityManager em = this.getEntityManager();
+      PersistentPackageManager packageManager = this.getOrCreatePackageManagerEntity(this.packageManagerCtx);
+      Query query = em.createQuery("select pkg.name from " + PersistentPackage.class.getSimpleName()
+            + " pkg where pkg.packageManager.id=" + packageManager.getId());
+      List<String> result = query.getResultList();
+      if (result != null)
+      {
+         installedPackageNames.addAll(result);
+      }
+      return installedPackageNames;
 
    }
 

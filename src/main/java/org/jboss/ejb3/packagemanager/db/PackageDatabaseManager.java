@@ -101,5 +101,12 @@ public interface PackageDatabaseManager
     */
    void removePackage(PersistentPackage installedPackage);
    
+   /**
+    * Returns the names of all installed packages. Returns an empty set if there 
+    * are no packages installed
+    * 
+    * @return
+    */
+   Set<String> getAllInstalledPackages();
    
 }

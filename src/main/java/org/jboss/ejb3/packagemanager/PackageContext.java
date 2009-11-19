@@ -36,7 +36,7 @@ import org.jboss.ejb3.packagemanager.metadata.SystemRequirementsType;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public interface PackageContext
+public interface PackageContext extends Comparable<PackageContext>
 {
 
    /**

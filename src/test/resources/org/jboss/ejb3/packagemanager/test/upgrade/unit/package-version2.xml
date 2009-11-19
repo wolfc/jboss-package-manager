@@ -1,0 +1,16 @@
+<sh:package name="${package.name}" version="${package.version}"
+xmlns:sh="http://www.jboss.org/schema">
+
+    <!--  Package to install a dummy jar into JBOSS_AS/server/default/deploy -->  
+  <file name="dummy-version2.jar" dest-path="server/default/deploy" type="library"/>
+  <file name="common-util.jar" dest-path="common/lib" type="library"/>
+
+  <post-install>
+    <script name="build-version2.xml"/>
+  </post-install>
+  
+  <post-uninstall>
+    <script name="build-version2.xml"/>
+  </post-uninstall>
+  
+</sh:package>

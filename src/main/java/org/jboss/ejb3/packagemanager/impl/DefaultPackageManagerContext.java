@@ -23,10 +23,13 @@ package org.jboss.ejb3.packagemanager.impl;
 
 import java.io.File;
 
+import javax.transaction.TransactionManager;
+
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
 import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 
 /**
@@ -79,6 +82,24 @@ public class DefaultPackageManagerContext implements PackageManagerContext
    {
       String packageName = pkgContext.getPackageName();
       return "data/scripts/" + packageName;
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManagerContext#getDatabaseManager()
+    */
+   @Override
+   public PackageDatabaseManager getDatabaseManager()
+   {
+      return this.pkgMgr.getDatabaseManager();
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManagerContext#getTransactionManager()
+    */
+   @Override
+   public TransactionManager getTransactionManager()
+   {
+      return this.pkgMgr.getTransactionManager();
    }
 
    

@@ -225,7 +225,15 @@
             <artifactId>jbossts-common</artifactId>
             <version>4.4.0.GA</version>
         </dependency>
-
+        
+        <!--  Transactional file i/o -->
+        <!-- Note: This library might get a new home https://jira.jboss.org/jira/browse/JBTM-651
+        <dependency>
+            <groupId>org.jboss.jbossts</groupId>
+            <artifactId>jbossts-transactional-fileio</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+         -->
         <!-- Tests -->
         <dependency>
             <groupId>junit</groupId>

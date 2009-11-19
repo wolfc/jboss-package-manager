@@ -47,7 +47,7 @@ public class DBUtil
 
    public static void runSql(Connection conn, File sqlFile) throws IOException, SQLException
    {
-      logger.info("SQL being run from file " + sqlFile);
+      logger.debug("SQL being run from file " + sqlFile);
       InputStream sql = new FileInputStream(sqlFile);
 
       runSql(conn, sql);
@@ -83,7 +83,7 @@ public class DBUtil
                   if (trimmedSql.toString().endsWith(";"))
                   {
                      String sqlToRun = trimmedSql.substring(0, trimmedSql.length() - 1);
-                     logger.info(sqlToRun);
+                     logger.debug(sqlToRun);
                      statement.execute(sqlToRun);
                      trimmedSql = new StringBuffer();
                   }

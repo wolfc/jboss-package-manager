@@ -23,8 +23,12 @@ package org.jboss.ejb3.packagemanager.test.common;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -72,6 +76,10 @@ public abstract class PackageManagerTestCase
     * The project's target dir
     */
    protected static File targetDir = new File(baseDir, "target");
+   
+   protected static final String DEFAULT_PACKAGE_VERSION = "1.0.0";
+   
+   protected static final String JAR_SUFFIX = ".jar";
 
    /**
     * Sets up an dummy JBoss instance and returns the File corresponding
@@ -294,6 +302,29 @@ public abstract class PackageManagerTestCase
    }
 
    /**
+    * Creates a simple package with the default version {@link #DEFAULT_PACKAGE_VERSION}
+    * with the following contents:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/common/lib. Nothing 
+    * else is configured in the package.xml
+    *   
+    * @param packageName The name of the package to be created. Ex: "simple-package"
+    *   
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createSimplePackage(String packageName) throws IOException
+   {
+      return this.createSimplePackage(packageName, DEFAULT_PACKAGE_VERSION);
+   }
+   
+   /**
     * Creates a simple package with the following contents:
     * 
     *  <package-name>
@@ -305,22 +336,23 @@ public abstract class PackageManagerTestCase
     * The package.xml is configured to install the dummy.jar to JBOSS_HOME/common/lib. Nothing 
     * else is configured in the package.xml
     *   
-    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
-    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @param packageName The name of the package to be created. Ex: "simple-package"
+    * @param packageVersion Version of the package  
     * @return Returns the {@link File} corresponding the to the created package
     * @throws IOException If any IO exceptions occur during the package creation
     */
-   protected File createSimplePackage(String packageFileName) throws IOException
+   protected File createSimplePackage(String packageName, String packageVersion) throws IOException
    {
       File dummyJar = this.createDummyJar();
-
+      String packageFileName = packageName + JAR_SUFFIX;
       // Now let's package the dummy.jar, package.xml into a package
       File simplePackage = new File(getPerTestTargetDir(this.getClass()), packageFileName);
       JavaArchive pkg = JavaArchiveFactory.create(simplePackage.getName());
       pkg.addResource("dummy.jar", dummyJar);
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-just-install-file.xml");
       File file = new File(packageXmlURL.getFile());
-      pkg.addResource("package.xml", file);
+      File processedPackageXml = this.processPackageXml(file, packageName, packageVersion);
+      pkg.addResource("package.xml", processedPackageXml);
       // now write out the package to disk
       logger.debug("Writing out the created package " + pkg.toString(true));
       this.exportZip(pkg, simplePackage);
@@ -328,6 +360,33 @@ public abstract class PackageManagerTestCase
       return simplePackage;
    }
 
+   /**
+    * Creates a package with the default version {@link #DEFAULT_PACKAGE_VERSION} and
+    * containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the pre-install script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "test.txt" under JBOSS_HOME/bin folder, when the script is run.
+    *   
+    * @param packageNam The name of the package to be created. Ex: simple-package
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPreInstallScript(String packageName) throws IOException
+   {
+      return this.createPackageWithPreInstallScript(packageName, DEFAULT_PACKAGE_VERSION);
+   }
+   
    /**
     * Creates a package containing a file to install and a pre-install script. The package
     * will look as follows:
@@ -345,21 +404,51 @@ public abstract class PackageManagerTestCase
     * which is available at the root of the package. The build.xml script is implemented
     * to place a file named "test.txt" under JBOSS_HOME/bin folder, when the script is run.
     *   
-    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
-    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @param packageNam The name of the package to be created. Ex: "simple-package"
+    * @param packageVersion Version of the package
     * @return Returns the {@link File} corresponding the to the created package
     * @throws IOException If any IO exceptions occur during the package creation
     */
-   protected File createPackageWithPreInstallScript(String packageFileName) throws IOException
+   protected File createPackageWithPreInstallScript(String packageName, String packageVersion) throws IOException
    {
       
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-pre-install-script.xml");
       File packageXmlFile = new File(packageXmlURL.getFile());
+      File processedPackageXmlFile = this.processPackageXml(packageXmlFile, packageName, packageVersion);
       URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
       File buildFile = new File(buildXmlURL.getFile());
-      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+      return this.createPackageWithScript(packageName, packageVersion, buildFile, processedPackageXmlFile);
    }
    
+   
+   
+   /**
+    * Creates a package with the {@link #DEFAULT_PACKAGE_VERSION} and
+    * containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the pre-install script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "pre-uninstall.txt" under JBOSS_HOME/bin folder, when the script is run.
+    *   
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPreUnInstallScript(String packageName) throws IOException
+   {
+      
+      return this.createPackageWithPreUnInstallScript(packageName, DEFAULT_PACKAGE_VERSION);
+   }
    
    
    /**
@@ -379,19 +468,48 @@ public abstract class PackageManagerTestCase
     * which is available at the root of the package. The build.xml script is implemented
     * to place a file named "pre-uninstall.txt" under JBOSS_HOME/bin folder, when the script is run.
     *   
-    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
-    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @param packageVersion Version of the package
     * @return Returns the {@link File} corresponding the to the created package
     * @throws IOException If any IO exceptions occur during the package creation
     */
-   protected File createPackageWithPreUnInstallScript(String packageFileName) throws IOException
+   protected File createPackageWithPreUnInstallScript(String packageName, String packageVersion) throws IOException
    {
       
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-pre-uninstall-script.xml");
       File packageXmlFile = new File(packageXmlURL.getFile());
+      File processedPackageXmlFile = this.processPackageXml(packageXmlFile, packageName, packageVersion);
       URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
       File buildFile = new File(buildXmlURL.getFile());
-      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+      return this.createPackageWithScript(packageName, packageVersion, buildFile, processedPackageXmlFile);
+   }
+   
+   /**
+    * Creates a package with the {@link #DEFAULT_PACKAGE_VERSION} and 
+    * containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the pre-install script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "post-install.txt" under JBOSS_HOME/bin folder, when the script is run.
+    *   
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPostInstallScript(String packageName) throws IOException
+   {
+      
+      return this.createPackageWithPostInstallScript(packageName, DEFAULT_PACKAGE_VERSION);
    }
    
    /**
@@ -411,19 +529,48 @@ public abstract class PackageManagerTestCase
     * which is available at the root of the package. The build.xml script is implemented
     * to place a file named "post-install.txt" under JBOSS_HOME/bin folder, when the script is run.
     *   
-    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
-    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @param packageVersion Version of the package
     * @return Returns the {@link File} corresponding the to the created package
     * @throws IOException If any IO exceptions occur during the package creation
     */
-   protected File createPackageWithPostInstallScript(String packageFileName) throws IOException
+   protected File createPackageWithPostInstallScript(String packageName, String packageVersion) throws IOException
    {
       
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-post-install-script.xml");
       File packageXmlFile = new File(packageXmlURL.getFile());
+      File processedPackageXmlFile = this.processPackageXml(packageXmlFile, packageName, packageVersion);
       URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
       File buildFile = new File(buildXmlURL.getFile());
-      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+      return this.createPackageWithScript(packageName, packageVersion, buildFile, processedPackageXmlFile);
+   }
+   
+   /**
+    * Creates a package with the {@link #DEFAULT_PACKAGE_VERSION} and
+    * containing a file to install and a pre-install script. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- build.xml
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/deploy. 
+    * Additionally, the package.xml is also configured for the post-uninstall script named build.xml,
+    * which is available at the root of the package. The build.xml script is implemented
+    * to place a file named "post-uninstall.txt" from JBOSS_HOME/bin folder
+    *   
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithPostUnInstallScript(String packageName) throws IOException
+   {
+      
+     return this.createPackageWithPostUnInstallScript(packageName, DEFAULT_PACKAGE_VERSION);
    }
    
    /**
@@ -443,23 +590,22 @@ public abstract class PackageManagerTestCase
     * which is available at the root of the package. The build.xml script is implemented
     * to place a file named "post-uninstall.txt" from JBOSS_HOME/bin folder
     *   
-    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
-    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @param packageVersion Version of the package
     * @return Returns the {@link File} corresponding the to the created package
     * @throws IOException If any IO exceptions occur during the package creation
     */
-   protected File createPackageWithPostUnInstallScript(String packageFileName) throws IOException
+   protected File createPackageWithPostUnInstallScript(String packageName, String packageVersion) throws IOException
    {
       
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-post-uninstall-script.xml");
       File packageXmlFile = new File(packageXmlURL.getFile());
+      File processedPackageXmlFile = this.processPackageXml(packageXmlFile, packageName, packageVersion);
       URL buildXmlURL = this.getResource(PackageManagerTestCase.class, "build.xml");
       File buildFile = new File(buildXmlURL.getFile());
-      return this.createPackageWithScript(packageFileName, buildFile, packageXmlFile);
+      return this.createPackageWithScript(packageName, packageVersion, buildFile, processedPackageXmlFile);
    }
    
-   
-
    /**
     * Utility method to create a package with a script file.
     * 
@@ -474,15 +620,16 @@ public abstract class PackageManagerTestCase
     *   |
     *   |--- [script-file]
     *   
-    * @param packageFileName Package file name
+    * @param packageName Package file name
     * @param scriptFile Script file
     * @param packageXmlFile package.xml
     * @return Returns the created package
     * @throws IOException
     */
-   private File createPackageWithScript(String packageFileName, File scriptFile, File packageXmlFile) throws IOException
+   private File createPackageWithScript(String packageName, String packageVersion, File scriptFile, File packageXmlFile) throws IOException
    {
       File dummyJar = this.createDummyJar();
+      String packageFileName = packageName + JAR_SUFFIX;
       File packageWithScript = new File(getPerTestTargetDir(this.getClass()), packageFileName);
       JavaArchive pkg = JavaArchiveFactory.create(packageWithScript.getName());
       pkg.addResource("dummy.jar", dummyJar);
@@ -496,7 +643,8 @@ public abstract class PackageManagerTestCase
    }
    
    /**
-    * Creates a package  containing a file to install and a packaged-dependency. The package
+    * Creates a package with the {@link #DEFAULT_PACKAGE_VERSION}
+    * and containing a file to install and a packaged-dependency. The package
     * will look as follows:
     * 
     *  <package-name>
@@ -521,15 +669,55 @@ public abstract class PackageManagerTestCase
     * The package.xml of the dependee package is configured to install the dummy.jar to JBOSS_HOME/common/lib.
     * Nothing else is configured in the package.xml of the dependee package
     *   
-    * @param packageFileName The name of the package to be created. Ex: simple-package.jar
-    *   Note: It is mandatory to specify the extension (.jar) which passing the packageFileName
+    * @param packageName The name of the package to be created. Ex: simple-package
     * @return Returns the {@link File} corresponding the to the created package
     * @throws IOException If any IO exceptions occur during the package creation
     */
-   protected File createPackageWithSimplePackagedDependency(String packageFileName) throws IOException
+   protected File createPackageWithSimplePackagedDependency(String packageName) throws IOException
    {
+      return this.createPackageWithSimplePackagedDependency(packageName, DEFAULT_PACKAGE_VERSION);
+
+   }
+   
+   
+   /**
+    * Creates a package with the {@link #DEFAULT_PACKAGE_VERSION}
+    * and containing a file to install and a packaged-dependency. The package
+    * will look as follows:
+    * 
+    *  <package-name>
+    *   |
+    *   |--- dependee-package.jar (this is the packaged dependency)
+    *   |
+    *   |--- package.xml
+    *   |
+    *   |--- dummy.jar
+    *   
+    * The package.xml is configured to install the dummy.jar to JBOSS_HOME/server/default/lib. Also
+    * the package.xml is configured to mark dependee-package.jar as a packaged-dependency.
+    *  
+    * The "dependee" package contains the following:
+    * 
+    * <package-name>
+    *   |
+    *   |--- dummy.jar
+    *   |
+    *   |--- package.xml
+    * 
+    * The package.xml of the dependee package is configured to install the dummy.jar to JBOSS_HOME/common/lib.
+    * Nothing else is configured in the package.xml of the dependee package
+    *   
+    * @param packageName The name of the package to be created. Ex: simple-package
+    * @param packageVersion Version of the package
+    * @return Returns the {@link File} corresponding the to the created package
+    * @throws IOException If any IO exceptions occur during the package creation
+    */
+   protected File createPackageWithSimplePackagedDependency(String packageName, String packageVersion) throws IOException
+   {
+      String packageFileName = packageName + JAR_SUFFIX;
+      
       // let's create a simple "dependee" package
-      File dependeePackage = this.createSimplePackage("dependee-package.jar");
+      File dependeePackage = this.createSimplePackage("dependee-package");
 
       // Now package this dependee package and also any other files in the dependent package
       File packageWithPackagedDependency = new File(getPerTestTargetDir(this.getClass()), packageFileName);
@@ -540,7 +728,8 @@ public abstract class PackageManagerTestCase
       pkg.addResource("dummy.jar", dummyJar);
       URL packageXmlURL = this.getResource(PackageManagerTestCase.class, "package-with-packaged-dependency.xml");
       File packageXmlFile = new File(packageXmlURL.getFile());
-      pkg.addResource("package.xml", packageXmlFile);
+      File processedPacackageXmlFile = this.processPackageXml(packageXmlFile, packageName, packageVersion);
+      pkg.addResource("package.xml", processedPacackageXmlFile);
 
       // now write out the package to disk
       logger.debug("Writing out the created package " + pkg.toString(true));
@@ -711,5 +900,56 @@ public abstract class PackageManagerTestCase
       File testCaseTargetDir = new File(targetDir, testClass.getName().replace('.', '/'));
       testCaseTargetDir.mkdirs();
       return testCaseTargetDir;
+   }
+   
+   /**
+    * Processes the <code>originalPackageXml</code> file to replace any occurences of
+    * ${package.name} and ${package.version} variables in that file. These variables
+    * are replaced with the actual values. The original package.xml file is left unchanged
+    * and instead a copy of the package.xml with the variable replacements is returned back.
+    * 
+    * @param originalPackageXml The package.xml which needs to be processed
+    * @param packageName Package name
+    * @param packageVersion Package version
+    * @return Returns the processed copy of package.xml
+    * @throws IOException If any IO errors occur during processing
+    */
+   protected File processPackageXml(File originalPackageXml, String packageName, String packageVersion) throws IOException
+   {
+      if (!originalPackageXml.exists())
+      {
+         throw new IOException(originalPackageXml + " does not exist");
+      }
+      if (originalPackageXml.isDirectory())
+      {
+         throw new IOException(originalPackageXml + " is a directory. Cannot create package.xml out of a directory!");
+      }
+      BufferedReader bufferedReader = new BufferedReader(new FileReader(originalPackageXml));
+      File resultantPackageXmlFile = File.createTempFile("pkg", "xml", getPerTestTargetDir(this.getClass()));
+      BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(resultantPackageXmlFile));
+      try
+      {
+         String line = null;
+         while ((line = bufferedReader.readLine()) != null)
+         {
+            line = line.replaceAll("\\$\\{package.name\\}", packageName);
+            line = line.replaceAll("\\$\\{package.version\\}", packageVersion);
+            bufferedWriter.write(line);
+            bufferedWriter.write("\n");
+         }
+      }
+      finally
+      {
+         if (bufferedReader != null)
+         {
+            bufferedReader.close();
+         }
+         if (bufferedWriter != null)
+         {
+            bufferedWriter.close();
+         }
+      }
+      return resultantPackageXmlFile;
+
    }
 }

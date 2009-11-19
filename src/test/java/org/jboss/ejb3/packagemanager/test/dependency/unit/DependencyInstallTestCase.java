@@ -89,7 +89,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
    public void testPackageWithPackagedDependency() throws Exception
    {
       File packageWithPackagedDependency = this
-            .createPackageWithSimplePackagedDependency("package-with-packaged-dependency.jar");
+            .createPackageWithSimplePackagedDependency("package-with-packaged-dependency");
 
       // now install
       this.pkgMgr.installPackage(packageWithPackagedDependency.getAbsolutePath());

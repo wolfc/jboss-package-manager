@@ -35,6 +35,7 @@ import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
+import org.jboss.ejb3.packagemanager.PackageVersionComparator;
 import org.jboss.ejb3.packagemanager.annotation.TransactionAttribute;
 import org.jboss.ejb3.packagemanager.annotation.TransactionAttributeType;
 import org.jboss.ejb3.packagemanager.db.DefaultDatabaseManager;
@@ -128,6 +129,15 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       return this.installationServerHome;
    }
 
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#getDatabaseManager()
+    */
+   @Override
+   public PackageDatabaseManager getDatabaseManager()
+   {
+      return this.pkgDatabaseManager;
+   }
+   
    /**
     * Installs a package
     * 
@@ -321,8 +331,26 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       if (isPackageInstalled)
       {
          PersistentPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
-         logger.info("Removing existing package " + packageName + " version " + installedPackage.getPackageVersion()
-               + " for upgrading to " + pkgContext);
+         // if the installed package version and the version of the package being upgraded are the same
+         // then skip the upgrade
+         PackageVersionComparator comparator = new PackageVersionComparator();
+         int versionComparison = comparator.compare(installedPackage.getPackageVersion(), pkgContext.getPackageVersion());
+         if (versionComparison == 0)
+         {
+            logger.info("Skipping package upgrade, since package with name " + packageName + " and version "
+                  + installedPackage.getPackageVersion() + " is already installed");
+            return;
+         }
+         else if (versionComparison > 0)
+         {
+            logger.info("Skipping package upgrade, since a higher version " + installedPackage.getPackageVersion()
+                  + " compared to " + pkgContext.getPackageVersion() + " for package  " + packageName
+                  + " is already installed");
+            return;
+         }
+         // this is a newer version, so continue with upgrade   
+         logger.info("Upgrading package " + packageName + " from installed version " + installedPackage.getPackageVersion()
+               + " to new version " + pkgContext.getPackageVersion());
          removePackage(installedPackage, true);
       }
       // now install new version
@@ -649,6 +677,15 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
          dbManager.beforeCompletion();
       }
 
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#getAllInstalledPackages()
+    */
+   @Override
+   public Set<String> getAllInstalledPackages()
+   {
+      return this.pkgDatabaseManager.getAllInstalledPackages();
    }
 
 }

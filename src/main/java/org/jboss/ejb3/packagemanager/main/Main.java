@@ -28,12 +28,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Set;
 
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
-import org.jboss.ejb3.packagemanager.impl.DefaultPackageManagerImpl;
 import org.jboss.ejb3.packagemanager.util.DBUtil;
 import org.jboss.logging.Logger;
 
@@ -70,6 +70,7 @@ public class Main
       CmdLineParser.Option installCmdOption = cmdLineParser.addStringOption('i', "install");
       CmdLineParser.Option upgradeCmdOption = cmdLineParser.addStringOption('u', "upgrade");
       CmdLineParser.Option removeCmdOption = cmdLineParser.addStringOption('r', "remove");
+      CmdLineParser.Option queryCmdOption = cmdLineParser.addBooleanOption('q', "query");
       CmdLineParser.Option packageManagerHomeCmdOption = cmdLineParser.addStringOption('p', "pmhome");
       CmdLineParser.Option jbossHomeCmdOption = cmdLineParser.addStringOption('s', "jbossHome");
 
@@ -154,9 +155,29 @@ public class Main
 
       }
 
+      Boolean query = (Boolean) cmdLineParser.getOptionValue(queryCmdOption, Boolean.FALSE);
       String packageToInstall = (String) cmdLineParser.getOptionValue(installCmdOption);
       String packageToUpgrade = (String) cmdLineParser.getOptionValue(upgradeCmdOption);
       String packageToRemove = (String) cmdLineParser.getOptionValue(removeCmdOption);
+      
+      if (query)
+      {
+         Set<String> installedPackages = pm.getAllInstalledPackages();
+         if (installedPackages.isEmpty())
+         {
+            logger.info("There are no packages installed in the system");
+         }
+         else
+         {
+            logger.info("Following packages have been installed in the system: ");
+            logger.info("----------------------------------------------------");
+            for (String packageName : installedPackages)
+            {
+               logger.info(packageName);
+            }
+            logger.info("----------------------------------------------------");
+         }
+      }
 
       if (packageToInstall != null)
       {
@@ -183,7 +204,7 @@ public class Main
    private static void printUsage()
    {
       System.out
-            .println("Usage: packagemanager [-i path_to_package] [-r package_name] [-u path_to_package] [-p path_to_package_manager_home]\n"
+            .println("Usage: packagemanager [-i path_to_package] [-r package_name] [-u path_to_package] [-q] [-p path_to_package_manager_home]\n"
                   + " [-s path_to_jboss_home]");
    }
 

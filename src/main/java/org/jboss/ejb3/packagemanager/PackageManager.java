@@ -22,9 +22,11 @@
 package org.jboss.ejb3.packagemanager;
 
 import java.net.URL;
+import java.util.Set;
 
 import javax.transaction.TransactionManager;
 
+import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
 
@@ -33,7 +35,7 @@ import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
  * 
  * Package Manager can be used to install/update/remove packages against
  * JBoss Application Server. 
- * TODO: More javadocs (once we have something usable)
+ * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
@@ -82,6 +84,14 @@ public interface PackageManager
     */
    void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException;
    
+   /**
+    * Returns the names of all installed packages. Returns an empty set if there 
+    * are no packages installed
+    * 
+    * @return
+    */
+   Set<String> getAllInstalledPackages();
+   
    
    /**
     * A package manager works against a JBoss AS server. This method returns the 
@@ -91,7 +101,19 @@ public interface PackageManager
     */
    String getServerHome();
    
+   /**
+    * @return Returns the transaction manager associated with this package manager. The 
+    * transaction manager is responsible for managing transactions during the 
+    * package manager operations
+    */
    TransactionManager getTransactionManager();
+   
+   /**
+    * @return Returns the database manager associated with the package manager.
+    * The database manager is responsible for maintaining the package installation
+    * details
+    */
+   PackageDatabaseManager getDatabaseManager();
    
    
 }

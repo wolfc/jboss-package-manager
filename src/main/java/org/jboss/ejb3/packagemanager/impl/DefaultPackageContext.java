@@ -31,6 +31,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarFile;
 
+import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.plugins.latest.ArtifactInfo;
+import org.apache.ivy.plugins.version.VersionMatcher;
 import org.jboss.ejb3.packagemanager.PackageContext;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.dependency.DependencyManager;
@@ -346,8 +350,19 @@ public class DefaultPackageContext implements PackageContext
          {
             this.packageRoot.mkdirs();
          }
-         JarFile jar = new JarFile(pkg);
-         IOUtil.extractJarFile(this.packageRoot, jar);
+         JarFile jar = null;
+         try
+         {
+            jar = new JarFile(pkg);
+            IOUtil.extractJarFile(this.packageRoot, jar);
+         }
+         finally
+         {
+            if (jar != null)
+            {
+               jar.close();
+            }
+         }
          // validate that it contains a package.xml
          File packageXml = new File(this.packageRoot, "package.xml");
          if (!packageXml.exists())
@@ -443,5 +458,55 @@ public class DefaultPackageContext implements PackageContext
 
    }
 
+   /**
+    * @see java.lang.Comparable#compareTo(java.lang.Object)
+    * @throws NullPointerException If the passed <code>anotherPackage</code> is null
+    * @throws IllegalArgumentException If the package name of the passed <code>anotherPackage</code>
+    *       is not the same as the package name {@link DefaultPackageContext#getPackageName()} of this package. 
+    */
+   @Override
+   public int compareTo(PackageContext anotherPackage)
+   {
+      if (!this.getPackageName().equals(anotherPackage.getPackageName()))
+      {
+         throw new IllegalArgumentException("Cannot compare packages with two different names. This package name is "
+               + this.getPackageName() + " ,another package name is " + anotherPackage.getPackageName());
+      }
+      
+      
+      return 0;
+   }
+
    
+   private class MockIvyArtifactInfo implements ArtifactInfo
+   {
+
+      private String version;
+      
+      public MockIvyArtifactInfo(String version)
+      {
+         this.version = version;
+      }
+      
+      /**
+       * @see org.apache.ivy.plugins.latest.ArtifactInfo#getLastModified()
+       */
+      @Override
+      public long getLastModified()
+      {
+         // we don't have any idea about last modified value, so just
+         // return 0
+         return 0;
+      }
+
+      /**
+       * @see org.apache.ivy.plugins.latest.ArtifactInfo#getRevision()
+       */
+      @Override
+      public String getRevision()
+      {
+         return this.version;
+      }
+      
+   }
 }

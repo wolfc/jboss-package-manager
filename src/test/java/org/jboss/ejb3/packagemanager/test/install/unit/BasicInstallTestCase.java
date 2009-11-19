@@ -86,7 +86,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
    @Test
    public void testSimpleInstall() throws Exception
    {
-      File simplePackage = this.createSimplePackage("simple-package.jar");
+      File simplePackage = this.createSimplePackage("simple-package");
 
       // run the package manager
       pkgMgr.installPackage(simplePackage.toURI().toURL());
@@ -105,7 +105,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
    @Test
    public void testPreInstallScriptExecution() throws Exception
    {
-      File packageWithPreInstallScript = this.createPackageWithPreInstallScript("package-with-pre-install-script.jar");
+      File packageWithPreInstallScript = this.createPackageWithPreInstallScript("basic-pre-install-test-package");
 
       // now run the package manager
       this.pkgMgr.installPackage(packageWithPreInstallScript.getAbsolutePath());
@@ -127,7 +127,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
    @Test
    public void testPostInstallScriptExecution() throws Exception
    {
-      File postInstallScriptPackage = this.createPackageWithPostInstallScript("post-install-test-package.jar");
+      File postInstallScriptPackage = this.createPackageWithPostInstallScript("basic-post-install-test-package");
 
       // As a sanity check, ensure that the file supposed to be created by our post-install 
       // step is not already present
