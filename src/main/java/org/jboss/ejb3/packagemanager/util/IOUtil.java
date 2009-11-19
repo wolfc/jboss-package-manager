@@ -29,8 +29,6 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import org.apache.commons.io.IOUtils;
-
 /**
  * IOUtil
  *
@@ -50,7 +48,14 @@ public class IOUtil
    {
       FileInputStream fis = new FileInputStream(src);
       FileOutputStream fos = new FileOutputStream(dest);
-      IOUtils.copy(fis, fos);
+      byte[] buffer = new byte[1024 * 4];
+      int n = 0;
+      while (-1 != (n = fis.read(buffer)))
+      {
+         fos.write(buffer, 0, n);
+
+      }
+      
    }
 
    public static void extractJarFile(File destDir, JarFile jar) throws IOException
@@ -69,7 +74,7 @@ public class IOUtil
             destFile.mkdirs();
             continue;
          }
-         else 
+         else
          {
             // if this is a file and not a directory, make
             // sure that it's parent directories have been
