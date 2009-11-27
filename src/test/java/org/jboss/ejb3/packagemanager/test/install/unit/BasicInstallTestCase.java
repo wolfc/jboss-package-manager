@@ -145,7 +145,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
 
    /**
     * Note: This test assumes the presence of a "package" at 
-    * http://snapshots.jboss.org/maven2/org/jboss/ejb3/tmp/simple-package.jar
+    * http://snapshots.jboss.org/maven2/org/jboss/ejb3/tmp/simple-package/1.0.0.Alpha1/simple-package-1.0.0.Alpha1.jar
     * 
     * TODO: Once we have packages uploaded to Maven repo, we can point to a different
     * URL from this tmp one.
@@ -162,7 +162,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
    public void testHttpPackageInstall() throws Exception
    {
       // TODO: See javadocs of this test. This URL will change in near future
-      String httpPackageURL = "http://snapshots.jboss.org/maven2/org/jboss/ejb3/tmp/simple-package.jar";
+      String httpPackageURL = "http://snapshots.jboss.org/maven2/org/jboss/ejb3/tmp/simple-package/1.0.0.Alpha1/simple-package-1.0.0.Alpha1.jar";
       // install the package
       this.pkgMgr.installPackage(httpPackageURL);
 

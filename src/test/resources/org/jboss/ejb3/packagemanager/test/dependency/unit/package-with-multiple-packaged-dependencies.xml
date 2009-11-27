@@ -1,6 +1,4 @@
-<sh:package name="DependencyInstallTestCase-package-with-multiple-packaged-deps" version="1.0.0-Alpha1"
-xmlns:sh="http://www.jboss.org/schema">
-
+<package name="${package.name}" version="${package.version}" xmlns="org/jboss/packagemanager/package">
       
   <file name="dummy-main.jar" dest-path="server/default/deployers" type="library"/>
   <file name="some-deployer-jboss-beans.xml" src-path="some-config-folder" dest-path="server/default/deployers" type="config"/>
@@ -11,4 +9,4 @@ xmlns:sh="http://www.jboss.org/schema">
     <packaged-dependency file="/subfolder/deep-nested-folder/dependee-package3.jar"/>
   </dependencies>
   
-</sh:package>
+</package>

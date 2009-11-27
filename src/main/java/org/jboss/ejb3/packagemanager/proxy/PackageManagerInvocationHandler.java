@@ -46,10 +46,20 @@ import org.jboss.logging.Logger;
 public class PackageManagerInvocationHandler implements InvocationHandler
 {
 
+   /**
+    * Package manager
+    */
    private PackageManager packageManager;
 
+   /**
+    * Logger
+    */
    private static Logger logger = Logger.getLogger(PackageManagerInvocationHandler.class);
 
+   /**
+    * Constructs an invocation handler for a package manager
+    * @param packageManager
+    */
    public PackageManagerInvocationHandler(PackageManager packageManager)
    {
       this.packageManager = packageManager;
@@ -88,7 +98,10 @@ public class PackageManagerInvocationHandler implements InvocationHandler
       {
          // start new tx
          txManager.begin();
-         logger.debug("Started in invocation handler " + txManager.getTransaction() + " for method " + method);
+         if (logger.isTraceEnabled())
+         {
+            logger.trace("Started tx " + txManager.getTransaction() + " for method " + method);
+         }
          currentTx = txManager.getTransaction();
          registerForSynchronization(txManager.getTransaction());
          txInitiator = true;
@@ -102,12 +115,18 @@ public class PackageManagerInvocationHandler implements InvocationHandler
             if (txManager.getStatus() == Status.STATUS_MARKED_ROLLBACK)
             {
                txManager.rollback();
+               if (logger.isTraceEnabled())
+               {
+                  logger.trace("Rolled back tx " + txManager.getTransaction() + " for method " + method);
+               }
             }
             else
             {
-               logger.debug("Commiting in invocation handler " + txManager.getTransaction() + " for method " + method);
                txManager.commit();
-               logger.debug("Commited in invocation handler " + txManager.getTransaction() + " for method " + method);
+               if (logger.isTraceEnabled())
+               {
+                  logger.trace("Committed tx for method " + method);
+               }
             }
 
          }
@@ -140,9 +159,17 @@ public class PackageManagerInvocationHandler implements InvocationHandler
          {
             // suspend current tx
             txManager.suspend();
+            if (logger.isTraceEnabled())
+            {
+               logger.trace("Suspended tx " + txManager.getTransaction() + " for method " + method);
+            }
          }
          // start new tx and invoke the method
          txManager.begin();
+         if (logger.isTraceEnabled())
+         {
+            logger.trace("Started tx " + txManager.getTransaction() + " for method " + method);
+         }
          Transaction newTx = txManager.getTransaction();
          registerForSynchronization(newTx);
          try
@@ -152,11 +179,19 @@ public class PackageManagerInvocationHandler implements InvocationHandler
             {
                // rollback
                newTx.rollback();
+               if (logger.isTraceEnabled())
+               {
+                  logger.trace("Rolled back tx " + txManager.getTransaction() + " for method " + method);
+               }
             }
             else
             {
                // method successfully completed, so commit tx
                newTx.commit();
+               if (logger.isTraceEnabled())
+               {
+                  logger.trace("Committed tx " + txManager.getTransaction() + " for method " + method);
+               }
             }
             return result;
          }

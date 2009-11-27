@@ -110,7 +110,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
    public void testPackageWithMultiplePackagedDependencies() throws Exception
    {
       File packageToInstall = this
-            .createPackageWithMultiplePackagedDependencies("package-with-multiple-packaged-dependencies.jar");
+            .createPackageWithMultiplePackagedDependencies("package-with-multiple-packaged-dependencies");
 
       this.pkgMgr.installPackage(packageToInstall.toURI().toURL());
 
@@ -147,6 +147,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
 
       URL packageXmlURL = this.getResource(this.getClass(), "package-with-unprocessed-dependencies.xml");
       File file = new File(packageXmlURL.getFile());
+      file = this.processPackageXml(file, "package-with-unprocessed-dependencies", DEFAULT_PACKAGE_VERSION);
       archive.addResource("package.xml", file);
 
       // now write out the package to disk
@@ -168,9 +169,11 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
     * @return
     * @throws IOException
     */
-   protected File createPackageWithMultiplePackagedDependencies(String packageFileName) throws IOException
+   protected File createPackageWithMultiplePackagedDependencies(String packageName) throws IOException
    {
 
+      String packageFileName = packageName + JAR_SUFFIX;
+      
       File dummyJar = this.createDummyJar();
       // create dependee package#1
       File dependeePackageOne = new File(perTestTargetDir, "dependee-package-one.jar");
@@ -178,6 +181,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       archiveOne.addResource("dummy1.jar", dummyJar);
       URL packageXmlURL = this.getResource(this.getClass(), "dependee-package1.xml");
       File file = new File(packageXmlURL.getFile());
+      file = this.processPackageXml(file, "dependee-package1" , DEFAULT_PACKAGE_VERSION);
       archiveOne.addResource("package.xml", file);
       // pre-install script
       URL preInstallScriptXml = this.getResource(this.getClass(), "pre-install-build.xml");
@@ -194,6 +198,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       archiveTwo.addResource("dummy2.jar", dummyJar);
       URL packageXmlTwo = this.getResource(this.getClass(), "dependee-package2.xml");
       File packageXmlTwoFile = new File(packageXmlTwo.getFile());
+      packageXmlTwoFile = this.processPackageXml(packageXmlTwoFile, "dependee-package2" , DEFAULT_PACKAGE_VERSION);
       archiveTwo.addResource("package.xml", packageXmlTwoFile);
       // post-install script
       URL postInstallXml = this.getResource(this.getClass(), "post-install-build.xml");
@@ -210,6 +215,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       archiveThree.addResource("dummy3.jar", dummyJar);
       URL packageXmlThree = this.getResource(this.getClass(), "dependee-package3.xml");
       File packageXmlThreeFile = new File(packageXmlThree.getFile());
+      packageXmlThreeFile = this.processPackageXml(packageXmlThreeFile, "dependee-package3" , DEFAULT_PACKAGE_VERSION);
       archiveThree.addResource("package.xml", packageXmlThreeFile);
       // pre-install and post-install script
       URL scriptXml = this.getResource(this.getClass(), "build.xml");
@@ -226,6 +232,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
       aggregatedArchive.addResource("dummy-main.jar", dummyJar);
       URL aggPackageXml = this.getResource(this.getClass(), "package-with-multiple-packaged-dependencies.xml");
       File aggPackageXmlFile = new File(aggPackageXml.getFile());
+      aggPackageXmlFile = this.processPackageXml(aggPackageXmlFile, packageName , DEFAULT_PACKAGE_VERSION);
       aggregatedArchive.addResource("package.xml", aggPackageXmlFile);
       URL someDeployerConfigXml = this.getResource(this.getClass(), "some-deployer-jboss-beans.xml");
       File deployerConfigFile = new File(someDeployerConfigXml.getFile());

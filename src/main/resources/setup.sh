@@ -64,7 +64,7 @@ fi
 PACKAGE_MANAGER_CLASSPATH="$PACKAGE_MANAGER_HOME/lib/*"
 
 # Setup JBoss Package Manager specific properties
-JAVA_OPTS="-Dprogram.name=$PROGNAME $JAVA_OPTS"
+JAVA_OPTS="-Dprogram.name=$PROGNAME -DPACKAGE_MANAGER_HOME=$PACKAGE_MANAGER_HOME $JAVA_OPTS"
 
 # Sample JPDA settings for remote socket debugging
 #JAVA_OPTS="$JAVA_OPTS -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y"
@@ -88,7 +88,7 @@ echo ""
 
 "$JAVA" $JAVA_OPTS \
          -classpath "$PACKAGE_MANAGER_CLASSPATH" \
-         org.jboss.ejb3.packagemanager.main.Main --setup "$PACKAGE_MANAGER_HOME/script/schema.sql" \
+         org.jboss.ejb3.packagemanager.main.Setup -f "$PACKAGE_MANAGER_HOME/script/schema.sql" \
          "$@"
       PACKAGE_MANAGER_STATUS=$?
 

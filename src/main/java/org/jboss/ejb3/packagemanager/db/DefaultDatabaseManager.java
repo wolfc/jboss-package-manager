@@ -82,10 +82,6 @@ public class DefaultDatabaseManager implements PackageDatabaseManager, Synchroni
       PackageManagerEnvironment environment = pkgMgrCtx.getPackageManagerEnvironment();
       // we use derby (filesystem) based DB
       File dbHome = environment.getDataDir();
-      if (!dbHome.exists())
-      {
-         dbHome.mkdirs();
-      }
       // set the Derby system home property to point to the package manager db
       System.setProperty("derby.system.home", dbHome.getAbsolutePath());
 

@@ -1,6 +1,4 @@
-<sh:package name="DependencyInstallTestCase-package-with-unprocessed-deps" version="1.0.0"
-xmlns:sh="http://www.jboss.org/schema">
-
+<package name="${package.name}" version="${package.version}" xmlns="org/jboss/packagemanager/package">
       
   <file name="dummy.jar" dest-path="server/default/deployers" type="library"/>
   <file name="some-deployer-jboss-beans.xml" dest-path="server/default/deployers" type="config"/>
@@ -9,4 +7,4 @@ xmlns:sh="http://www.jboss.org/schema">
     <unprocessed-dependencies file="ivy.xml"/>
   </dependencies>
   
-</sh:package>
+</package>

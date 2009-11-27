@@ -22,10 +22,12 @@
   -->
 
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-        targetNamespace="http://www.jboss.org/schema"
-        xmlns:jboss="http://www.jboss.org/schema">
+        targetNamespace="org/jboss/packagemanager/package"
+        xmlns:package="org/jboss/packagemanager/package"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified">
 
-    <xs:element name="package" type="jboss:packageType">
+    <xs:element name="package" type="package:packageType">
         <xs:annotation>
             <xs:documentation>
                 A package represents a collection of files that are to be installed into
@@ -42,13 +44,13 @@
     <xs:complexType name="packageType">
 
             <xs:sequence>
-                <xs:element name="system-requirements" minOccurs="0" maxOccurs="1" type="jboss:system-requirementsType"/>
-                <xs:element name="file" minOccurs="0" maxOccurs="unbounded" type="jboss:fileType"/>
-                <xs:element name="dependencies" minOccurs="0" maxOccurs="1" type="jboss:dependenciesType"/>
-                <xs:element name="pre-install" minOccurs="0" maxOccurs="1" type="jboss:pre-installType"/>
-                <xs:element name="post-install" minOccurs="0" maxOccurs="1" type="jboss:post-installType"/>
-                <xs:element name="pre-uninstall" minOccurs="0" maxOccurs="1" type="jboss:pre-uninstallType"/>
-                <xs:element name="post-uninstall" minOccurs="0" maxOccurs="1" type="jboss:post-uninstallType"/>
+                <xs:element name="system-requirements" minOccurs="0" maxOccurs="1" type="package:system-requirementsType"/>
+                <xs:element name="file" minOccurs="0" maxOccurs="unbounded" type="package:fileType"/>
+                <xs:element name="dependencies" minOccurs="0" maxOccurs="1" type="package:dependenciesType"/>
+                <xs:element name="pre-install" minOccurs="0" maxOccurs="1" type="package:pre-installType"/>
+                <xs:element name="post-install" minOccurs="0" maxOccurs="1" type="package:post-installType"/>
+                <xs:element name="pre-uninstall" minOccurs="0" maxOccurs="1" type="package:pre-uninstallType"/>
+                <xs:element name="post-uninstall" minOccurs="0" maxOccurs="1" type="package:post-uninstallType"/>
             </xs:sequence>
             <xs:attribute name="name" use="required" type="xs:string"/>
             <xs:attribute name="version" use="required" type="xs:string"/>
@@ -95,8 +97,8 @@
             </xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="packaged-dependency" minOccurs="0" maxOccurs="unbounded" type="jboss:packaged-dependencyType"/>
-            <xs:element name="unprocessed-dependencies" minOccurs="0" maxOccurs="1" type="jboss:unprocessed-dependenciesType"/>
+            <xs:element name="packaged-dependency" minOccurs="0" maxOccurs="unbounded" type="package:packaged-dependencyType"/>
+            <xs:element name="unprocessed-dependencies" minOccurs="0" maxOccurs="1" type="package:unprocessed-dependenciesType"/>
         </xs:sequence>
         
 
@@ -115,7 +117,7 @@
 
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>    
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="package:scriptType"/>    
         </xs:sequence>
 
     </xs:complexType>
@@ -131,7 +133,7 @@
 
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="package:scriptType"/>
         </xs:sequence>
     </xs:complexType>
 
@@ -146,7 +148,7 @@
 
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="package:scriptType"/>
         </xs:sequence>
 
     </xs:complexType>
@@ -162,7 +164,7 @@
 
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="jboss:scriptType"/>
+            <xs:element name="script" minOccurs="1" maxOccurs="unbounded" type="package:scriptType"/>
         </xs:sequence>
     </xs:complexType>
 

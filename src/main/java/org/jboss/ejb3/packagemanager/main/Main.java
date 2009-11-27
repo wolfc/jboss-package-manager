@@ -30,6 +30,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.jboss.ejb3.packagemanager.Constants;
 import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.PackageManagerFactory;
@@ -40,7 +41,6 @@ import org.jboss.logging.Logger;
 /**
  * Main
  * 
- * TODO: Command line parsing is WIP.
  * 
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -66,7 +66,6 @@ public class Main
    public static void main(String[] args) throws PackageManagerException
    {
       CmdLineParser cmdLineParser = new CmdLineParser();
-      CmdLineParser.Option setupCmdOption = cmdLineParser.addStringOption("setup");
       CmdLineParser.Option installCmdOption = cmdLineParser.addStringOption('i', "install");
       CmdLineParser.Option upgradeCmdOption = cmdLineParser.addStringOption('u', "upgrade");
       CmdLineParser.Option removeCmdOption = cmdLineParser.addStringOption('r', "remove");
@@ -85,7 +84,24 @@ public class Main
          throw new PackageManagerException(e.getMessage());
       }
       File currentDir = new File(".");
-      String packageManagerHome = (String) cmdLineParser.getOptionValue(packageManagerHomeCmdOption,currentDir.getAbsolutePath());
+      // Get the package manager home from system property. If not set, then defaults to
+      // current directory
+      String packageManagerHomeEnvVariableValue = System.getProperty(Constants.PACKAGE_MANAGER_HOME_SYSTEM_PROPERTY, currentDir.getAbsolutePath());
+      // Override the package manager home if it's explicitly passed through the -p option
+      String packageManagerHome = (String) cmdLineParser.getOptionValue(packageManagerHomeCmdOption,packageManagerHomeEnvVariableValue);
+      if (packageManagerHome == null)
+      {
+         throw new PackageManagerException("Package manager home has not been set");
+      }
+     
+      File pmHome = new File(packageManagerHome);
+      if (!pmHome.exists())
+      {
+         throw new PackageManagerException("Package manager home " + pmHome + " does not exist!");
+      }
+      logger.info("Using Package Manager Home: " + packageManagerHome);
+      PackageManagerEnvironment env = new PackageManagerEnvironment(packageManagerHome);
+      // Check for JBOSS_HOME
       String jbossHome = (String) cmdLineParser.getOptionValue(jbossHomeCmdOption);
       if (packageManagerHome == null)
       {
@@ -95,66 +111,17 @@ public class Main
       {
          throw new PackageManagerException("JBoss Home has not been set");
       }
-
-      File pmHome = new File(packageManagerHome);
-      if (!pmHome.exists())
-      {
-         throw new PackageManagerException("Package manager home " + pmHome + " does not exist!");
-      }
-
       File jbHome = new File(jbossHome);
       if (!jbHome.exists())
       {
          throw new PackageManagerException("JBoss home " + jbHome + " does not exist!");
       }
-      logger.info("Using Package Manager Home: " + packageManagerHome);
       logger.info("Using JBoss Home: " + jbossHome);
-      PackageManagerEnvironment env = new PackageManagerEnvironment(packageManagerHome);
+      
+      // Create a package manager now
       PackageManager pm = PackageManagerFactory.getDefaultPackageManager(env, jbossHome);
 
-      String schemaSetupScript = (String) cmdLineParser.getOptionValue(setupCmdOption);
-      if (schemaSetupScript != null)
-      {
-         File schemaFile = new File(schemaSetupScript);
-         if (!schemaFile.exists())
-         {
-            throw new PackageManagerException(
-                  "Could not setup the database for package manager, because of non-existent schema file "
-                        + schemaSetupScript);
-         }
-         Connection conn = null;
-         try
-         {
-            conn = DriverManager.getConnection("jdbc:derby:pmdb;create=true");
-            DBUtil.runSql(conn, schemaFile);
-            logger.info("Successfully setup the package manager database");
-         }
-         catch (SQLException sqle)
-         {
-            throw new PackageManagerException("Could not setup package manager database: ", sqle);
-         }
-         catch (IOException ioe)
-         {
-            throw new PackageManagerException("Could not setup package manager database: ", ioe);
-         }
-         finally
-         {
-            if (conn != null)
-            {
-               try
-               {
-                  conn.close();
-               }
-               catch (SQLException sqle)
-               {
-                  // can't do much
-                  logger.trace("Could not close connection:",sqle);
-               }
-            }
-         }
-
-      }
-
+      // Parse the options from the command line and do appropriate action(s) 
       Boolean query = (Boolean) cmdLineParser.getOptionValue(queryCmdOption, Boolean.FALSE);
       String packageToInstall = (String) cmdLineParser.getOptionValue(installCmdOption);
       String packageToUpgrade = (String) cmdLineParser.getOptionValue(upgradeCmdOption);

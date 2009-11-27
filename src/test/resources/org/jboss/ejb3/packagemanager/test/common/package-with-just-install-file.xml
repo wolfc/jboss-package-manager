@@ -1,8 +1,7 @@
-<sh:package name="${package.name}" version="${package.version}"
-xmlns:sh="http://www.jboss.org/schema">
+<package name="${package.name}" version="${package.version}" xmlns="org/jboss/packagemanager/package">
 
     <!--  Package to install a dummy jar into JBOSS_AS/common/lib -->  
   <file name="dummy.jar" dest-path="common/lib" type="library"/>
   
   
-</sh:package>
+</package>
