@@ -1,10 +1,24 @@
 <ivysettings>
   <settings defaultResolver="defaultRepoChain"/>
+  <caches artifactPattern="[organisation]/[module]/[type]s/[artifact]-[revision](-[classifier]).[ext]" 
+        checkUpToDate="true"/>
+  
   <resolvers>
+  
+    <ibiblio name="ibiblio" m2compatible="true"  
+        pattern="[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]" checkmodified="true"/>
+        
+    <ibiblio name="jboss-snap-m2-repo" root="http://snapshots.jboss.org/maven2/" m2compatible="true" 
+                pattern="[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]" checkmodified="true" 
+                changingPattern=".*-SNAPSHOT"/>
+    
+    <ibiblio name="jboss-m2-repo" root="http://repository.jboss.org/maven2/" m2compatible="true" 
+                pattern="[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]" checkmodified="true"/>        
+  
     <chain name="defaultRepoChain">
-        <ibiblio name="jboss-snap-m2-repo" root="http://snapshots.jboss.org/maven2/" m2compatible="true" />
-        <ibiblio name="jboss-m2-repo" root="http://repository.jboss.org/maven2/" m2compatible="true" />
-        <ibiblio name="ibiblio" m2compatible="true" />
+        <resolver ref="jboss-snap-m2-repo"/>
+        <resolver ref="jboss-m2-repo"/>
+        <resolver ref="ibiblio"/>
     </chain>
   </resolvers>
 </ivysettings>

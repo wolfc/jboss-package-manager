@@ -128,12 +128,12 @@ public class IvyDependencyManager implements DependencyManager
          ModuleRevisionId mRID = md.getModuleRevisionId();
          RetrieveOptions retrieveOptions = new RetrieveOptions();
 
-         String pattern = pkgTmpDir.getAbsolutePath() + "/[organization]/[module]/[type]/[artifact]-[revision].[ext]";
+         String pattern = pkgTmpDir.getAbsolutePath() + "/[organization]/[module]/[type]/[artifact]-[revision](-[classifier]).[ext]";
          retrieveOptions.setDestIvyPattern(pattern);
          // We only retrieve "jar" type artifacts (i.e. we are *not* interested in "source"
          // or "javadoc" or any other artifact types
-         Filter jarArtifactFilter = FilterHelper.getArtifactTypeFilter("jar");
-         retrieveOptions.setArtifactFilter(jarArtifactFilter);
+         //Filter jarArtifactFilter = FilterHelper.getArtifactTypeFilter(new String[]{"jar", "package"});
+         //retrieveOptions.setArtifactFilter(jarArtifactFilter);
 
          // default logging option
          retrieveOptions.setLog(LogOptions.LOG_DEFAULT);

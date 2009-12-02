@@ -60,12 +60,7 @@ public class AntScriptProcessor implements ScriptProcessor
    public void processPostInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script)
          throws ScriptProcessingException
    {
-      // Set the properties JBOSS_HOME and PM_HOME for the 
-      // build scripts to use (if they find it necessary)
-      Map<String, String> props = new HashMap<String, String>();
-      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
-      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
-      Project antProject = this.buildProject(script, pkgCtx.getPackageRoot(), props);
+      Project antProject = this.buildProject(script, pkgCtx.getPackageRoot(), this.getCommonAntProjectProperties(pkgManagerCtx));
       this.runTarget(antProject, "post-install");
       
    }
@@ -77,15 +72,9 @@ public class AntScriptProcessor implements ScriptProcessor
    public void processPostUnInstallScript(PackageManagerContext pkgManagerCtx, PersistentPackage installedPackage, File script)
          throws ScriptProcessingException
    {
-      // Set the properties JBOSS_HOME and PM_HOME for the 
-      // build scripts to use (if they find it necessary)
-      Map<String, String> props = new HashMap<String, String>();
-      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
-      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
-      
       // TODO: What should basedir point to? Let's right now point it to the folder containing the
       // script file
-      Project antProject = this.buildProject(script, script.getParentFile(), props);
+      Project antProject = this.buildProject(script, script.getParentFile(), this.getCommonAntProjectProperties(pkgManagerCtx));
       this.runTarget(antProject, "post-uninstall");
 
    }
@@ -97,12 +86,7 @@ public class AntScriptProcessor implements ScriptProcessor
    public void processPreInstallScript(PackageManagerContext pkgManagerCtx, PackageContext pkgCtx, File script)
          throws ScriptProcessingException
    {
-      // Set the properties JBOSS_HOME and PM_HOME for the 
-      // build scripts to use (if they find it necessary)
-      Map<String, String> props = new HashMap<String, String>();
-      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
-      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
-      Project antProject = this.buildProject(script, pkgCtx.getPackageRoot(), props);
+      Project antProject = this.buildProject(script, pkgCtx.getPackageRoot(), this.getCommonAntProjectProperties(pkgManagerCtx));
       this.runTarget(antProject, "pre-install");
 
    }
@@ -114,15 +98,9 @@ public class AntScriptProcessor implements ScriptProcessor
    public void processPreUnInstallScript(PackageManagerContext pkgManagerCtx, PersistentPackage installedPackage, File script)
          throws ScriptProcessingException
    {
-      // Set the properties JBOSS_HOME and PM_HOME for the 
-      // build scripts to use (if they find it necessary)
-      Map<String, String> props = new HashMap<String, String>();
-      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
-      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
-      
       // TODO: What should basedir point to? Let's right now point it to the folder containing the
       // script file
-      Project antProject = this.buildProject(script, script.getParentFile(), props);
+      Project antProject = this.buildProject(script, script.getParentFile(), this.getCommonAntProjectProperties(pkgManagerCtx));
       this.runTarget(antProject, "pre-uninstall");
 
 
@@ -139,7 +117,6 @@ public class AntScriptProcessor implements ScriptProcessor
       antProject.addBuildListener(new AntBuildListener());
       // Set the basedir for the ant project  
       antProject.setBaseDir(baseDir);
-      
       if (antProperties != null)
       {
          Set<Entry<String, String>> entries = antProperties.entrySet();
@@ -151,19 +128,25 @@ public class AntScriptProcessor implements ScriptProcessor
          }
 
       }
-      //      antProject.setProperty("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
-      //      antProject.setProperty("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome()
-      //            .getAbsolutePath());
       // init the project
       antProject.init();
 
       ProjectHelper antProjHelper = ProjectHelper.getProjectHelper();
       // parse the project from the build file
       antProjHelper.parse(antProject, scriptFile);
-
       return antProject;
    }
 
+   private Map<String, String> getCommonAntProjectProperties(PackageManagerContext pkgManagerCtx)
+   {
+      // Set the properties JBOSS_HOME and PM_HOME for the 
+      // build scripts to use (if they find it necessary)
+      Map<String, String> props = new HashMap<String, String>();
+      props.put("JBOSS_HOME", pkgManagerCtx.getJBossServerHome());
+      props.put("PM_HOME", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerHome().getAbsolutePath());
+      props.put("PM_TMP_DIR", pkgManagerCtx.getPackageManagerEnvironment().getPackageManagerTmpDir().getAbsolutePath());
+      return props;
+   }
    private void runTarget(Project antProject, String targetName) throws ScriptProcessingException
    {
       // check whether the target exists in the build file
