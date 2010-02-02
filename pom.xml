@@ -4,6 +4,13 @@
   <!-- POM Model Version -->
   <modelVersion>4.0.0</modelVersion>
   
+  <!-- Parent -->
+  <parent>
+	  <groupId>org.jboss</groupId>
+	  <artifactId>jboss-parent</artifactId>
+	  <version>4</version>
+  </parent>
+  
   <!-- Artifact Information -->
   <groupId>org.jboss.ejb3</groupId>
   <artifactId>jboss-ejb3-package-manager</artifactId>
