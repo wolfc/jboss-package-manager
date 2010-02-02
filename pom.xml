@@ -9,7 +9,7 @@
   <artifactId>jboss-ejb3-package-manager</artifactId>
   <packaging>jar</packaging>
   <name>JBoss EJB3 Package Manager</name>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0-alpha-1</version>
   <description>Package manager for JBoss EJB3 package installations into JBoss AS</description>
   <repositories>
         <repository>
@@ -20,6 +20,12 @@
         </repository>
     </repositories>
     
+    <!-- SCM -->
+    <scm>
+	    <connection>scm:svn:http://anonsvn.jboss.org/repos/jbossas/projects/ejb3/tags/jboss-ejb3-package-manager-1.0.0-alpha-1</connection>
+	    <developerConnection>scm:svn:https://svn.jboss.org/repos/jbossas/projects/ejb3/tags/jboss-ejb3-package-manager-1.0.0-alpha-1</developerConnection>
+	    <url>http://anonsvn.jboss.org/repos/jbossas/projects/ejb3/tags/jboss-ejb3-package-manager-1.0.0-alpha-1</url>
+    </scm>
     
     <build>
         <plugins>
