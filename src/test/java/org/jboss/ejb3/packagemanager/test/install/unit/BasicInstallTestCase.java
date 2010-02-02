@@ -30,6 +30,7 @@ import org.jboss.ejb3.packagemanager.PackageManagerFactory;
 import org.jboss.ejb3.packagemanager.test.common.PackageManagerTestCase;
 import org.jboss.logging.Logger;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -159,6 +160,7 @@ public class BasicInstallTestCase extends PackageManagerTestCase
     * @throws Exception
     */
    @Test
+   @Ignore ("Temporarily disabled because this test requires a package to be available online and uses HTTP request to download it")
    public void testHttpPackageInstall() throws Exception
    {
       // TODO: See javadocs of this test. This URL will change in near future

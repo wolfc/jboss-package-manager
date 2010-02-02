@@ -19,27 +19,40 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager;
-
-import org.jboss.ejb3.packagemanager.impl.TransactionalPackageManager;
+package org.jboss.ejb3.packagemanager.option;
 
 /**
- * PackageManagerFactory
+ * DefaultUpgradeOptions
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageManagerFactory
+public class DefaultUpgradeOptions implements UpgradeOptions
 {
 
-   public static PackageManager getDefaultPackageManager(PackageManagerEnvironment packageManagerEnv, String jbossHome)
+   private boolean forceUpgrade;
+   
+   public DefaultUpgradeOptions()
    {
-      return getTransactionalPackageManager(packageManagerEnv, jbossHome);
+      this.forceUpgrade = true;
+   }
+   
+   /**
+    * @see org.jboss.ejb3.packagemanager.option.UpgradeOptions#isForceUpgrade()
+    */
+   @Override
+   public boolean isForceUpgrade()
+   {
+      return this.forceUpgrade;
    }
 
-   public static PackageManager getTransactionalPackageManager(PackageManagerEnvironment packageManagerEnv,
-         String jbossHome)
+   /**
+    * @see org.jboss.ejb3.packagemanager.option.UpgradeOptions#setForcedUpgrade(boolean)
+    */
+   @Override
+   public void setForcedUpgrade(boolean force)
    {
-      return TransactionalPackageManager.createNewInstance(packageManagerEnv, jbossHome);
+      this.forceUpgrade = force;  
    }
+
 }

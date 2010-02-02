@@ -38,12 +38,12 @@ import org.jboss.ejb3.packagemanager.annotation.TransactionAttributeType;
 import org.jboss.logging.Logger;
 
 /**
- * PackageManagerInvocationHandler
+ * TransactionalPackageManagerInvocationHandler
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageManagerInvocationHandler implements InvocationHandler
+public class TransactionalPackageManagerInvocationHandler implements InvocationHandler
 {
 
    /**
@@ -54,13 +54,13 @@ public class PackageManagerInvocationHandler implements InvocationHandler
    /**
     * Logger
     */
-   private static Logger logger = Logger.getLogger(PackageManagerInvocationHandler.class);
+   private static Logger logger = Logger.getLogger(TransactionalPackageManagerInvocationHandler.class);
 
    /**
     * Constructs an invocation handler for a package manager
     * @param packageManager
     */
-   public PackageManagerInvocationHandler(PackageManager packageManager)
+   public TransactionalPackageManagerInvocationHandler(PackageManager packageManager)
    {
       this.packageManager = packageManager;
    }

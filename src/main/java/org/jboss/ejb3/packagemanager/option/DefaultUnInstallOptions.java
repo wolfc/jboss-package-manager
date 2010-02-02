@@ -19,27 +19,40 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager;
-
-import org.jboss.ejb3.packagemanager.impl.TransactionalPackageManager;
+package org.jboss.ejb3.packagemanager.option;
 
 /**
- * PackageManagerFactory
+ * DefaultUnInstallOptions
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageManagerFactory
+public class DefaultUnInstallOptions implements UnInstallOptions
 {
 
-   public static PackageManager getDefaultPackageManager(PackageManagerEnvironment packageManagerEnv, String jbossHome)
+   private boolean forceUnInstall;
+   
+   public DefaultUnInstallOptions()
    {
-      return getTransactionalPackageManager(packageManagerEnv, jbossHome);
+      this.forceUnInstall = false;
+   }
+   
+   /**
+    * @see org.jboss.ejb3.packagemanager.option.UnInstallOptions#isForceUnInstall()
+    */
+   @Override
+   public boolean isForceUnInstall()
+   {
+      return this.forceUnInstall;
    }
 
-   public static PackageManager getTransactionalPackageManager(PackageManagerEnvironment packageManagerEnv,
-         String jbossHome)
+   /**
+    * @see org.jboss.ejb3.packagemanager.option.UnInstallOptions#setForcedUnInstall(boolean)
+    */
+   @Override
+   public void setForcedUnInstall(boolean force)
    {
-      return TransactionalPackageManager.createNewInstance(packageManagerEnv, jbossHome);
+      this.forceUnInstall = force;
    }
+
 }

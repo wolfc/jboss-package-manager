@@ -162,11 +162,8 @@ public class UpgradeUnitTestCase extends PackageManagerTestCase
       this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/lib/dummy.jar");
       this.assertFileExistenceUnderJBossHome(jbossHome, "common/lib/dummy.jar");
       
-      // now upgrade. Note that even though we are upgrading to a different
-      // package contents, this upgrade will be skipped and the contents installed
-      // previously by this package will stay.
-      File simplePackage = this.createSimplePackage("upgrade-to-same-version", "1.0.0-beta-1");
-      this.pkgMgr.updatePackage(simplePackage.getAbsolutePath());
+      // now upgrade to same version.
+      this.pkgMgr.updatePackage(simplePackageWithDependency.getAbsolutePath());
       
       // ensure that the upgrade did not result in loss of installed files
       this.assertFileExistenceUnderJBossHome(jbossHome, "server/default/lib/dummy.jar");

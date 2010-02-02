@@ -19,27 +19,15 @@
 * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
 */
-package org.jboss.ejb3.packagemanager;
-
-import org.jboss.ejb3.packagemanager.impl.TransactionalPackageManager;
+package org.jboss.ejb3.packagemanager.option;
 
 /**
- * PackageManagerFactory
+ * PackageManagerOptions
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class PackageManagerFactory
+public interface PackageManagerOptions
 {
 
-   public static PackageManager getDefaultPackageManager(PackageManagerEnvironment packageManagerEnv, String jbossHome)
-   {
-      return getTransactionalPackageManager(packageManagerEnv, jbossHome);
-   }
-
-   public static PackageManager getTransactionalPackageManager(PackageManagerEnvironment packageManagerEnv,
-         String jbossHome)
-   {
-      return TransactionalPackageManager.createNewInstance(packageManagerEnv, jbossHome);
-   }
 }

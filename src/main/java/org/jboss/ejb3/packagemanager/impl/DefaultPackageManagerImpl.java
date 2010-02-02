@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Set;
 
-import javax.transaction.Synchronization;
 import javax.transaction.TransactionManager;
 
 import org.jboss.ejb3.packagemanager.PackageContext;
@@ -36,8 +35,6 @@ import org.jboss.ejb3.packagemanager.PackageManager;
 import org.jboss.ejb3.packagemanager.PackageManagerContext;
 import org.jboss.ejb3.packagemanager.PackageManagerEnvironment;
 import org.jboss.ejb3.packagemanager.PackageVersionComparator;
-import org.jboss.ejb3.packagemanager.annotation.TransactionAttribute;
-import org.jboss.ejb3.packagemanager.annotation.TransactionAttributeType;
 import org.jboss.ejb3.packagemanager.db.DefaultDatabaseManager;
 import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
 import org.jboss.ejb3.packagemanager.entity.PersistentFile;
@@ -52,9 +49,14 @@ import org.jboss.ejb3.packagemanager.metadata.InstallFileType;
 import org.jboss.ejb3.packagemanager.metadata.PackagedDependency;
 import org.jboss.ejb3.packagemanager.metadata.ScriptType;
 import org.jboss.ejb3.packagemanager.metadata.UnProcessedDependenciesType;
+import org.jboss.ejb3.packagemanager.option.DefaultInstallOptions;
+import org.jboss.ejb3.packagemanager.option.DefaultUnInstallOptions;
+import org.jboss.ejb3.packagemanager.option.DefaultUpgradeOptions;
+import org.jboss.ejb3.packagemanager.option.InstallOptions;
+import org.jboss.ejb3.packagemanager.option.UnInstallOptions;
+import org.jboss.ejb3.packagemanager.option.UpgradeOptions;
 import org.jboss.ejb3.packagemanager.script.ScriptProcessor;
 import org.jboss.ejb3.packagemanager.script.impl.AntScriptProcessor;
-import org.jboss.ejb3.packagemanager.tx.TransactionManagerImpl;
 import org.jboss.ejb3.packagemanager.util.IOUtil;
 import org.jboss.logging.Logger;
 
@@ -64,7 +66,7 @@ import org.jboss.logging.Logger;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class DefaultPackageManagerImpl implements PackageManager, Synchronization
+public class DefaultPackageManagerImpl implements PackageManager
 {
 
    /**
@@ -94,11 +96,6 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
    private PackageDatabaseManager pkgDatabaseManager;
 
    /**
-    * Transaction manager
-    */
-   private TransactionManager transactionManager;
-
-   /**
     * Creates the default package manager for a server 
     * 
     * @param environment The package manager environment
@@ -109,7 +106,6 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       this.environment = environment;
       this.installationServerHome = jbossHome;
       this.pkgMgrCtx = new DefaultPackageManagerContext(this);
-      this.transactionManager = TransactionManagerImpl.getInstance();
       this.pkgDatabaseManager = new DefaultDatabaseManager(this.pkgMgrCtx);
    }
 
@@ -146,8 +142,30 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
     * @see org.jboss.ejb3.packagemanager.PackageManager#installPackage(java.lang.String)
     */
    @Override
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void installPackage(String pkgPath) throws PackageManagerException
+   {
+     this.installPackage(pkgPath, new DefaultInstallOptions());
+   }
+
+   /**
+    * Installs the package from the {@code packageURL}
+    * 
+    * @param packageURL The URL to the package that is to be installed
+    * @throws PackageManagerException If any exceptions occur during installation of the package
+    * @see org.jboss.ejb3.packagemanager.PackageManager#installPackage(URL)
+    * 
+    */
+   @Override
+   public void installPackage(URL packageURL) throws PackageManagerException
+   {
+      this.installPackage(packageURL, new DefaultInstallOptions());
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#installPackage(java.lang.String, org.jboss.ejb3.packagemanager.option.InstallOptions)
+    */
+   @Override
+   public void installPackage(String pkgPath, InstallOptions installOptions) throws PackageManagerException
    {
       if (pkgPath == null)
       {
@@ -162,20 +180,15 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       {
          throw new PackageManagerException("Cannot parse path " + pkgPath, mue);
       }
-      this.installPackage(packageURL);
+      this.installPackage(packageURL, installOptions);
+      
    }
-
+   
    /**
-    * Installs the package from the {@code packageURL}
-    * 
-    * @param packageURL The URL to the package that is to be installed
-    * @throws PackageManagerException If any exceptions occur during installation of the package
-    * @see org.jboss.ejb3.packagemanager.PackageManager#installPackage(URL)
-    * 
+    * @see org.jboss.ejb3.packagemanager.PackageManager#installPackage(java.net.URL, org.jboss.ejb3.packagemanager.option.InstallOptions)
     */
    @Override
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-   public void installPackage(URL packageURL) throws PackageManagerException
+   public void installPackage(URL packageURL, InstallOptions installOptions) throws PackageManagerException
    {
       if (packageURL == null)
       {
@@ -184,17 +197,16 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
 
       // create a package context
       PackageContext pkgCtx = new DefaultPackageContext(this.pkgMgrCtx, packageURL);
-      this.installPackage(pkgCtx);
-
+      this.installPackage(pkgCtx, installOptions);
+      
    }
-
+   
    /**
     * 
     * @param pkgContext
     * @throws PackageManagerException
     */
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-   public void installPackage(PackageContext pkgContext) throws PackageManagerException
+   protected void installPackage(PackageContext pkgContext, InstallOptions installOptions) throws PackageManagerException
    {
       if (pkgContext == null)
       {
@@ -241,8 +253,17 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
     * @see org.jboss.ejb3.packagemanager.PackageManager#removePackage(java.lang.String)
     */
    @Override
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException
+   {
+      this.removePackage(packageName, new DefaultUnInstallOptions());
+   }
+
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#removePackage(java.lang.String, org.jboss.ejb3.packagemanager.option.UnInstallOptions)
+    */
+   @Override
+   public void removePackage(String packageName, UnInstallOptions uninstallOptions)
+         throws PackageNotInstalledException, PackageManagerException
    {
       // get the installed package
       boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
@@ -252,15 +273,7 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       }
       PersistentPackage installedPackage = this.pkgDatabaseManager.getInstalledPackage(packageName);
 
-      this.removePackage(installedPackage, false);
-
-   }
-
-   protected void removePackage(PersistentPackage installedPackage, boolean forceRemove)
-         throws PackageNotInstalledException, PackageManagerException
-   {
-      String packageName = installedPackage.getPackageName();
-      if (!forceRemove)
+      if (!uninstallOptions.isForceUnInstall())
       {
          // check if other packages are dependent on this package
          // If yes, then do NOT remove this package. Else remove this package
@@ -284,14 +297,29 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       this.postUnInstallPackage(installedPackage);
       this.pkgDatabaseManager.removePackage(installedPackage);
       logger.info("Uninstalled " + packageName);
+      
    }
-
+   
    /**
     * @see org.jboss.ejb3.packagemanager.PackageManager#updatePackage(java.lang.String)
     */
    @Override
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
    public void updatePackage(String packageFilePath) throws PackageManagerException
+   {
+      this.updatePackage(packageFilePath, new DefaultUpgradeOptions());
+   }
+
+   @Override
+   public void updatePackage(URL packageURL) throws PackageManagerException
+   {
+      this.updatePackage(packageURL, new DefaultUpgradeOptions());
+   }
+   
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#updatePackage(java.lang.String, org.jboss.ejb3.packagemanager.option.UpgradeOptions)
+    */
+   @Override
+   public void updatePackage(String packageFilePath, UpgradeOptions upgradeOptions) throws PackageManagerException
    {
       if (packageFilePath == null)
       {
@@ -306,12 +334,15 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       {
          throw new PackageManagerException("Cannot parse path " + packageFilePath, mue);
       }
-      this.updatePackage(packageURL);
+      this.updatePackage(packageURL, upgradeOptions);
+      
    }
 
+   /**
+    * @see org.jboss.ejb3.packagemanager.PackageManager#updatePackage(java.net.URL, org.jboss.ejb3.packagemanager.option.UpgradeOptions)
+    */
    @Override
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-   public void updatePackage(URL packageURL) throws PackageManagerException
+   public void updatePackage(URL packageURL, UpgradeOptions upgradeOptions) throws PackageManagerException
    {
       if (packageURL == null)
       {
@@ -320,11 +351,10 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
 
       // create a package context
       PackageContext pkgCtx = new DefaultPackageContext(this.pkgMgrCtx, packageURL);
-      this.updatePackage(pkgCtx);
+      this.updatePackage(pkgCtx, upgradeOptions);      
    }
-
-   @TransactionAttribute(value = TransactionAttributeType.REQUIRED)
-   public void updatePackage(PackageContext pkgContext) throws PackageManagerException
+   
+   protected void updatePackage(PackageContext pkgContext, UpgradeOptions upgradeOptions) throws PackageManagerException
    {
       String packageName = pkgContext.getPackageName();
       boolean isPackageInstalled = this.pkgDatabaseManager.isPackageInstalled(packageName);
@@ -337,9 +367,12 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
          int versionComparison = comparator.compare(installedPackage.getPackageVersion(), pkgContext.getPackageVersion());
          if (versionComparison == 0)
          {
-            logger.info("Skipping package upgrade, since package with name " + packageName + " and version "
-                  + installedPackage.getPackageVersion() + " is already installed");
-            return;
+            if (!upgradeOptions.isForceUpgrade())
+            {
+               logger.info("Skipping package upgrade, since package with name " + packageName + " and version "
+                     + installedPackage.getPackageVersion() + " is already installed");
+               return;
+            }
          }
          else if (versionComparison > 0)
          {
@@ -351,10 +384,12 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
          // this is a newer version, so continue with upgrade   
          logger.info("Upgrading package " + packageName + " from installed version " + installedPackage.getPackageVersion()
                + " to new version " + pkgContext.getPackageVersion());
-         removePackage(installedPackage, true);
+         UnInstallOptions uninstallOptions = new DefaultUnInstallOptions();
+         uninstallOptions.setForcedUnInstall(true);
+         removePackage(packageName, uninstallOptions);
       }
       // now install new version
-      this.installPackage(pkgContext);
+      this.installPackage(pkgContext, new DefaultInstallOptions());
 
    }
 
@@ -364,7 +399,7 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
    @Override
    public TransactionManager getTransactionManager()
    {
-      return this.transactionManager;
+      return null;
    }
 
    /**
@@ -647,37 +682,11 @@ public class DefaultPackageManagerImpl implements PackageManager, Synchronizatio
       for (PackageContext dependencyPackage : dependencies)
       {
          logger.info("Installing dependency package : " + dependencyPackage + " for dependent package: " + pkgContext);
-         this.updatePackage(dependencyPackage);
+         this.updatePackage(dependencyPackage, new DefaultUpgradeOptions());
       }
    }
 
-   /**
-    * @see javax.transaction.Synchronization#afterCompletion(int)
-    */
-   @Override
-   public void afterCompletion(int status)
-   {
-      if (this.pkgDatabaseManager instanceof Synchronization)
-      {
-         Synchronization dbManager = (Synchronization) this.pkgDatabaseManager;
-         dbManager.afterCompletion(status);
-      }
-
-   }
-
-   /**
-    * @see javax.transaction.Synchronization#beforeCompletion()
-    */
-   @Override
-   public void beforeCompletion()
-   {
-      if (this.pkgDatabaseManager instanceof Synchronization)
-      {
-         Synchronization dbManager = (Synchronization) this.pkgDatabaseManager;
-         dbManager.beforeCompletion();
-      }
-
-   }
+   
 
    /**
     * @see org.jboss.ejb3.packagemanager.PackageManager#getAllInstalledPackages()

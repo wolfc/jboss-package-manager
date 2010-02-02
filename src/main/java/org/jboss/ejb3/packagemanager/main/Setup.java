@@ -63,6 +63,7 @@ public class Setup
    {
       CmdLineParser cmdLineParser = new CmdLineParser();
       CmdLineParser.Option schemaFileCmdOption = cmdLineParser.addStringOption('f', "file");
+      CmdLineParser.Option packageManagerHomeCmdOption = cmdLineParser.addStringOption('p', "pmhome");
       
       try
       {
@@ -74,10 +75,8 @@ public class Setup
          printUsage();
          throw new PackageManagerException(e.getMessage());
       }
-      File currentDir = new File(".");
-      // Get the package manager home from system property. If not set, then defaults to
-      // current directory
-      String packageManagerHome = System.getProperty(Constants.PACKAGE_MANAGER_HOME_SYSTEM_PROPERTY, currentDir.getAbsolutePath());
+      // get package manager home
+      String packageManagerHome = (String) cmdLineParser.getOptionValue(packageManagerHomeCmdOption);
       if (packageManagerHome == null)
       {
          throw new PackageManagerException("Package manager home has not been set");

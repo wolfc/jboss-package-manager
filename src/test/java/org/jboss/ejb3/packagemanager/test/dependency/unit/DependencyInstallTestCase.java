@@ -34,6 +34,7 @@ import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchiveFactory;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -131,6 +132,7 @@ public class DependencyInstallTestCase extends PackageManagerTestCase
     * @throws Exception
     */
    @Test
+   @Ignore ("Temporarily disabled because this test requires a package to be available online and uses HTTP request to download it")
    public void testPackageWithUnProcessedDependencies() throws Exception
    {
       File dummyJar = this.createDummyJar();

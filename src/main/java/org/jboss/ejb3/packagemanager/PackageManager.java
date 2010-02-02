@@ -29,6 +29,9 @@ import javax.transaction.TransactionManager;
 import org.jboss.ejb3.packagemanager.db.PackageDatabaseManager;
 import org.jboss.ejb3.packagemanager.exception.PackageManagerException;
 import org.jboss.ejb3.packagemanager.exception.PackageNotInstalledException;
+import org.jboss.ejb3.packagemanager.option.InstallOptions;
+import org.jboss.ejb3.packagemanager.option.UnInstallOptions;
+import org.jboss.ejb3.packagemanager.option.UpgradeOptions;
 
 /**
  * PackageManager
@@ -58,9 +61,27 @@ public interface PackageManager
    /**
     * Updates the package
     * 
+    * @param packagePath
+    * @param upgradeOptions
+    * @throws PackageManagerException
+    */
+   void updatePackage(String packagePath, UpgradeOptions upgradeOptions) throws PackageManagerException;
+   
+   /**
+    * Updates the package
+    * 
     * @param packageURL The URL of the package file
     */
    void updatePackage(URL packageURL) throws PackageManagerException;
+   
+   /**
+    * Updates the package
+    * 
+    * @param packageURL
+    * @param upgradeOptions
+    * @throws PackageManagerException
+    */
+   void updatePackage(URL packageURL, UpgradeOptions upgradeOptions) throws PackageManagerException;
    
    /**
     * Installs a package 
@@ -71,6 +92,15 @@ public interface PackageManager
    void installPackage(String packagePath) throws PackageManagerException;
    
    /**
+    * Installs a package
+    * 
+    * @param packagePath
+    * @param installOptions
+    * @throws PackageManagerException
+    */
+   void installPackage(String packagePath, InstallOptions installOptions) throws PackageManagerException;
+   
+   /**
     * Installs a package 
     * 
     * @param packageURL The URL of the package file
@@ -79,10 +109,29 @@ public interface PackageManager
    void installPackage(URL packageURL) throws PackageManagerException;
    
    /**
+    * Installs a package
+    * 
+    * @param packageURL
+    * @param installOptions
+    * @throws PackageManagerException
+    */
+   void installPackage(URL packageURL, InstallOptions installOptions) throws PackageManagerException;
+   
+   /**
     * Removes a package using the name of the package
     * @param packageName Name of the package to be uninstalled
     */
    void removePackage(String packageName) throws PackageNotInstalledException, PackageManagerException;
+   
+   /**
+    * Removes a package
+    * 
+    * @param packageName
+    * @param uninstallOptions
+    * @throws PackageNotInstalledException
+    * @throws PackageManagerException
+    */
+   void removePackage(String packageName, UnInstallOptions uninstallOptions) throws PackageNotInstalledException, PackageManagerException;
    
    /**
     * Returns the names of all installed packages. Returns an empty set if there 
